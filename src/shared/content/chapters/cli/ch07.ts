@@ -30,7 +30,7 @@ curl -i https://example.com/api/health
 
 # Send JSON and read the answer
 curl -fsS https://api.example.com/items \\
-  -H 'Authorization: Bearer \$API_TOKEN' \\
+  -H 'Authorization: Bearer $API_TOKEN' \\
   -H 'Content-Type: application/json' \\
   -d '{"name":"demo"}'
 
@@ -102,7 +102,7 @@ curl -s -o /dev/null -w '%{http_code} %{time_total}\\n' https://example.com`,
 
 # Create a key and load it into the agent
 ssh-keygen -t ed25519 -C 'deploy@prod'
-eval "\$(ssh-agent -s)"
+eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_ed25519
 
 # Use it
@@ -247,7 +247,7 @@ ssh -N -f -o ExitOnForwardFailure=yes -L 5432:db:5432 bastion`,
           [L('-L', '-L'), L('local port to a remote address', 'локальный порт к удалённому адресу'), L('a private database or service', 'приватная база или сервис')],
           [L('-R', '-R'), L('remote port back to your machine', 'удалённый порт обратно на вашу машину'), L('a dev server or a webhook', 'сервер разработки или вебхук')],
           [L('-D', '-D'), L('any connection through a SOCKS proxy', 'любое соединение через SOCKS-прокси'), L('reaching a private network', 'доступ в приватную сеть')],
-          [L('-W', '-W'), L('stdin and stdout to a remote host', 'stdin и stdout к удалённому хосту'), L('a jump host in the middle of a chain', 'хост-переход в середине цепочки')],
+          [L('-W', '-W'), L('stdin and stdout to a remote host', 'stdin и stdout к удалённому хосту'), L('a jump host in the middle of a chain', 'промежуточный хост в середине цепочки')],
         ],
       },
       callouts: [

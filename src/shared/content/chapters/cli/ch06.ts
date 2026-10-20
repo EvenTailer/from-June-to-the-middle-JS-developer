@@ -48,7 +48,7 @@ echo "got $# arguments, stamped $STAMP"`,
           [L('$var', '$var'), L('yes', 'да'), L('yes', 'да'), L('yes', 'да')],
           [L("'text'", "'текст'"), L('no', 'нет'), L('no', 'нет'), L('no', 'нет')],
           [L('"$@"', '"$@"'), L('yes', 'да'), L('one word per argument', 'по одному слову на аргумент'), L('no', 'нет')],
-          [L('\${var:-default}', '\${var:-default}'), L('yes, with a fallback', 'да, с запасным значением'), L('no', 'нет'), L('no', 'нет')],
+          [L('${var:-default}', '${var:-default}'), L('yes, with a fallback', 'да, с запасным значением'), L('no', 'нет'), L('no', 'нет')],
         ],
       },
       callouts: [

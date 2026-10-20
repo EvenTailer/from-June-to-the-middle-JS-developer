@@ -207,7 +207,7 @@ import { rootReducer } from './rootReducer';
 // The extension instruments the store on its own, but the switch is yours.
 export const store = configureStore({
   reducer: rootReducer,
-  devTools: process.env.NODE_ENV !== 'production',
+  devTools: import.meta.env.DEV,
 });
 
 // The same history without the extension, if you need it in a log.
@@ -379,19 +379,16 @@ assert(archived.entities.a.archived === true, 'the post must be archived');`,
         L('Build a fresh store per test, otherwise the state leaks.', 'Создавайте новое хранилище на каждый тест, иначе состояние утекает.'),
       ],
       code: `import { configureStore } from '@reduxjs/toolkit';
+import { rootReducer } from './rootReducer';
 import { postsApi } from './postsApi';
-import { postsReducer } from './postsSlice';
 import type { RootState } from './store';
 
 export function createTestStore(preloadedState?: Partial<RootState>) {
   return configureStore({
-    reducer: {
-      [postsApi.reducerPath]: postsApi.reducer,
-      posts: postsReducer,
-    },
+    reducer: rootReducer,
     preloadedState: preloadedState as RootState | undefined,
     middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware().add(postsApi.middleware),
+      getDefaultMiddleware().concat(postsApi.middleware),
   });
 }
 
@@ -466,10 +463,19 @@ store.dispatch(postsApi.util.resetApiState());`,
         L('Fetch a resource once and share the cache entry through tags.', 'Запрашивайте ресурс один раз и делитесь записью кэша через теги.'),
         L('Keep local UI state in the component when nothing else reads it.', 'Локальное состояние интерфейса оставляйте в компоненте, если его больше никто не читает.'),
       ],
-      code: `// Wrong: the same fact in two places, and a request per component.
-const [posts, setPosts] = useState<Post[]>([]);
-useEffect(() => { fetch('/api/posts').then(setPosts); }, []);
-const cachedPosts = useAppSelector((state) => state.posts.items);
+      code: `import { useEffect, useState } from 'react';
+import { useGetPostsQuery } from './postsApi';
+import { useAppSelector, selectVisiblePosts } from './store';
+import type { Post } from './types';
+
+// Wrong: the same fact in two places, and a request per component.
+const [localPosts, setLocalPosts] = useState<Post[]>([]);
+useEffect(() => {
+  fetch('/api/posts')
+    .then((response) => response.json())
+    .then(setLocalPosts);
+}, []);
+const cachedPosts = useAppSelector((state) => state.feed.items);
 
 // Right: one request, one cache entry, one projection for the screen.
 const { data: posts } = useGetPostsQuery();

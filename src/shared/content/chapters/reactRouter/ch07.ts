@@ -218,14 +218,11 @@ test('the loader ran once for the event page', async () => {
       {
         path: 'projects',
         handle: { label: 'Projects' },
-        children: [
-          { path: ':id', handle: { label: 'Project' }, loader: loadProject },
-        ],
+        children: [{ path: ':id', handle: { label: 'Project' }, loader: loadProject }],
       },
     ],
   },
 ];
-
 function Breadcrumbs() {
   const matches = useMatches();
   return (

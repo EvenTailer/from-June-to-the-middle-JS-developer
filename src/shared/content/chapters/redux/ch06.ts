@@ -95,29 +95,29 @@ updated.entities.b === posts.entities.b; // true`,
       seeAlso: [
         L('Section 6-2: the entity adapter API', 'Секция 6-2: API адаптера сущностей'),
         L('Section 6-5: deduplicating by id', 'Секция 6-5: дедупликация по id'),
-        L('Chapter 3: reading state with selectors', 'Глава 3: чтение состояния селекторами'),
+        L('Chapter 3: selectors and memoisation', 'Глава 3: селекторы и мемоизация'),
       ],
     },
     {
       id: 'redux-ch6-s2',
       title: L('The entity adapter API', 'API адаптера сущностей'),
       body: L(
-        'createEntityAdapter is a factory that takes the type of the entity and gives you three things: the shape of the state, a set of pure reducers that operate on that shape, and a factory of selectors that read it. The adapter knows nothing about your domain: it works with an id and an object, and the only decision you have to make is how to find the id of an entity.\n\nThe state it produces has two fields, ids and entities, and it has to come from getInitialState. The reducers are the whole API: addOne, addMany, setOne, setAll, setMany, updateOne, updateMany, upsertOne, upsertMany, removeOne, removeMany and removeAll. Every one of them is a pure function of the state and returns a new state, so they fit inside a case reducer without any ceremony.\n\nThe selectors come from getSelectors, which takes a function that picks the slice out of the root state. It returns selectAll, selectIds, selectEntities, selectTotal and selectById. They read the state without copying it, which matters because a selector that allocates a new array on every call defeats the memoisation of every component above it.\n\nTwo traps. An adapter only understands the state it created, so a hand-written initial state with a different shape fails at runtime with a confusing message. And the id has to be the identity of the entity: if two entities share an id, one of them silently disappears.',
-        'createEntityAdapter — это фабрика, которая принимает тип сущности и возвращает три вещи: форму состояния, набор чистых редьюсеров, работающих с этой формой, и фабрику селекторов, которые её читают. Адаптер ничего не знает о вашем домене: он работает с id и объектом, и единственное решение, которое нужно принять, — как найти id сущности.\n\nСостояние, которое он создаёт, состоит из двух полей, ids и entities, и обязано приходить из getInitialState. Редьюсеры — это весь API: addOne, addMany, setOne, setAll, setMany, updateOne, updateMany, upsertOne, upsertMany, removeOne, removeMany и removeAll. Каждый из них — чистая функция состояния, возвращающая новое состояние, поэтому они без всяких церемоний помещаются в case-редьюсер.\n\nСелекторы приходят из getSelectors, которому передаётся функция, достающая слайс из корневого состояния. Она возвращает selectAll, selectIds, selectEntities, selectTotal и selectById. Они читают состояние, ничего не копируя, и это важно: селектор, создающий новый массив при каждом вызове, обнуляет мемоизацию всех компонентов над ним.\n\nДве ловушки. Адаптер понимает только то состояние, которое создал сам, поэтому рукописное начальное состояние другой формы падает во время выполнения с запутанным сообщением. И id обязан быть идентичностью сущности: если у двух сущностей один id, одна из них молча исчезает.'
+        'createEntityAdapter is a factory that takes the type of the entity and gives you three things: the shape of the state, a set of pure reducers that operate on that shape, and a factory of selectors that read it. The adapter knows nothing about your domain: it works with an id and an object. The id comes from the id field of the entity, and when the field is called something else you name the type of the id as well and point the adapter at it with selectId.\n\nThe state it produces has two fields, ids and entities, and it has to come from getInitialState. The reducers are the whole API: addOne, addMany, setOne, setAll, setMany, updateOne, updateMany, upsertOne, upsertMany, removeOne, removeMany and removeAll. Every one of them is a pure function of the state and returns a new state, so they fit inside a case reducer without any ceremony.\n\nThe selectors come from getSelectors, which takes a function that picks the slice out of the root state. It returns selectAll, selectIds, selectEntities, selectTotal and selectById. They read the state without copying it, which matters because a selector that allocates a new array on every call defeats the memoisation of every component above it.\n\nTwo traps. An adapter only understands the state it created, so a hand-written initial state with a different shape fails at runtime with a confusing message. And the id has to be the identity of the entity: if two entities share an id, one of them silently disappears.',
+        'createEntityAdapter — это фабрика, которая принимает тип сущности и возвращает три вещи: форму состояния, набор чистых редьюсеров, работающих с этой формой, и фабрику селекторов, которые её читают. Адаптер ничего не знает о вашем домене: он работает с id и объектом. Id берётся из поля id сущности, а если поле называется иначе, тип id надо назвать явно и указать адаптеру через selectId.\n\nСостояние, которое он создаёт, состоит из двух полей, ids и entities, и обязано приходить из getInitialState. Редьюсеры — это весь API: addOne, addMany, setOne, setAll, setMany, updateOne, updateMany, upsertOne, upsertMany, removeOne, removeMany и removeAll. Каждый из них — чистая функция состояния, возвращающая новое состояние, поэтому они без всяких церемоний помещаются в case-редьюсер.\n\nСелекторы приходят из getSelectors, которому передаётся функция, достающая слайс из корневого состояния. Она возвращает selectAll, selectIds, selectEntities, selectTotal и selectById. Они читают состояние, ничего не копируя, и это важно: селектор, создающий новый массив при каждом вызове, обнуляет мемоизацию всех компонентов над ним.\n\nДве ловушки. Адаптер понимает только то состояние, которое создал сам, поэтому рукописное начальное состояние другой формы падает во время выполнения с запутанным сообщением. И id обязан быть идентичностью сущности: если у двух сущностей один id, одна из них молча исчезает.'
       ),
       bullets: [
         L('createEntityAdapter returns the state shape, the reducers and a selector factory.', 'createEntityAdapter возвращает форму состояния, редьюсеры и фабрику селекторов.'),
         L('The state must come from getInitialState.', 'Состояние должно приходить из getInitialState.'),
         L('updateOne takes { id, changes } and returns a new state.', 'updateOne принимает { id, changes } и возвращает новое состояние.'),
         L('getSelectors returns selectAll, selectIds, selectEntities, selectTotal and selectById.', 'getSelectors возвращает selectAll, selectIds, selectEntities, selectTotal и selectById.'),
-        L('selectId decides the identity, so it has to be unique and stable.', 'selectId определяет идентичность, поэтому он должен быть уникальным и стабильным.'),
+        L('selectId decides the identity, so it has to be unique and stable.', 'Id берётся из поля id, а selectId нужен только для другого имени поля.'),
       ],
       code: `import { createEntityAdapter, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 export interface Post { id: string; title: string; archived?: boolean }
 
+// The id comes from the id field of the entity.
 const postsAdapter = createEntityAdapter<Post>({
-  selectId: (post) => post.id,
   sortComparer: (a, b) => a.title.localeCompare(b.title),
 });
 
@@ -187,7 +187,7 @@ const postsSlice = createSlice({
       seeAlso: [
         L('Section 6-1: normalised state', 'Секция 6-1: нормализованное состояние'),
         L('Section 6-3: sorting, filtering and selectors over an adapter', 'Секция 6-3: сортировка, фильтрация и селекторы поверх адаптера'),
-        L('Chapter 2: createSlice and its parts', 'Глава 2: createSlice и его части'),
+        L('Section 2-1: createSlice and its parts', 'Секция 2-1: createSlice и его части'),
       ],
     },
     {
@@ -387,7 +387,8 @@ function storePage(
       code: `import { createEntityAdapter } from '@reduxjs/toolkit';
 import type { Post } from './postsSlice';
 
-const postsAdapter = createEntityAdapter<Post>({
+// The id type is named explicitly when the field is called something else.
+const postsAdapter = createEntityAdapter<Post, string>({
   selectId: (post) => post.id,
 });
 

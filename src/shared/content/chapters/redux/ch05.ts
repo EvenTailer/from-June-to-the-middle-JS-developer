@@ -14,8 +14,8 @@ export const reduxCh05: Chapter = {
       id: 'redux-ch5-s1',
       title: L('Endpoints and the cache', 'Эндпоинты и кэш'),
       body: L(
-        'RTK Query is a data layer that lives inside Redux Toolkit. You describe the endpoints of your API with createApi: a query endpoint reads data and a mutation endpoint writes it. Under the hood the library keeps its own slice in the store, and that slice is the cache. Every request produces a cache entry that holds the data, the status of the request and the moment the entry was filled.\n\nThe cache key is built from the endpoint name and the arguments, serialised into a string, so the same request always lands on the same entry. fetchBaseQuery performs the actual HTTP call and returns a discriminated result: { data } when the server answered with a body, { error } when it answered with a failure, and the meta information about the request in both cases. The endpoint never touches your slice; the data lands in the cache and nowhere else.\n\nThat ownership is the point of the library and also its main trap. Two pieces have to be wired into the store: the reducer of the api object, which holds the cache, and its middleware, which runs the requests. Miss the reducer and the cache is thrown away on every action. Miss the middleware and the requests never leave the browser.',
-        'RTK Query — это слой данных, который живёт внутри Redux Toolkit. Эндпоинты вашего API описываются через createApi: эндпоинт-запрос читает данные, эндпоинт-мутация пишет их. Под капотом библиотека держит собственный слайс в хранилище, и этот слайс и есть кэш. Каждый запрос создаёт запись кэша, в которой лежат данные, статус запроса и момент, когда запись наполнилась.\n\nКлюч кэша собирается из имени эндпоинта и аргументов, сериализованных в строку, поэтому один и тот же запрос всегда попадает в одну и ту же запись. fetchBaseQuery выполняет сам HTTP-вызов и возвращает размеченный результат: { data }, когда сервер ответил телом, { error }, когда ответил ошибкой, и метаданные запроса в обоих случаях. Эндпоинт никогда не трогает ваш слайс: данные попадают в кэш и больше никуда.\n\nЭто владение и есть смысл библиотеки, но одновременно и главная ловушка. В хранилище нужно подключить две вещи: редьюсер объекта api, который держит кэш, и его middleware, который выполняет запросы. Без редьюсера кэш выбрасывается при каждом действии. Без middleware запросы вообще не уходят из браузера.'
+        'RTK Query is a data layer that lives inside Redux Toolkit. You describe the endpoints of your API with createApi: a query endpoint reads data and a mutation endpoint writes it. Under the hood the library keeps its own slice in the store, and that slice is the cache. Every request produces a cache entry that holds the data, the status of the request and the moment the entry was filled. The whole API of the library sits in its own entry point of the package: import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react".\n\nThe cache key is built from the endpoint name and the arguments, serialised into a string, so the same request always lands on the same entry. fetchBaseQuery performs the actual HTTP call and returns a discriminated result: { data } when the server answered with a body, { error } when it answered with a failure, and the meta information about the request in both cases. The endpoint never touches your slice; the data lands in the cache and nowhere else.\n\nThat ownership is the point of the library and also its main trap. Two pieces have to be wired into the store: the reducer of the api object, which holds the cache, and its middleware, which runs the requests. Miss the reducer and the cache is thrown away on every action. Miss the middleware and the requests never leave the browser.',
+        'RTK Query — это слой данных, который живёт внутри Redux Toolkit. Эндпоинты вашего API описываются через createApi: эндпоинт-запрос читает данные, эндпоинт-мутация пишет их. Под капотом библиотека держит собственный слайс в хранилище, и этот слайс и есть кэш. Каждый запрос создаёт запись кэша, в которой лежат данные, статус запроса и момент, когда запись наполнилась. Весь API библиотеки лежит в отдельной точке входа пакета: import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react".\n\nКлюч кэша собирается из имени эндпоинта и аргументов, сериализованных в строку, поэтому один и тот же запрос всегда попадает в одну и ту же запись. fetchBaseQuery выполняет сам HTTP-вызов и возвращает размеченный результат: { data }, когда сервер ответил телом, { error }, когда ответил ошибкой, и метаданные запроса в обоих случаях. Эндпоинт никогда не трогает ваш слайс: данные попадают в кэш и больше никуда.\n\nЭто владение и есть смысл библиотеки, но одновременно и главная ловушка. В хранилище нужно подключить две вещи: редьюсер объекта api, который держит кэш, и его middleware, который выполняет запросы. Без редьюсера кэш выбрасывается при каждом действии. Без middleware запросы вообще не уходят из браузера.'
       ),
       bullets: [
         L('RTK Query owns a cache slice, so server data lives there and not in your own slice.', 'RTK Query владеет своим слайсом с кэшем: серверные данные лежат там, а не в вашем слайсе.'),
@@ -23,8 +23,9 @@ export const reduxCh05: Chapter = {
         L('The cache key is the endpoint name plus the serialised arguments.', 'Ключ кэша — имя эндпоинта плюс сериализованные аргументы.'),
         L('fetchBaseQuery returns { data } or { error } and never throws for a failed request.', 'fetchBaseQuery возвращает { data } или { error } и не бросает исключение при ошибке ответа.'),
         L('Both the api reducer and the api middleware must be wired into the store.', 'И редьюсер api, и его middleware нужно подключить к хранилищу.'),
+        L('RTK Query comes from the @reduxjs/toolkit/query/react entry point.', 'RTK Query приходит из точки входа @reduxjs/toolkit/query/react.'),
       ],
-      code: `import { createApi, fetchBaseQuery } from '@reduxjs/toolkit';
+      code: `import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 interface Post { id: string; title: string }
 
@@ -84,7 +85,7 @@ export const postsApiMiddleware = postsApi.middleware;`,
         'Кэшем владеет объект api: подключите его редьюсер и его middleware и никогда не копируйте кэш в слайс.'
       ),
       seeAlso: [
-        L('Chapter 4: asynchronous data flow with thunks', 'Глава 4: асинхронный поток данных через thunk'),
+        L('Chapter 4: asynchronous data flow', 'Глава 4: асинхронный поток данных'),
         L('Section 5-2: tags and invalidation', 'Секция 5-2: теги и инвалидация'),
         L('Section 6-1: normalised state', 'Секция 6-1: нормализованное состояние'),
       ],
@@ -93,8 +94,8 @@ export const postsApiMiddleware = postsApi.middleware;`,
       id: 'redux-ch5-s2',
       title: L('Tags and invalidation', 'Теги и инвалидация'),
       body: L(
-        'A tag is a label attached to a cache entry. It answers one question: which part of the data does this entry represent? A query declares the tags it provides, a mutation declares the tags it invalidates. When a mutation invalidates a tag, every cache entry carrying that tag becomes stale, and every query that is currently subscribed to such an entry refetches it. The tag types are declared once, in the tagTypes option of createApi.\n\nTags come in two shapes. A general tag such as "Post" covers the whole collection, and a specific tag such as { type: "Post", id: "42" } covers a single entity. A list endpoint usually provides a general tag plus one specific tag per returned entity, so that a mutation of one post invalidates exactly that post and leaves the rest of the list alone.\n\nTwo traps live here. Invalidating a tag that nobody provides does nothing at all, silently. And an invalidation only refetches the queries that have a subscriber: if no component has the hook mounted, the entry stays marked as invalid until the next mount triggers a request.\n\nThe invalidatesTags option accepts a list of tags or a function that receives the result of the mutation, the error and the arguments of the mutation, so the tags can be computed from what the server actually returned.',
-        'Тег — это метка, прикреплённая к записи кэша. Она отвечает на один вопрос: какую часть данных представляет эта запись? Запрос объявляет теги, которые он предоставляет, мутация — теги, которые она инвалидирует. Когда мутация инвалидирует тег, все записи кэша с этим тегом становятся устаревшими, а все запросы, у которых сейчас есть подписчик, перезапрашиваются. Типы тегов объявляются один раз, в опции tagTypes у createApi.\n\nУ тегов две формы. Общий тег вида "Post" покрывает всю коллекцию, а конкретный тег вида { type: "Post", id: "42" } — одну сущность. Список обычно предоставляет общий тег и по одному конкретному тегу на каждый элемент, чтобы мутация одного поста инвалидировала ровно этот пост и не трогала остальные записи.\n\nЗдесь живут две ловушки. Инвалидация тега, который никто не предоставляет, не делает вообще ничего, и делает это молча. И инвалидация перезапрашивает только те запросы, у которых есть подписчик: если ни один компонент не держит хук смонтированным, запись остаётся помеченной как невалидная, пока следующий mount не вызовет запрос.\n\nОпция invalidatesTags принимает список тегов или функцию, которая получает результат мутации, ошибку и аргументы мутации, поэтому теги можно вычислить по тому, что сервер вернул на самом деле.'
+        'A tag is a label attached to a cache entry. It answers one question: which part of the data does this entry represent? A query declares the tags it provides, a mutation declares the tags it invalidates. When a mutation invalidates a tag, every cache entry carrying that tag becomes stale, and every query that is currently subscribed to such an entry refetches it. The tag types are declared once, in the tagTypes option of createApi.\n\nTags come in two shapes. A general tag such as "Post" covers the whole collection, and a specific tag such as { type: "Post", id: "42" } covers a single entity. A list endpoint usually provides a general tag plus one specific tag per returned entity, so that a mutation of one post invalidates exactly that post and leaves the rest of the list alone.\n\nTwo traps live here. Invalidating a tag that nobody provides does nothing at all, silently. And an invalidation only refetches the queries that have a subscriber: if no component has the hook mounted, nothing is refetched, and the entry is fetched again the next time it is needed.\n\nThe invalidatesTags option accepts a list of tags or a function that receives the result of the mutation, the error and the arguments of the mutation, so the tags can be computed from what the server actually returned.',
+        'Тег — это метка, прикреплённая к записи кэша. Она отвечает на один вопрос: какую часть данных представляет эта запись? Запрос объявляет теги, которые он предоставляет, мутация — теги, которые она инвалидирует. Когда мутация инвалидирует тег, все записи кэша с этим тегом становятся устаревшими, а все запросы, у которых сейчас есть подписчик, перезапрашиваются. Типы тегов объявляются один раз, в опции tagTypes у createApi.\n\nУ тегов две формы. Общий тег вида "Post" покрывает всю коллекцию, а конкретный тег вида { type: "Post", id: "42" } — одну сущность. Список обычно предоставляет общий тег и по одному конкретному тегу на каждый элемент, чтобы мутация одного поста инвалидировала ровно этот пост и не трогала остальные записи.\n\nЗдесь живут две ловушки. Инвалидация тега, который никто не предоставляет, не делает вообще ничего, и делает это молча. И инвалидация перезапрашивает только те запросы, у которых есть подписчик: если ни один компонент не держит хук смонтированным, не перезапрашивается ничего, а запись запрашивается заново, когда она понадобится.\n\nОпция invalidatesTags принимает список тегов или функцию, которая получает результат мутации, ошибку и аргументы мутации, поэтому теги можно вычислить по тому, что сервер вернул на самом деле.'
       ),
       bullets: [
         L('A query provides tags, a mutation invalidates tags.', 'Запрос предоставляет теги, мутация инвалидирует их.'),
@@ -103,7 +104,11 @@ export const postsApiMiddleware = postsApi.middleware;`,
         L('Only the queries with a subscriber refetch after an invalidation.', 'После инвалидации перезапрашиваются только запросы с подписчиком.'),
         L('invalidatesTags can be a function of the result, the error and the arguments.', 'invalidatesTags может быть функцией от результата, ошибки и аргументов.'),
       ],
-      code: `export const postsApi = createApi({
+      code: `import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
+interface Post { id: string; title: string }
+
+export const postsApi = createApi({
   reducerPath: 'postsApi',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
   tagTypes: ['Post'] as const,
@@ -272,11 +277,19 @@ export const postsApiMiddleware = postsApi.middleware;`,
         L('A mutation without invalidation leaves the cache stale until the next refetch.', 'Мутация без инвалидации оставляет кэш устаревшим до следующего перезапроса.'),
         L('Prefer correctness first and latency second.', 'Сначала корректность, потом задержка.'),
       ],
-      code: `export const postsApi = createApi({
+      code: `import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
+interface Post { id: string; title: string }
+
+export const postsApi = createApi({
   reducerPath: 'postsApi',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
   tagTypes: ['Post'] as const,
   endpoints: (builder) => ({
+    getPosts: builder.query<Post[], void>({
+      query: () => '/posts',
+      providesTags: ['Post'],
+    }),
     // The simplest strategy: the server decides, the cache refetches.
     addPost: builder.mutation<Post, { title: string }>({
       query: (body) => ({ url: '/posts', method: 'POST', body }),
@@ -287,12 +300,10 @@ export const postsApiMiddleware = postsApi.middleware;`,
       query: (body) => ({ url: '/posts/' + body.id, method: 'PUT', body }),
       onQueryStarted: async (body, { dispatch, queryFulfilled }) => {
         const result = await queryFulfilled;
-        dispatch(
-          postsApi.util.updateQueryData('getPosts', undefined, (draft) => {
-            const post = draft.find((item) => item.id === body.id);
-            if (post) post.title = result.data.title;
-          }),
-        );
+        dispatch(postsApi.util.updateQueryData('getPosts', undefined, (draft) => {
+          const post = draft.find((item) => item.id === body.id);
+          if (post) post.title = result.data.title;
+        }));
       },
     }),
   }),
@@ -353,8 +364,8 @@ export const postsApiMiddleware = postsApi.middleware;`,
       id: 'redux-ch5-s5',
       title: L('The generated hooks', 'Сгенерированные хуки'),
       body: L(
-        'For every endpoint createApi generates a React hook: a query hook and a mutation hook. The query hook takes the arguments of the endpoint plus an options object and returns the state of the cache entry: data, error, isLoading, isFetching, isSuccess. The mutation hook returns a trigger function and a result object; the trigger takes the arguments and returns a promise that resolves with the data and rejects with the error.\n\nThe options object is where the behaviour is configured. skip avoids the request entirely, refetchOnMountOrArgChange refetches when the component mounts or when the arguments change, pollingInterval repeats the request on a timer, and select transforms the cached data before the component sees it.\n\nTwo traps. The arguments are serialised into the cache key, so passing a fresh object literal on every render creates a new key, a new request and a loop of fetching that never stops. And select runs on every change of the store, so it has to be a memoised selector; a plain filter inside select allocates a new array each time and defeats every memo below it.\n\nThe trigger rejects when the request fails, so the caller can handle the error where it happens. The unwrap method turns the result into a promise that rejects with the error itself instead of resolving with an object that carries it.',
-        'Для каждого эндпоинта createApi генерирует React-хуки: хук запроса и хук мутации. Хук запроса принимает аргументы эндпоинта и объект опций и возвращает состояние записи кэша: data, error, isLoading, isFetching, isSuccess. Хук мутации возвращает функцию-триггер и объект результата; триггер принимает аргументы и возвращает промис, который разрешается данными и отклоняется ошибкой.\n\nОбъект опций — это место, где настраивается поведение. skip полностью отменяет запрос, refetchOnMountOrArgChange перезапрашивает при монтировании компонента или при смене аргументов, pollingInterval повторяет запрос по таймеру, а select преобразует кэшированные данные до того, как их увидит компонент.\n\nДве ловушки. Аргументы сериализуются в ключ кэша, поэтому свежий объектный литерал при каждом рендере создаёт новый ключ, новый запрос и цикл запросов, который не заканчивается. И select выполняется при каждом изменении хранилища, поэтому он должен быть мемоизированным селектором: обычный filter внутри select создаёт новый массив каждый раз и обнуляет всю мемоизацию ниже по дереву.\n\nТриггер отклоняется, когда запрос падает, поэтому вызывающий код может обработать ошибку на месте. Метод unwrap превращает результат в промис, который отклоняется самой ошибкой, а не разрешается объектом, её содержащим.'
+        'For every endpoint createApi generates a React hook: a query hook and a mutation hook. The query hook takes the arguments of the endpoint plus an options object and returns the state of the cache entry: data, error, isLoading, isFetching, isSuccess. The mutation hook returns a trigger function and a result object; the trigger takes the arguments and returns a promise that resolves with the data and rejects with the error.\n\nThe options object is where the behaviour is configured. skip avoids the request entirely, refetchOnMountOrArgChange refetches when the component mounts or when the arguments change, pollingInterval repeats the request on a timer, and select transforms the cached data before the component sees it. The hooks hang on the api object, so the module that creates the api usually re-exports them and the components import from there.\n\nTwo traps. The arguments are serialised into the cache key, so passing a fresh object literal on every render creates a new key, a new request and a loop of fetching that never stops. And select runs on every change of the store, so it has to be a memoised selector; a plain filter inside select allocates a new array each time and defeats every memo below it.\n\nThe trigger rejects when the request fails, so the caller can handle the error where it happens. The unwrap method turns the result into a promise that rejects with the error itself instead of resolving with an object that carries it.',
+        'Для каждого эндпоинта createApi генерирует React-хуки: хук запроса и хук мутации. Хук запроса принимает аргументы эндпоинта и объект опций и возвращает состояние записи кэша: data, error, isLoading, isFetching, isSuccess. Хук мутации возвращает функцию-триггер и объект результата; триггер принимает аргументы и возвращает промис, который разрешается данными и отклоняется ошибкой.\n\nОбъект опций — это место, где настраивается поведение. skip полностью отменяет запрос, refetchOnMountOrArgChange перезапрашивает при монтировании компонента или при смене аргументов, pollingInterval повторяет запрос по таймеру, а select преобразует кэшированные данные до того, как их увидит компонент. Хуки висят на объекте api, поэтому модуль, который создаёт api, обычно их переэкспортирует, а компоненты импортируют оттуда.\n\nДве ловушки. Аргументы сериализуются в ключ кэша, поэтому свежий объектный литерал при каждом рендере создаёт новый ключ, новый запрос и цикл запросов, который не заканчивается. И select выполняется при каждом изменении хранилища, поэтому он должен быть мемоизированным селектором: обычный filter внутри select создаёт новый массив каждый раз и обнуляет всю мемоизацию ниже по дереву.\n\nТриггер отклоняется, когда запрос падает, поэтому вызывающий код может обработать ошибку на месте. Метод unwrap превращает результат в промис, который отклоняется самой ошибкой, а не разрешается объектом, её содержащим.'
       ),
       bullets: [
         L('Every endpoint gets a query hook and a mutation hook.', 'Каждому эндпоинту соответствует хук запроса и хук мутации.'),
@@ -363,7 +374,7 @@ export const postsApiMiddleware = postsApi.middleware;`,
         L('select runs on every store change and must be memoised.', 'select выполняется при каждом изменении хранилища и должен быть мемоизирован.'),
         L('The mutation trigger rejects on failure and unwrap gives the raw error.', 'Триггер мутации отклоняется при ошибке, а unwrap отдаёт исходную ошибку.'),
       ],
-      code: `import { useGetPostsQuery, useAddPostMutation } from './postsApi';
+      code: `import { useGetPostsQuery, useAddPostMutation, useGetUserQuery } from './postsApi';
 
 export function usePostsPanel() {
   const { data: posts, isLoading, isError } = useGetPostsQuery();
@@ -434,7 +445,7 @@ export function useUserPanel(userId: string) {
         'Передавайте в хук запроса стабильные сериализуемые аргументы и обрабатывайте ошибку мутации там, где вызывается триггер.'
       ),
       seeAlso: [
-        L('Chapter 3: reading state with selectors', 'Глава 3: чтение состояния селекторами'),
+        L('Chapter 3: selectors and memoisation', 'Глава 3: селекторы и мемоизация'),
         L('Section 5-1: endpoints and the cache', 'Секция 5-1: эндпоинты и кэш'),
         L('Section 3-3: memoisation with createSelector', 'Секция 3-3: мемоизация через createSelector'),
       ],
@@ -465,12 +476,7 @@ const draft = useAppSelector((state) => state.editor.draft);
 const draftChanged = useAppSelector((state) => state.editor.draftChanged);
 
 // Local state: nothing else reads it, so React state is enough.
-const [isOpen, setIsOpen] = useState(false);
-
-// The wrong place for any of the three: the cache of a data library.
-const cached = useGetPostsQuery(undefined, {
-  selectFromResult: () => ({ isOpen: false }),
-});`,
+const [isOpen, setIsOpen] = useState(false);`,
       table: {
         caption: L('Where a piece of state belongs', 'Где должно жить состояние'),
         headers: [L('State', 'Состояние'), L('Home', 'Где живёт'), L('Why', 'Почему')],
