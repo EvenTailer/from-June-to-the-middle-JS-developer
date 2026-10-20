@@ -1,0 +1,75 @@
+export type Locale = 'en' | 'ru';
+
+export interface LocalizedText {
+  en: string;
+  ru: string;
+}
+
+export interface Lesson {
+  id: string;
+  title: LocalizedText;
+  question: LocalizedText;
+  answer: LocalizedText;
+  code?: string;
+}
+
+export interface QuizQuestion {
+  id: string;
+  question: LocalizedText;
+  options: LocalizedText[];
+  correctIndex: number;
+  explanation?: LocalizedText;
+}
+
+export type TaskLevel = 'basic' | 'intermediate' | 'advanced';
+
+export type PracticeTopicId =
+  | 'markup'
+  | 'loops'
+  | 'functions'
+  | 'arrays'
+  | 'objects'
+  | 'strings'
+  | 'numbers'
+  | 'types'
+  | 'async'
+  | 'dom'
+  | 'errors'
+  | 'algorithms'
+  | 'git'
+  | 'cli'
+  | 'oop'
+  | 'http'
+  | 'security'
+  | 'typescript'
+  | 'ts-advanced'
+  | 'react'
+  | 'hooks'
+  | 'forms'
+  | 'react-perf'
+  | 'redux'
+  | 'router'
+  | 'next'
+  | 'testing'
+  | 'tooling';
+
+export interface PracticeTask {
+  id: string;
+  moduleId?: string;
+  topic?: PracticeTopicId;
+  level?: TaskLevel;
+  title: LocalizedText;
+  brief: LocalizedText;
+  hint?: LocalizedText;
+  solution: string;
+  explanation?: LocalizedText;
+}
+
+export interface Module {
+  id: string;
+  title: LocalizedText;
+  description: LocalizedText;
+  lessons: Lesson[];
+  quiz: QuizQuestion[];
+  tasks?: PracticeTask[];
+}
