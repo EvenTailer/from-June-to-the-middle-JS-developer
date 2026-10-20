@@ -24,19 +24,16 @@ export const architectureCh07: Chapter = {
         L('A superseded record stays in the repository, it is not deleted.', 'Заменённая запись остаётся в репозитории, её не удаляют.'),
         L('A record without alternatives is a note, not a decision.', 'Запись без альтернатив — это заметка, а не решение.'),
       ],
-      code: `type AdrStatus = 'proposed' | 'accepted' | 'superseded' | 'deprecated';
-
-type Adr = {
+      code: `type Adr = {
   number: number;
   title: string;
-  status: AdrStatus;
+  status: 'proposed' | 'accepted' | 'superseded' | 'deprecated';
   context: string;
   decision: string;
   alternatives: string[];
   consequences: string[];
   date: string;
 };
-
 const adr: Adr = {
   number: 7,
   title: 'Publish order events through a transactional outbox',

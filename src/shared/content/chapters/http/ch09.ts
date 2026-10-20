@@ -141,8 +141,7 @@ res.end(gzipped);`,
       ],
       code: `// Token bucket: tokens refill at a constant rate, capped at the burst size
 function createBucket(capacity, refillPerSecond) {
-  let tokens = capacity;
-  let last = Date.now();
+  let tokens = capacity, last = Date.now();
   return () => {
     const now = Date.now();
     tokens = Math.min(capacity, tokens + ((now - last) / 1000) * refillPerSecond);

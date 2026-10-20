@@ -304,7 +304,7 @@ function Wizard() {
         L('Since React 18 every update in the same tick is batched into one render.', 'С React 18 каждое обновление за один тик батчится в один рендер.'),
         L('Updates from promises and timeouts are batched as well.', 'Обновления из промисов и таймеров тоже батчатся.'),
         L('Two value updates computed from the same snapshot overwrite each other.', 'Два обновления значения от одного снимка затирают друг друга.'),
-        L('Two functional updates accumulate on top of each other.', 'Два функциональных обновления накапливаются.'),
+        L('Two functional updates accumulate on top of each other.', 'Два функциональных обновления накапливаются друг на друге.'),
         L('Batching groups updates, it does not guarantee a single render.', 'Батчинг группирует обновления, но не гарантирует единственный рендер.'),
       ],
       code: `function Counter() {

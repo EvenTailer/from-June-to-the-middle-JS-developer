@@ -382,7 +382,9 @@ export function usePostsPanel() {
 }
 
 // The request is not sent until the argument is known.
-const { data: user } = useGetUserQuery(userId, { skip: !userId });`,
+export function useUserPanel(userId: string) {
+  return useGetUserQuery(userId, { skip: !userId });
+}`,
       table: {
         caption: L('What the options object changes', 'Что меняет объект опций'),
         headers: [L('Option', 'Опция'), L('Effect', 'Эффект'), L('Typical reason', 'Типичная причина')],

@@ -114,7 +114,7 @@ updated.entities.b === posts.entities.b; // true`,
       ],
       code: `import { createEntityAdapter, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
-export interface Post { id: string; title: string; archived: boolean }
+export interface Post { id: string; title: string; archived?: boolean }
 
 const postsAdapter = createEntityAdapter<Post>({
   selectId: (post) => post.id,
@@ -384,7 +384,10 @@ function storePage(
         L('The server id is the only identity, a temporary id duplicates the entity.', 'id сервера — единственная идентичность, временный id дублирует сущность.'),
         L('selectId must return a unique value or entities overwrite each other.', 'selectId должен возвращать уникальное значение, иначе сущности затирают друг друга.'),
       ],
-      code: `const postsAdapter = createEntityAdapter<Post>({
+      code: `import { createEntityAdapter } from '@reduxjs/toolkit';
+import type { Post } from './postsSlice';
+
+const postsAdapter = createEntityAdapter<Post>({
   selectId: (post) => post.id,
 });
 

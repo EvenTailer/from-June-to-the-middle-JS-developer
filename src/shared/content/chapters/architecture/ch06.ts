@@ -164,11 +164,8 @@ export function useServerQuery<T>(key: string, load: () => Promise<T>, staleMs =
         L('Prefer a few props with clear defaults over many optional props.', 'Предпочитайте немного пропсов с понятными значениями по умолчанию многим опциональным.'),
         L('A stable contract turns a component replacement into a local change.', 'Устойчивый контракт превращает замену компонента в локальное изменение.'),
       ],
-      code: `type TabsProps = {
-  value: string;
-  onChange: (next: string) => void;
-  items: ReadonlyArray<{ id: string; label: string; disabled?: boolean }>;
-};
+      code: `type TabItem = { id: string; label: string; disabled?: boolean };
+type TabsProps = { value: string; onChange: (next: string) => void; items: ReadonlyArray<TabItem> };
 
 export function Tabs({ value, onChange, items }: TabsProps) {
   return (
