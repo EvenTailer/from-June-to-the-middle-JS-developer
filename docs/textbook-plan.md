@@ -1,6 +1,8 @@
 ﻿# Textbook plan
 
-Target structure of the Learn > Textbook (Theory) tab for every module.
+The structure of the Learn > Textbook (Theory) tab for every module, as
+built. The chapter counts below are the counts in the code, and
+`npm run validate:content` fails if they drift apart.
 
 ## Why the rewrite
 
@@ -14,6 +16,7 @@ The fix follows the shape that `architecture` already used: one chapter per
 practice topic or quiz block, 4-5 sections per chapter, and every section
 carrying prose, a bullet list, a runnable code sample, a takeaway, and where it
 helps a comparison table, a callout and cross references.
+
 
 | Module | Practice topics | Quiz blocks | Chapters before | Chapters after | Sections after |
 | --- | --- | --- | --- | --- | --- |
