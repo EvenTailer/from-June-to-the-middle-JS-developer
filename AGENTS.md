@@ -1,3 +1,21 @@
+# Session rules for this project
+
+## Never close the user's browser or their processes
+
+The browser tool drives the user's own Chrome instance. Calling
+`browser.tabs.close` on the last tab of that window quits Chrome completely, and
+the user watched it happen twice.
+
+- Never call `browser.tabs.close`. Open as many tabs as the check needs, verify
+  through them, and leave them open.
+- A screenshot needs the tab to be focused first: `browser.tabs.focus` on the
+  tab, then `browser.screenshot`. A failure that says "Screenshot needs a
+  visible tab" means the tab was not the focused one, not that Chrome is closed.
+- Only stop a process this session started. Never stop a dev server or a
+  process the user had running.
+- If the window collapsed anyway, restart the dev server and open the page
+  again instead of closing anything.
+
 <!-- BEGIN WARDEN RULES (managed by `warden init` — do not edit inside this block) -->
 # Warden — Context Governance and Verification Layer
 
