@@ -260,6 +260,57 @@ for (const file of collectFiles(chaptersDir)) {
   checkLocalizedCallArity(file, readFileSync(file, 'utf8'));
 }
 
+/**
+ * The chapter counter shown on the module tab must match what the module
+ * actually loads, otherwise the UI advertises the wrong number of chapters.
+ */
+function checkChapterCounts() {
+  const source = readFileSync(join(chaptersDir, 'index.ts'), 'utf8');
+  const block = source.match(/chapterCountByModule[^=]*=\s*\{([\s\S]*?)\n\};/);
+  const declared = new Map();
+  if (block) {
+    for (const line of block[1].split('\n')) {
+      const match = line.match(/'([^']+)':\s*(\d+)|([\w-]+):\s*(\d+)/);
+      if (match) declared.set(match[1] ?? match[3], Number(match[2] ?? match[4]));
+    }
+  }
+
+  const loaders = new Map();
+  const loaderBlock = source.match(/const loaders[\s\S]*?= \{([\s\S]*?)\n\};/);
+  if (loaderBlock) {
+    for (const line of loaderBlock[1].split('\n')) {
+      const match = line.match(/(?:'([^']+)'|(\w[\w-]*)):\s*\(\)\s*=>\s*import\('\.\/([^']+)'\)/);
+      if (match) loaders.set(match[1] ?? match[2], match[3]);
+    }
+  }
+
+  for (const [moduleId, count] of declared) {
+    const target = loaders.get(moduleId);
+    if (!target) continue;
+
+    let found = 0;
+    if (target.endsWith('/index')) {
+      const dir = join(chaptersDir, target.replace(/\/index$/, ''));
+      try {
+        found = readdirSync(dir).filter((name) => /^ch\d+\.ts$/.test(name)).length;
+      } catch {
+        found = 0;
+      }
+    } else {
+      const file = join(chaptersDir, `${target}.ts`);
+      found = stats.filter((entry) => entry.file === relative(ROOT, file).replace(/\\/g, '/')).length;
+    }
+
+    if (found !== count) {
+      report(
+        'src/shared/content/chapters/index.ts',
+        'error',
+        `chapterCountByModule says ${moduleId} has ${count} chapters but ${found} are loaded`
+      );
+    }
+  }
+}
+
 // Barrels are checked statically because Node cannot resolve the extensionless
 // relative imports that Vite and TypeScript accept.
 for (const file of collectFiles(chaptersDir)) {
@@ -322,6 +373,8 @@ for (const file of files) {
     checkChapter(relative(ROOT, file).replace(/\\/g, '/'), chapter, seen);
   }
 }
+
+checkChapterCounts();
 
 stats.sort((a, b) => a.file.localeCompare(b.file));
 
