@@ -66,7 +66,9 @@ function checkLocalized(target, field, value, { required = true } = {}) {
   }
   const enWords = words(en);
   const ruWords = words(ru);
-  if (ruWords > 0 && (ruWords < enWords * 0.45 || ruWords > enWords * 1.9)) {
+  // Short cells ("+", "O(1)", "true") translate to a different number of words by
+  // nature, so the ratio check only applies to prose-length values.
+  if (enWords >= 8 && ruWords > 0 && (ruWords < enWords * 0.45 || ruWords > enWords * 1.9)) {
     report(target, 'warning', `${field} ru/en word ratio is ${(ruWords / enWords).toFixed(2)}`);
   }
   return enWords;
