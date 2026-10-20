@@ -5,6 +5,7 @@ import { getModule } from '../../shared/content';
 import type { Lesson, Module } from '../../entities/module/model/types';
 import type { Locale } from '../../shared/store/uiSlice';
 import { useLocale } from '../../shared/hooks/useLocale';
+import { usePageTitle } from '../../shared/hooks/usePageTitle';
 import { useAppDispatch } from '../../shared/hooks/useAppDispatch';
 import { useAppSelector } from '../../shared/hooks/useAppSelector';
 import { getModuleTaskTotal } from '../../shared/content/tasks';
@@ -138,6 +139,9 @@ export function ModulePage() {
 
 function ModuleView({ module: mod }: { module: Module }) {
   const locale = useLocale();
+  usePageTitle(
+    locale === 'en' ? `${mod.title.en} · JS to Middle` : `${mod.title.ru} · От новичка до middle`
+  );
   const dispatch = useAppDispatch();
   const completedLessons = useAppSelector((s) => s.progress.completedLessons);
   const completedTasks = useAppSelector((s) => s.progress.completedTasks);

@@ -50,6 +50,15 @@ export const uiText: Record<string, { en: string; ru: string }> = {
   'home.continuePractice': { en: 'Continue practice', ru: 'Продолжить практику' },
   'home.studyTheory': { en: 'Study theory', ru: 'Изучать теорию' },
   'home.browse': { en: 'Browse modules', ru: 'Все модули' },
+  'home.trainer.title': { en: 'Practice trainer', ru: 'Тренажёр' },
+  'home.trainer.subtitle': {
+    en: '28 topic blocks with coding drills: loops, functions, arrays, DOM, async, React hooks and more. Write the code yourself, then compare with the solution.',
+    ru: '28 блоков по темам: циклы, функции, массивы, DOM, асинхронность, React-хуки и многое другое. Пишите код сами, потом сверяйтесь с решением.',
+  },
+  'home.trainer.cta': { en: 'Open trainer', ru: 'Открыть тренажёр' },
+  'home.trainer.blocks': { en: 'blocks', ru: 'блоков' },
+  'home.trainer.tasks': { en: 'tasks', ru: 'задач' },
+  'home.trainer.solved': { en: 'solved', ru: 'решено' },
   'home.stats.completed': { en: 'questions learned', ru: 'вопросов изучено' },
   'home.stats.lessons': { en: 'total questions', ru: 'всего вопросов' },
   'home.stats.theory': { en: 'theory', ru: 'теория' },
@@ -137,6 +146,12 @@ export const uiText: Record<string, { en: string; ru: string }> = {
   'practice.blocks.progress': { en: 'Solved in blocks', ru: 'Решено в блоках' },
   'practice.blocks.empty': { en: 'No tasks in this block yet.', ru: 'В этом блоке пока нет задач.' },
   'nav.practice': { en: 'Practice', ru: 'Тренажёр' },
+  'notFound.title': { en: 'Page not found', ru: 'Страница не найдена' },
+  'notFound.subtitle': {
+    en: 'The link is broken or the page was moved. Use the navigation to continue.',
+    ru: 'Ссылка битая или страница переехала. Вернитесь через навигацию.',
+  },
+  'notFound.home': { en: 'Go home', ru: 'На главную' },
   'quiz.backToLearn': { en: 'Back to learning', ru: 'К обучению' },
 
   'lesson.question': { en: 'Question', ru: 'Вопрос' },

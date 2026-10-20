@@ -2343,43 +2343,91 @@ a:hover {
   line-height: 1.45;
 }
 
-.block-chips {
+.trainer-card {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  gap: 20px;
+  padding: 24px 26px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  border-radius: 22px;
+  background:
+    radial-gradient(120% 140% at 0% 0%, var(--accent-soft), transparent 58%),
+    linear-gradient(160deg, var(--surface), var(--surface-2));
+  color: inherit;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.block-chip {
+.trainer-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent) 52%, transparent);
+  box-shadow: var(--shadow-lg);
+}
+
+.trainer-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+
+.trainer-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.trainer-card__body h2 {
+  font-size: 1.3rem;
+  font-weight: 780;
+  letter-spacing: -0.02em;
+}
+
+.trainer-card__body p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.trainer-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 12px;
+  color: var(--faint);
+  font-size: 0.78rem;
+}
+
+.trainer-card__stats b {
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.trainer-card__cta {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 13px;
-  border: 1px solid var(--border);
+  flex: none;
+  padding: 11px 18px;
   border-radius: 999px;
-  background: var(--surface);
-  color: inherit;
-  font-size: 0.82rem;
-  font-weight: 600;
-  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.86rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: filter 0.2s ease;
 }
 
-.block-chip:hover {
-  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
-  background: var(--surface-2);
-  color: var(--accent);
-}
-
-.block-chip__code {
-  color: var(--accent);
-  font-size: 0.66rem;
-  font-weight: 800;
-  letter-spacing: 0.07em;
-}
-
-.block-chip__count {
-  color: var(--faint);
-  font-size: 0.72rem;
-  font-variant-numeric: tabular-nums;
+.trainer-card:hover .trainer-card__cta {
+  filter: brightness(1.08);
 }
 
 .task-group__code {
@@ -2450,6 +2498,18 @@ a:hover {
 @media (max-width: 620px) {
   .blocks-grid {
     grid-template-columns: 1fr;
+  }
+
+  .trainer-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 20px;
+  }
+
+  .trainer-card__cta {
+    width: 100%;
+    justify-content: center;
   }
 
   .practice-filters__done {

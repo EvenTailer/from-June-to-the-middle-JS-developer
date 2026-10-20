@@ -5,6 +5,7 @@ import { getTopicTaskTotal, loadTopicTasks } from '../../shared/content/tasks';
 import { taskTopicById } from '../../shared/content/tasks/taskIndex';
 import { practiceTopics } from '../../shared/content/tasks/topics';
 import { useLocale } from '../../shared/hooks/useLocale';
+import { usePageTitle } from '../../shared/hooks/usePageTitle';
 import { useAppSelector } from '../../shared/hooks/useAppSelector';
 import { t, plural } from '../../shared/lib/i18n';
 import { Icon } from '../../shared/ui/Icon';
@@ -18,6 +19,15 @@ export function TopicPage() {
   const [loaded, setLoaded] = useState<{ topicId: string; tasks: PracticeTask[] } | null>(null);
 
   const meta = practiceTopics.find((item) => item.id === topicId);
+  usePageTitle(
+    meta
+      ? locale === 'en'
+        ? `${meta.title.en} · Practice trainer`
+        : `${meta.title.ru} · Тренажёр`
+      : locale === 'en'
+        ? 'Practice trainer'
+        : 'Тренажёр'
+  );
 
   useEffect(() => {
     if (!meta) return;

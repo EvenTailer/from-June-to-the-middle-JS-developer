@@ -54,3 +54,28 @@ src/
 3. Выполните **Практику** — задачи сгруппированы по темам, у каждой есть подсказка
    и готовое решение с объяснением.
 4. Смешайте темы в **Тренажёре** — 28 блоков с независимыми задачами.
+
+## Роутинг и деплой
+
+Приложение — SPA с клиентским роутингом (`react-router`, `BrowserRouter`).
+Поэтому сервер должен отдавать `index.html` для любого пути, иначе перезагрузка
+на `/practice/loops` или `/module/react` даст 404.
+
+Готовые конфиги уже в репозитории:
+
+| Хостинг | Файл | Что делает |
+| --- | --- | --- |
+| Vercel | `vercel.json` | `rewrites: /* -> /index.html` |
+| Netlify | `netlify.toml`, `public/_redirects` | redirect 200 на `index.html` |
+| Apache | `public/.htaccess` | `mod_rewrite` с fallback на `index.html` |
+| Nginx | `deploy/nginx.conf` | `try_files $uri $uri/ /index.html` |
+| GitHub Pages | `scripts/copy-404.mjs` | копирует `index.html` в `404.html` после сборки |
+
+Локальная проверка собранного проекта (Vite сам делает history fallback):
+
+```bash
+npm run build
+npm run preview
+# затем откройте http://localhost:4173/practice/loops и обновите страницу (F5)
+```
+

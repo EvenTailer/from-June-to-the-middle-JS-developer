@@ -2,10 +2,11 @@ import { useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { modules } from '../../shared/content';
-import { getModuleTaskTotal, getTopicTaskTotal, totalTaskCount } from '../../shared/content/tasks';
+import { getModuleTaskTotal, totalTaskCount } from '../../shared/content/tasks';
 import { taskModuleById } from '../../shared/content/tasks/taskIndex';
 import { practiceTopics } from '../../shared/content/tasks/topics';
 import { useLocale } from '../../shared/hooks/useLocale';
+import { usePageTitle } from '../../shared/hooks/usePageTitle';
 import { useAppDispatch } from '../../shared/hooks/useAppDispatch';
 import { useAppSelector } from '../../shared/hooks/useAppSelector';
 import { resetProgress } from '../../shared/store/progressSlice';
@@ -21,6 +22,9 @@ function accentVars(meta: ModuleMeta): CSSProperties {
 
 export function HomePage() {
   const locale = useLocale();
+  usePageTitle(
+    locale === 'en' ? 'JS to Middle · Learning path' : 'От новичка до middle · JS → Middle'
+  );
   const dispatch = useAppDispatch();
   const completedLessons = useAppSelector((s) => s.progress.completedLessons);
   const completedTasks = useAppSelector((s) => s.progress.completedTasks);
@@ -183,27 +187,31 @@ export function HomePage() {
         </aside>
       </section>
 
-      <section id="blocks" className="section">
-        <div className="section__head">
-          <div>
-            <h2>{t(locale, 'practice.blocks.title')}</h2>
-            <p>{t(locale, 'practice.blocks.subtitle')}</p>
+      <section id="trainer" className="section">
+        <Link className="trainer-card" to="/practice">
+          <span className="trainer-card__icon">
+            <Icon name="spark" size={24} />
+          </span>
+          <div className="trainer-card__body">
+            <h2>{t(locale, 'home.trainer.title')}</h2>
+            <p>{t(locale, 'home.trainer.subtitle')}</p>
+            <div className="trainer-card__stats">
+              <span>
+                <b>{practiceTopics.length}</b> {t(locale, 'home.trainer.blocks')}
+              </span>
+              <span>
+                <b>{totalTasks}</b> {t(locale, 'home.trainer.tasks')}
+              </span>
+              <span>
+                <b>{doneTasks}</b> {t(locale, 'home.trainer.solved')}
+              </span>
+            </div>
           </div>
-          <Link className="btn btn--ghost btn--sm" to="/practice">
-            {t(locale, 'practice.blocks.back')}
-            <Icon name="arrow" size={16} />
-          </Link>
-        </div>
-
-        <div className="block-chips">
-          {practiceTopics.map((meta) => (
-            <Link key={meta.id} className="block-chip" to={`/practice/${meta.id}`}>
-              <span className="block-chip__code">{meta.code}</span>
-              <span>{meta.title[locale]}</span>
-              <span className="block-chip__count">{getTopicTaskTotal(meta.id)}</span>
-            </Link>
-          ))}
-        </div>
+          <span className="trainer-card__cta">
+            {t(locale, 'home.trainer.cta')}
+            <Icon name="arrow" size={18} />
+          </span>
+        </Link>
       </section>
 
       <section id="modules" className="section">

@@ -1,11 +1,12 @@
 import { useEffect, useLayoutEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Header } from '../../widgets/header/Header';
 import { HomePage } from '../../pages/home/HomePage';
 import { ModulePage } from '../../pages/module/ModulePage';
 import { QuizPage } from '../../pages/quiz/QuizPage';
 import { PracticePage } from '../../pages/practice/PracticePage';
 import { TopicPage } from '../../pages/practice/TopicPage';
+import { NotFoundPage } from '../../pages/notFound/NotFoundPage';
 import { useAppSelector } from '../../shared/hooks/useAppSelector';
 import { t } from '../../shared/lib/i18n';
 
@@ -61,7 +62,7 @@ function AppShell() {
           <Route path="/quiz/:moduleId" element={<QuizPage />} />
           <Route path="/practice" element={<PracticePage />} />
           <Route path="/practice/:topicId" element={<TopicPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </div>
       <Footer />

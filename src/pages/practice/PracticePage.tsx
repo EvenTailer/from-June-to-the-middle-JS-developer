@@ -3,6 +3,7 @@ import { getTopicTaskTotal, totalTaskCount } from '../../shared/content/tasks';
 import { taskTopicById } from '../../shared/content/tasks/taskIndex';
 import { practiceTopics } from '../../shared/content/tasks/topics';
 import { useLocale } from '../../shared/hooks/useLocale';
+import { usePageTitle } from '../../shared/hooks/usePageTitle';
 import { useAppSelector } from '../../shared/hooks/useAppSelector';
 import { t } from '../../shared/lib/i18n';
 import { Icon } from '../../shared/ui/Icon';
@@ -10,6 +11,9 @@ import { ProgressBar } from '../../shared/ui/ProgressBar';
 
 export function PracticePage() {
   const locale = useLocale();
+  usePageTitle(
+    locale === 'en' ? 'Practice trainer · JS to Middle' : 'Тренажёр · От новичка до middle'
+  );
   const completedTasks = useAppSelector((s) => s.progress.completedTasks);
 
   const blocks = practiceTopics.map((meta) => {
