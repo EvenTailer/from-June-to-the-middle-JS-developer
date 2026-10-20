@@ -102,20 +102,755 @@ export const jsCoreModule: Module = {
     { id: 'js-090', title: L('structuredClone', 'structuredClone'), question: L('structuredClone capabilities?', 'Возможности structuredClone?'), answer: L('structuredClone deep clones most values including Date, Map, Set, ArrayBuffer, but not functions, DOM nodes, or prototypes. Handles circular references. Preferred over JSON clone.', 'structuredClone глубоко клонирует большинство значений, включая Date, Map, Set, ArrayBuffer, но не функции, DOM-узлы или прототипы. Обрабатывает циклические ссылки. Предпочтительнее JSON-клонирования.'), code: `const copy = structuredClone(original);` },
   ],
   quiz: [
-    { id: 'q1', question: L('What does typeof null return?', 'Что возвращает typeof null?'), options: [L('"null"', '"null"'), L('"object"', '"object"'), L('"undefined"', '"undefined"'), L('"number"', '"number"')], correctIndex: 1 },
-    { id: 'q2', question: L('Which keyword is block-scoped?', 'Какое ключевое слово блочно-областное?'), options: [L('var', 'var'), L('let', 'let'), L('function', 'function')], correctIndex: 1 },
-    { id: 'q3', question: L('Promise.all rejects when...', 'Promise.all отклоняется, когда...'), options: [L('any resolves', 'любой резолвится'), L('all resolve', 'все резолвятся'), L('any rejects', 'любой отклоняется')], correctIndex: 2 },
-    { id: 'q4', question: L('Arrow functions have own this?', 'У стрелочных функций есть свой this?'), options: [L('Yes', 'Да'), L('No', 'Нет')], correctIndex: 1 },
-    { id: 'q5', question: L('Event loop order?', 'Порядок Event Loop?'), options: [L('macrotasks -> sync -> microtasks', 'макро -> синхр -> микро'), L('sync -> microtasks -> macrotasks', 'синхр -> микро -> макро')], correctIndex: 1 },
-    { id: 'q6', question: L('NaN === NaN?', 'NaN === NaN?'), options: [L('true', 'true'), L('false', 'false')], correctIndex: 1 },
-    { id: 'q7', question: L('for...in iterates...', 'for...in перебирает...'), options: [L('values', 'значения'), L('keys', 'ключи')], correctIndex: 1 },
-    { id: 'q8', question: L('Object.is(0,-0)?', 'Object.is(0,-0)?'), options: [L('true', 'true'), L('false', 'false')], correctIndex: 1 },
-    { id: 'q9', question: L('fetch rejects on HTTP 404?', 'fetch отклоняется при HTTP 404?'), options: [L('Yes', 'Да'), L('No', 'Нет')], correctIndex: 1 },
-    { id: 'q10', question: L('WeakMap keys must be...', 'Ключи WeakMap должны быть...'), options: [L('primitives', 'примитивы'), L('objects', 'объекты')], correctIndex: 1 },
-    { id: 'q11', question: L('Which is falsy?', 'Какое значение ложно?'), options: [L('[]', '[]'), L('0', '0'), L('"0"', '"0"')], correctIndex: 1 },
-    { id: 'q12', question: L('null == undefined?', 'null == undefined?'), options: [L('true', 'true'), L('false', 'false')], correctIndex: 0 },
-    { id: 'q13', question: L('Default param triggers on?', 'Значение по умолчанию подставляется при?'), options: [L('null', 'null'), L('undefined', 'undefined')], correctIndex: 1 },
-    { id: 'q14', question: L('Array.isArray([])?', 'Array.isArray([])?'), options: [L('true', 'true'), L('false', 'false')], correctIndex: 0 },
-    { id: 'q15', question: L('Which creates shallow copy?', 'Что создаёт поверхностную копию?'), options: [L('{...obj}', '{...obj}'), L('structuredClone', 'structuredClone')], correctIndex: 0 },
+    {
+      id: 'js-q01',
+      question: L('What does typeof null return?', 'Что возвращает typeof null?'),
+      options: [
+        L('It returns "undefined"', 'Возвращает "undefined"'),
+        L('It returns "object"', 'Возвращает "object"'),
+        L('It returns "null"', 'Возвращает "null"'),
+        L('It throws a TypeError', 'Бросает TypeError'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'typeof null returns "object" because of a bug in the very first version of JavaScript that was never fixed for backward compatibility. To detect null you must compare the value directly, since there is no typeof result that means null.',
+        'typeof null возвращает "object" из-за бага в самой первой версии JavaScript, который не исправлен ради обратной совместимости. Чтобы отличить null, нужно сравнивать значение напрямую: результата typeof, означающего null, не существует.'
+      ),
+    },
+    {
+      id: 'js-q02',
+      question: L('How can you reliably check whether a value is an array?', 'Как надёжно проверить, что значение является массивом?'),
+      options: [
+        L('typeof value === "array"', 'typeof value === "array"'),
+        L('value instanceof Array is the only safe check', 'value instanceof Array — единственная безопасная проверка'),
+        L('Array.isArray(value)', 'Array.isArray(value)'),
+        L('value.constructor === Array', 'value.constructor === Array'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'typeof never returns "array" because arrays are objects, so Array.isArray is the correct check. The instanceof form breaks across realms such as iframes, and reading constructor can be shadowed or fail on objects created with Object.create(null).',
+        'typeof никогда не возвращает "array", потому что массивы — это объекты, поэтому правильная проверка — Array.isArray. Проверка через instanceof ломается между realm, такими как iframe, а обращение к constructor можно перекрыть или потерять на объектах, созданных через Object.create(null).'
+      ),
+    },
+    {
+      id: 'js-q03',
+      question: L('Which of these is not one of the primitive types in JavaScript?', 'Какой из этих не является примитивным типом в JavaScript?'),
+      options: [
+        L('symbol', 'symbol'),
+        L('bigint', 'bigint'),
+        L('null', 'null'),
+        L('function', 'function'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'The primitives are number, string, boolean, null, undefined, symbol and bigint, and they are immutable and compared by value. A function is an object, even though typeof reports it separately as "function" for historical reasons.',
+        'Примитивы — это number, string, boolean, null, undefined, symbol и bigint; они неизменяемы и сравниваются по значению. Функция — объект, даже хотя typeof исторически отдаёт для неё отдельный результат "function".'
+      ),
+    },
+    {
+      id: 'js-q04',
+      question: L('What is the difference between null and undefined?', 'Чем отличаются null и undefined?'),
+      options: [
+        L('undefined means a declared but unassigned value, null means an intentional absence', 'undefined означает объявленное, но не присвоенное значение, null — намеренное отсутствие'),
+        L('null means a declared but unassigned value, undefined means an intentional absence', 'null означает объявленное, но не присвоенное значение, undefined — намеренное отсутствие'),
+        L('They are the same value under two names', 'Это одно и то же значение под двумя именами'),
+        L('null is used only for arrays, undefined only for functions', 'null используется только для массивов, undefined — только для функций'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'undefined means the variable exists but has no value yet, or the property is absent, and it is what a missing argument or a missing property gives you. null is a deliberate "no value here" that a developer assigns. They are loosely equal but not strictly equal.',
+        'undefined означает, что переменная есть, но значения у неё нет, либо свойства не существует — именно его даёт отсутствующий аргумент или свойство. null — это осознанное «значения тут нет», которое выставляет разработчик. Они нестрого равны, но не строго.'
+      ),
+    },
+    {
+      id: 'js-q05',
+      question: L('Which check correctly detects a NaN value?', 'Какая проверка корректно обнаруживает значение NaN?'),
+      options: [
+        L('isNaN(value), because it coerces the argument first', 'isNaN(value), потому что он сначала приводит аргумент'),
+        L('Number.isNaN(value), because it does not coerce', 'Number.isNaN(value), потому что он не приводит тип'),
+        L('value === NaN, because NaN equals itself', 'value === NaN, потому что NaN равен самому себе'),
+        L('Object.is(value, NaN), because NaN is the only value equal to itself', 'Object.is(value, NaN), потому что NaN — единственное значение, равное самому себе'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'Number.isNaN tests strictly for the NaN value without coercion. The global isNaN coerces first, so isNaN("abc") is true, while value === NaN is always false because NaN is not equal to itself.',
+        'Number.isNaN строго проверяет именно значение NaN, без приведения типов. Глобальный isNaN сначала приводит аргумент, поэтому isNaN("abc") даёт true, а value === NaN всегда false, потому что NaN не равен самому себе.'
+      ),
+    },
+    {
+      id: 'js-q06',
+      question: L('What is the result of 0 === -0 and Object.is(0, -0)?', 'Что дают 0 === -0 и Object.is(0, -0)?'),
+      options: [
+        L('Both are true', 'Оба дают true'),
+        L('Both are false', 'Оба дают false'),
+        L('0 === -0 is true, but Object.is(0, -0) is false', '0 === -0 даёт true, но Object.is(0, -0) даёт false'),
+        L('0 === -0 is false, but Object.is(0, -0) is true', '0 === -0 даёт false, но Object.is(0, -0) даёт true'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'The strict equality operator treats 0 and -0 as the same number, so 0 === -0 is true. Object.is follows SameValue semantics and distinguishes the two, which is why it is the tool for checking a negative zero, for example in direction calculations.',
+        'Строгое равенство считает 0 и -0 одним и тем же числом, поэтому 0 === -0 даёт true. Object.is работает по правилам SameValue и различает их, поэтому именно он нужен для проверки отрицательного нуля, например в расчётах направления.'
+      ),
+    },
+    {
+      id: 'js-q07',
+      question: L('What does 0.1 + 0.2 evaluate to in JavaScript?', 'Чему равно 0.1 + 0.2 в JavaScript?'),
+      options: [
+        L('Exactly 0.3', 'Ровно 0.3'),
+        L('0.30000000000000004, and the only fix is to parse both operands as integers', '0.30000000000000004, и единственное решение — разобрать операнды как целые'),
+        L('It throws a TypeError', 'Бросает TypeError'),
+        L('0.30000000000000004, because binary floating point cannot represent 0.1 exactly', '0.30000000000000004, потому что двоичная плавающая точка не может точно представить 0.1'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'Numbers are IEEE 754 doubles, so decimal fractions such as 0.1 are stored as repeating binary approximations and the addition exposes the difference. The usual fixes are rounding to a sensible number of decimals or comparing with a small tolerance instead of with strict equality.',
+        'Числа — это 64-битные IEEE 754, поэтому десятичные дроби вроде 0.1 хранятся как приближения с бесконечной двоичной дробью, и сложение обнаруживает разницу. Обычные решения — округление до разумного числа знаков или сравнение с небольшим допуском вместо строгого равенства.'
+      ),
+    },
+    {
+      id: 'js-q08',
+      question: L('How does JavaScript handle integers beyond Number.MAX_SAFE_INTEGER?', 'Как JavaScript работает с целыми числами за пределами Number.MAX_SAFE_INTEGER?'),
+      options: [
+        L('Integers are exact up to 2^53 - 1, and BigInt is needed beyond that', 'Целые числа точны до 2^53 - 1, а дальше нужен BigInt'),
+        L('Every integer is exact in JavaScript numbers', 'Все целые числа в числах JavaScript точны'),
+        L('BigInt values can be mixed freely with Number in arithmetic', 'Значения BigInt можно свободно смешивать с Number в арифметике'),
+        L('Number.MAX_SAFE_INTEGER equals 2^31 - 1', 'Number.MAX_SAFE_INTEGER равен 2^31 - 1'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'Above 2^53 - 1 the double format can no longer represent every consecutive integer, so the value silently loses precision. BigInt stores arbitrary precision integers, but it cannot be mixed with Number in arithmetic, so an explicit conversion is required.',
+        'Выше 2^53 - 1 формат double больше не может представить все последовательные целые, и точность теряется молча. BigInt хранит целые с произвольной точностью, но его нельзя смешивать с Number в арифметике — нужен явный перевод.'
+      ),
+    },
+    {
+      id: 'js-q09',
+      question: L('How does the length property of a string count characters?', 'Как свойство length строки считает символы?'),
+      options: [
+        L('It counts grapheme clusters, so one emoji counts as 1', 'Считает кластеры графем, поэтому один эмодзи — это 1'),
+        L('It counts UTF-16 code units, so one emoji counts as 2', 'Считает кодовые юниты UTF-16, поэтому один эмодзи — это 2'),
+        L('It counts bytes in UTF-8', 'Считает байты в UTF-8'),
+        L('It counts code points, so one emoji counts as 1', 'Считает кодовые точки, поэтому один эмодзи — это 1'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'String length counts UTF-16 code units, so an emoji that lives outside the basic multilingual plane takes two units and counts as 2. Grapheme-aware counting needs Intl.Segmenter, and code point counting needs the spread of the string instead of length.',
+        'length строки считает кодовые юниты UTF-16, поэтому эмодзи вне базовой многоязычной плоскости занимает два юнита и даёт 2. Подсчёт по графемам требует Intl.Segmenter, а по кодовым точкам — раскрытия строки вместо обращения к length.'
+      ),
+    },
+    {
+      id: 'js-q10',
+      question: L('What are the important features of template literals?', 'Какие важные возможности есть у шаблонных строк?'),
+      options: [
+        L('A template literal cannot span several lines', 'Шаблонная строка не может содержать несколько строк'),
+        L('A template literal only works with primitive values', 'Шаблонная строка работает только с примитивами'),
+        L('Backticks allow interpolation and multi-line strings, and a tag function can process the parts', 'Обратные кавычки дают интерполяцию и многострочность, а тег-функция может обработать части'),
+        L('Backticks disable the escaping of special characters', 'Обратные кавычки отключают экранирование спецсимволов'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'Backticks give you ${} interpolation and multi-line strings, and a tagged template passes the literal parts and the interpolated values to a function, which is how libraries build safe SQL or styled components. Escaping rules inside backticks are the same as in quotes.',
+        'Обратные кавычки дают интерполяцию ${} и многострочные строки, а тегированный шаблон передаёт части и подставленные значения в функцию — так работают безопасные SQL-библиотеки и styled-components. Правила экранирования внутри кавычек такие же, как в обычных строках.'
+      ),
+    },
+    {
+      id: 'js-q11',
+      question: L('Which regular expression flags are valid?', 'Какие флаги регулярных выражений существуют?'),
+      options: [
+        L('g makes the pattern case-insensitive', 'g делает шаблон нечувствительным к регистру'),
+        L('i makes the pattern match every line of the input', 'i заставляет шаблон совпадать с каждой строкой ввода'),
+        L('g matches all occurrences, i ignores case and u enables Unicode mode', 'g ищет все совпадения, i игнорирует регистр, u включает режим Unicode'),
+        L('s makes the dot match newlines and m makes the pattern global', 's заставляет точку совпадать с переводами строк, а m делает шаблон глобальным'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'The common flags are g for global matching, i for case-insensitive matching, m for multiline anchors, s for dotAll, u for Unicode mode, y for sticky matching and d for match indices. The trap swaps i with m and confuses s with the global flag.',
+        'Основные флаги: g для глобального поиска, i для нечувствительного к регистру, m для многострочных якорей, s для dotAll, u для режима Unicode, y для sticky и d для индексов совпадений. Ловушка путает i с m и s с глобальным флагом.'
+      ),
+    },
+    {
+      id: 'js-q12',
+      question: L('How does String.prototype.replace work with a function as the second argument?', 'Как работает String.prototype.replace, если вторым аргументом передана функция?'),
+      options: [
+        L('replace only works with a literal replacement string', 'replace работает только с литеральной строкой замены'),
+        L('The callback receives only the matched substring', 'Коллбэк получает только найденную подстроку'),
+        L('replace cannot be used to change the case of the result', 'replace нельзя использовать для смены регистра результата'),
+        L('The callback receives the match and the capture groups and returns the replacement', 'Коллбэк получает совпадение и группы захвата и возвращает строку замены'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'When the replacement is a function, it is called for every match with the matched text, the capture groups and the offset, and its return value becomes the replacement. That is how you transform content, for example upper-casing a matched part or reformatting a date.',
+        'Если замена — функция, она вызывается для каждого совпадения с найденным текстом, группами захвата и смещением, а её возвращаемое значение становится заменой. Так можно преобразовывать содержимое, например поднимать регистр части совпадения или переформатировать дату.'
+      ),
+    },
+    {
+      id: 'js-q13',
+      question: L('How do the nullish coalescing operator and the logical OR differ?', 'Чем отличается оператор ?? от логического ИЛИ?'),
+      options: [
+        L('?? falls back only on null and undefined, while || falls back on any falsy value', '?? подставляет только при null и undefined, а || при любом ложном значении'),
+        L('|| falls back only on null and undefined, while ?? falls back on any falsy value', '|| подставляет только при null и undefined, а ?? при любом ложном значении'),
+        L('They behave identically', 'Ведут себя одинаково'),
+        L('?? cannot be combined with || in one expression', '?? нельзя использовать вместе с || в одном выражении'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'The logical OR treats every falsy value as a reason to fall back, so 0 || 10 gives 10 and an empty string is replaced too. The nullish coalescing operator only falls back for null and undefined, which is what you want when 0, false or an empty string are meaningful values.',
+        'Логическое ИЛИ считает причиной подстановки любое ложное значение, поэтому 0 || 10 даёт 10, а пустая строка тоже заменяется. Оператор ?? подставляет только при null и undefined — это то, что нужно, когда 0, false или пустая строка значимы.'
+      ),
+    },
+    {
+      id: 'js-q14',
+      question: L('What does the plus operator do when one operand is a string?', 'Что делает оператор плюс, если один из операндов — строка?'),
+      options: [
+        L('It always converts both operands to numbers', 'Всегда приводит оба операнда к числам'),
+        L('It concatenates when either operand is a string, otherwise it adds numerically', 'Конкатенирует, если хотя бы один операнд — строка, иначе складывает как числа'),
+        L('It always converts both operands to strings', 'Всегда приводит оба операнда к строкам'),
+        L('It throws a TypeError for mixed types', 'Бросает TypeError для смешанных типов'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'The plus operator is overloaded: with a string operand it performs string concatenation, and otherwise it converts both operands to numbers and adds. This is why 1 + 2 gives 3 while 1 + "2" gives the string "12", and it is the classic source of id-like bugs.',
+        'Оператор плюс перегружен: при строковом операнде он склеивает строки, иначе приводит оба операнда к числам и складывает. Поэтому 1 + 2 даёт 3, а 1 + "2" даёт строку "12" — классический источник багов при склейке идентификаторов.'
+      ),
+    },
+    {
+      id: 'js-q15',
+      question: L('How do var, let and const differ in scope?', 'Чем отличаются var, let и const по области видимости?'),
+      options: [
+        L('All three are function-scoped', 'Все три имеют функциональную область видимости'),
+        L('let and const are function-scoped, var is block-scoped', 'let и const имеют функциональную область, var — блочную'),
+        L('var is function-scoped, while let and const are block-scoped', 'var имеет функциональную область, а let и const — блочную'),
+        L('All three are global-scoped', 'Все три имеют глобальную область видимости'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'var is function-scoped, so a var declared in an if block or a for loop leaks out of it and can be redeclared. let and const are block-scoped, which keeps loop variables per iteration and prevents accidental redeclaration in the same scope.',
+        'var имеет функциональную область, поэтому переменная, объявленная в блоке if или в цикле for, из него выходит и может быть переобъявлена. let и const имеют блочную область: переменные цикла не сливаются и случайное переобъявление запрещено.'
+      ),
+    },
+    {
+      id: 'js-q16',
+      question: L('What does const actually prevent?', 'Что именно запрещает const?'),
+      options: [
+        L('It makes the object immutable', 'Делает объект неизменяемым'),
+        L('It freezes the object automatically', 'Автоматически замораживает объект'),
+        L('It can only hold primitive values', 'Может хранить только примитивы'),
+        L('It prevents reassigning the binding, but the contents of the object can still change', 'Запрещает переприсвоение привязки, но содержимое объекта менять можно'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'const freezes the binding, not the value: the variable cannot be pointed at another object, but the properties of that object stay writable. Use Object.freeze when you also need the contents to be immutable, and note that freezing is shallow.',
+        'const замораживает привязку, а не значение: переменную нельзя направить на другой объект, но свойства объекта остаются изменяемыми. Чтобы заморозить и содержимое, нужен Object.freeze, причём он работает поверхностно.'
+      ),
+    },
+    {
+      id: 'js-q17',
+      question: L('What happens when you read a let variable before its declaration in the same scope?', 'Что произойдёт, если прочитать переменную let до её объявления в той же области?'),
+      options: [
+        L('It throws a ReferenceError', 'Бросает ReferenceError'),
+        L('It returns undefined', 'Возвращает undefined'),
+        L('It returns null', 'Возвращает null'),
+        L('It is a syntax error detected at parse time', 'Это синтаксическая ошибка, найденная на этапе разбора'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'The variable is hoisted but stays in the temporal dead zone until the declaration is evaluated, and touching it in that window throws a ReferenceError. The error happens at runtime, not at parse time, so the script still parses and only the offending access fails.',
+        'Переменная всплывает, но до выполнения объявления остаётся во временной мёртвой зоне, и обращение к ней в этом окне бросает ReferenceError. Ошибка возникает во время выполнения, а не при разборе, поэтому скрипт разбирается и падает только конкретное обращение.'
+      ),
+    },
+    {
+      id: 'js-q18',
+      question: L('Which of these hoisting rules is correct?', 'Какое правило всплытия верно?'),
+      options: [
+        L('Only var is hoisted', 'Всплывает только var'),
+        L('A function declaration is callable before its definition, a function expression is not, and var is hoisted as undefined', 'Function Declaration можно вызвать до определения, Function Expression — нет, а var всплывает как undefined'),
+        L('Everything is hoisted fully and can be used anywhere in the file', 'Всё всплывает полностью и доступно в любом месте файла'),
+        L('Nothing is hoisted in modern JavaScript', 'В современном JavaScript ничего не всплывает'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'A function declaration is hoisted with its body, so it can be called before the line where it is written. A function expression is an assignment and follows the rules of its variable, so it is undefined until the assignment runs. var is hoisted as undefined, and let and const stay in the temporal dead zone.',
+        'Function Declaration всплывает вместе с телом, поэтому её можно вызвать раньше строки объявления. Function Expression — это присваивание и живёт по правилам своей переменной, то есть до присваивания равна undefined. var всплывает как undefined, а let и const остаются в мёртвой зоне.'
+      ),
+    },
+    {
+      id: 'js-q19',
+      question: L('How do == and === differ?', 'Чем отличаются == и ===?'),
+      options: [
+        L('== always converts both operands to numbers before comparing', '== всегда приводит оба операнда к числам перед сравнением'),
+        L('=== performs a type conversion when the types differ', '=== выполняет приведение типов, когда типы различаются'),
+        L('null == undefined is false and 0 == false is false', 'null == undefined равно false, и 0 == false равно false'),
+        L('=== compares without conversion, while == coerces, so null == undefined is true', '=== сравнивает без приведения, а == приводит типы, поэтому null == undefined равно true'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'The strict equality operator returns false when the types differ, while the loose one coerces first, which is why null == undefined and 0 == false are both true. Loose equality has many corner cases such as [] == false, so prefer === and compare null and undefined explicitly.',
+        'Строгое равенство возвращает false при разных типах, а нестрогое сначала приводит типы, поэтому null == undefined и 0 == false истинны. У нестрогого равенства много угловых случаев вроде [] == false, поэтому лучше использовать ===, а null и undefined проверять явно.'
+      ),
+    },
+    {
+      id: 'js-q20',
+      question: L('How is this bound inside an arrow function?', 'Как определяется this внутри стрелочной функции?'),
+      options: [
+        L('It has its own this, bound to the object before the dot', 'У неё есть свой this, привязанный к объекту перед точкой'),
+        L('Its this is always the global object', 'Её this — всегда глобальный объект'),
+        L('Its this is always undefined', 'Её this — всегда undefined'),
+        L('It has no own this and uses the this of the enclosing scope', 'У неё нет своего this, используется this внешней области'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'Arrow functions have no own this, arguments, super or new.target, so they capture the this of the enclosing scope. That makes them ideal for callbacks and a common cause of bugs when a method is defined as an arrow field and should instead see the instance.',
+        'У стрелочных функций нет собственных this, arguments, super и new.target, поэтому они берут this внешней области. Это удобно для коллбэков и одновременно частая причина багов, когда метод задан стрелочным полем, а должен видеть экземпляр.'
+      ),
+    },
+    {
+      id: 'js-q21',
+      question: L('Which of these values is falsy?', 'Какое из этих значений ложно?'),
+      options: [
+        L('NaN', 'NaN'),
+        L('[]', '[]'),
+        L('"0"', '"0"'),
+        L('{}', '{}'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'The falsy values are false, 0, -0, 0n, an empty string, null, undefined and NaN. Empty arrays, empty objects and the string "0" are truthy, because only the value itself matters, not whether it is empty or what it looks like.',
+        'Ложными являются false, 0, -0, 0n, пустая строка, null, undefined и NaN. Пустые массивы, пустые объекты и строка "0" — истинные, потому что важно само значение, а не то, пустое оно или как выглядит.'
+      ),
+    },
+    {
+      id: 'js-q22',
+      question: L('How do default parameter values behave?', 'Как ведут себя значения параметров по умолчанию?'),
+      options: [
+        L('null also triggers the default value', 'null тоже вызывает значение по умолчанию'),
+        L('Only undefined triggers the default, and a default can reference earlier parameters', 'Значение по умолчанию срабатывает только при undefined, и оно может ссылаться на предыдущие параметры'),
+        L('Defaults are evaluated once when the function is defined', 'Значения по умолчанию вычисляются один раз при определении функции'),
+        L('A passed value never overrides the default', 'Переданное значение никогда не перекрывает значение по умолчанию'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'Only undefined activates a default, while null is a legitimate value that is used as is. Defaults are evaluated at call time and can refer to earlier parameters, so function f(a = 1, b = a + 1) returns 2 when called without arguments.',
+        'Значение по умолчанию срабатывает только при undefined, а null — это полноценное значение, которое используется как есть. Значения вычисляются в момент вызова и могут ссылаться на предыдущие параметры, поэтому f(a = 1, b = a + 1) вернёт 2 при вызове без аргументов.'
+      ),
+    },
+    {
+      id: 'js-q23',
+      question: L('What is a closure?', 'Что такое замыкание?'),
+      options: [
+        L('A function that copies the values it uses at creation time', 'Функция, копирующая используемые значения в момент создания'),
+        L('A function created only inside a loop', 'Функция, созданная только внутри цикла'),
+        L('A function that runs immediately when it is defined', 'Функция, выполняющаяся немедленно при определении'),
+        L('A function that keeps access to variables of its lexical scope after the outer function returned', 'Функция, сохраняющая доступ к переменным своей лексической области после возврата внешней функции'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'A closure is a function together with the variables it captured from its lexical scope, and it keeps that access even after the outer function has returned. That is what powers counters, factories, partial application and memoization, and it is also why closures can keep memory alive.',
+        'Замыкание — это функция вместе с переменными, которые она захватила из своей лексической области, и доступ к ним сохраняется даже после возврата внешней функции. На этом держатся счётчики, фабрики, частичное применение и мемоизация, и именно поэтому замыкания могут удерживать память.'
+      ),
+    },
+    {
+      id: 'js-q24',
+      question: L('Why do several callbacks in a for loop sometimes all print the same final number?', 'Почему несколько коллбэков в цикле for иногда печатают одно и то же финальное число?'),
+      options: [
+        L('Using let in the loop header makes every callback see the final value', 'let в заголовке цикла заставляет все коллбэки видеть финальное значение'),
+        L('The bug appears only with setInterval', 'Баг проявляется только с setInterval'),
+        L('Using var in the loop header creates a separate binding per iteration', 'var в заголовке цикла создаёт отдельную привязку на итерацию'),
+        L('Using var in the loop header makes every callback see the final value, while let creates a binding per iteration', 'var в заголовке цикла заставляет все коллбэки видеть финальное значение, а let создаёт привязку на итерацию'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'A var declared in a for header is a single function-scoped binding shared by every iteration, so the callbacks all read the value it has at the end. let in the header creates a fresh binding per iteration, so each closure captures its own value and the output is 0, 1, 2.',
+        'var в заголовке for — это одна функциональная привязка, общая для всех итераций, поэтому коллбэки читают её итоговое значение. let в заголовке создаёт новую привязку на каждой итерации, и каждое замыкание захватывает своё значение, а вывод будет 0, 1, 2.'
+      ),
+    },
+    {
+      id: 'js-q25',
+      question: L('What is this inside a method called as obj.method()?', 'Что такое this в методе, вызванном как obj.method()?'),
+      options: [
+        L('this is the object the method was called on', 'this — объект, у которого вызван метод'),
+        L('this is always the global object', 'this — всегда глобальный объект'),
+        L('this is always undefined', 'this — всегда undefined'),
+        L('this is the object where the method was defined', 'this — объект, в котором метод определён'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'In a method call the receiver, the object before the dot, becomes this. That is why obj.get() sees obj while a detached copy of the same function sees something else. The receiver of a call determines this, not the place where the function was written.',
+        'При вызове метода this становится получатель — объект перед точкой. Поэтому obj.get() видит obj, а отсоединённая копия той же функции видит уже другое. this определяет получатель вызова, а не место написания функции.'
+      ),
+    },
+    {
+      id: 'js-q26',
+      question: L('What is the difference between call, apply and bind?', 'Чем отличаются call, apply и bind?'),
+      options: [
+        L('bind invokes the function immediately with the given this', 'bind немедленно вызывает функцию с заданным this'),
+        L('bind returns a new function with this bound, while call and apply invoke the function right away', 'bind возвращает новую функцию с привязанным this, а call и apply сразу вызывают функцию'),
+        L('apply takes arguments as a list, call takes an array', 'apply принимает аргументы списком, а call — массивом'),
+        L('call returns a new bound function', 'call возвращает новую привязанную функцию'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'call invokes the function with a given this and a list of arguments, apply does the same but takes the arguments as an array, and bind returns a new function with this (and optionally some leading arguments) already bound. bind is the one that produces a new function.',
+        'call вызывает функцию с заданным this и списком аргументов, apply — то же, но аргументы принимает массивом, а bind возвращает новую функцию с уже привязанными this и, по желанию, первыми аргументами. Новую функцию создаёт именно bind.'
+      ),
+    },
+    {
+      id: 'js-q27',
+      question: L('Why does passing a method directly to setTimeout break this?', 'Почему передача метода напрямую в setTimeout ломает this?'),
+      options: [
+        L('this is always restored by the event loop', 'this всегда восстанавливается событийным циклом'),
+        L('Only strict mode loses this', 'Только strict mode теряет this'),
+        L('Passing a method as a callback, for example to setTimeout, loses the this binding', 'Передача метода как коллбэка, например в setTimeout, теряет привязку this'),
+        L('this is always bound to the element that fired the event', 'this всегда привязан к элементу, который вызвал событие'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'setTimeout calls the function later with no receiver, so this has no object to point at and falls back to undefined in strict mode. Fix it with bind, an arrow wrapper or an arrow class field, and the same trap applies to addEventListener and array callbacks.',
+        'setTimeout вызывает функцию позже без получателя, поэтому this не указывает ни на объект и в strict mode равен undefined. Лечится через bind, стрелочную обёртку или стрелочное поле класса; та же ловушка есть в addEventListener и в коллбэках массивов.'
+      ),
+    },
+    {
+      id: 'js-q28',
+      question: L('How does property lookup work with prototypes?', 'Как работает поиск свойств с учётом прототипов?'),
+      options: [
+        L('Property lookup stops at the first own property', 'Поиск свойства останавливается на первом собственном свойстве'),
+        L('hasOwnProperty returns true for inherited properties', 'hasOwnProperty возвращает true и для унаследованных свойств'),
+        L('Objects have no prototype chain in strict mode', 'В strict mode у объектов нет цепочки прототипов'),
+        L('Lookup walks the prototype chain, and hasOwnProperty only reports own properties', 'Поиск идёт по цепочке прототипов, а hasOwnProperty сообщает только о собственных свойствах'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'Reading a property walks the prototype chain until it finds a match, which is why every object can use toString. hasOwnProperty answers a different question: whether the property sits directly on the object, which is what you need when copying objects or looping over keys.',
+        'Чтение свойства идёт по цепочке прототипов до первого совпадения, поэтому у любого объекта есть toString. hasOwnProperty отвечает на другой вопрос: лежит ли свойство непосредственно на объекте — именно это важно при копировании объектов и обходе ключей.'
+      ),
+    },
+    {
+      id: 'js-q29',
+      question: L('How deep is Object.freeze?', 'Насколько глубоко работает Object.freeze?'),
+      options: [
+        L('freeze is shallow, so properties of nested objects can still be changed', 'freeze работает поверхностно, поэтому свойства вложенных объектов менять можно'),
+        L('freeze is deep and prevents every change', 'freeze работает глубоко и запрещает любые изменения'),
+        L('freeze prevents reading the properties', 'freeze запрещает чтение свойств'),
+        L('seal also makes existing properties read-only', 'seal также делает существующие свойства доступными только для чтения'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'Object.freeze makes the object own properties non-writable and non-configurable, but it does not touch the objects those properties point to. A nested object stays mutable, and Object.seal behaves differently: it blocks adding and deleting properties but still allows changing the existing ones.',
+        'Object.freeze делает собственные свойства объекта не записываемыми и не настраиваемыми, но не трогает объекты, на которые они ссылаются. Вложенный объект остаётся изменяемым. Object.seal работает иначе: запрещает добавление и удаление, но изменение существующих разрешает.'
+      ),
+    },
+    {
+      id: 'js-q30',
+      question: L('What is the best way to deep clone an object in modern browsers and Node?', 'Как лучше всего глубоко клонировать объект в современных браузерах и Node?'),
+      options: [
+        L('JSON.parse(JSON.stringify(obj)) clones everything perfectly', 'JSON.parse(JSON.stringify(obj)) клонирует всё идеально'),
+        L('structuredClone copies Dates, Maps and Sets, but not functions or DOM nodes', 'structuredClone копирует Date, Map и Set, но не функции и DOM-узлы'),
+        L('The spread syntax clones nested objects as well', 'Spread-синтаксис клонирует и вложенные объекты'),
+        L('Object.assign performs a deep clone', 'Object.assign делает глубокое клонирование'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'structuredClone handles Dates, Maps, Sets, typed arrays and circular references, which the JSON trick cannot. It still refuses functions and DOM nodes. The JSON approach loses Dates, drops undefined and functions and throws on circular structures, while spread and Object.assign are shallow.',
+        'structuredClone справляется с Date, Map, Set, типизированными массивами и циклическими ссылками, что не умеет JSON-способ. При этом он не копирует функции и DOM-узлы. JSON-подход теряет даты, выбрасывает undefined и функции и падает на циклических структурах, а spread и Object.assign работают поверхностно.'
+      ),
+    },
+    {
+      id: 'js-q31',
+      question: L('Where do methods declared inside a class live?', 'Где живут методы, объявленные внутри класса?'),
+      options: [
+        L('Class methods are copied into every instance', 'Методы класса копируются в каждый экземпляр'),
+        L('Classes are hoisted like function declarations', 'Классы всплывают, как Function Declaration'),
+        L('Class methods live on the prototype and the class body runs in strict mode', 'Методы класса живут на прототипе, а тело класса выполняется в strict mode'),
+        L('A class cannot be extended by another class', 'Класс нельзя расширить другим классом'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'Class methods are defined on the prototype and shared by all instances, so instances stay small. The class body always runs in strict mode and the class itself is not hoisted: touching it before the declaration throws a ReferenceError.',
+        'Методы класса определяются на прототипе и разделяются всеми экземплярами, поэтому экземпляры остаются лёгкими. Тело класса всегда выполняется в strict mode, а сам класс не всплывает: обращение к нему до объявления бросает ReferenceError.'
+      ),
+    },
+    {
+      id: 'js-q32',
+      question: L('What must a derived class constructor do before using this?', 'Что должен сделать конструктор наследника перед использованием this?'),
+      options: [
+        L('super can be called after this has been used', 'super можно вызвать после использования this'),
+        L('super is optional in a derived constructor', 'super необязателен в конструкторе наследника'),
+        L('super sets the prototype of the new instance', 'super задаёт прототип нового экземпляра'),
+        L('Call super() first, because this is not initialised until the parent constructor ran', 'Сначала вызвать super(), потому что this не инициализирован до выполнения конструктора родителя'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'In a derived constructor this is created only after the parent constructor runs, so touching this before super() throws a ReferenceError. super also copies the parent own properties and lets you call parent methods through super.method().',
+        'В конструкторе наследника this появляется только после выполнения конструктора родителя, поэтому обращение к this до super() бросает ReferenceError. Кроме того, super копирует собственные свойства родителя и позволяет вызывать его методы через super.method().'
+      ),
+    },
+    {
+      id: 'js-q33',
+      question: L('How do for...in and for...of differ?', 'Чем отличаются for...in и for...of?'),
+      options: [
+        L('for...of iterates the values of an iterable, while for...in iterates enumerable string keys including inherited ones', 'for...of перебирает значения итерируемого, а for...in — перечислимые строковые ключи, включая унаследованные'),
+        L('for...in iterates the values of an iterable', 'for...in перебирает значения итерируемого'),
+        L('for...of iterates enumerable string keys including inherited ones', 'for...of перебирает перечислимые строковые ключи, включая унаследованные'),
+        L('Both loops iterate the same way and can be used interchangeably', 'Оба цикла работают одинаково и взаимозаменяемы'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'for...of uses the iteration protocol and yields values, so it works with arrays, strings, Maps, Sets and generators. for...in walks enumerable string keys, including inherited ones, so on an array it yields index strings and on an object it can pick up prototype properties. Guard for...in with Object.prototype.hasOwnProperty.call.',
+        'for...of использует протокол итерации и отдаёт значения, поэтому работает с массивами, строками, Map, Set и генераторами. for...in обходит перечислимые строковые ключи, включая унаследованные, поэтому на массиве даёт индексы-строки, а на объекте может подхватить свойства прототипа. for...in стоит защищать проверкой Object.prototype.hasOwnProperty.call.'
+      ),
+    },
+    {
+      id: 'js-q34',
+      question: L('How private are class fields declared with a hash prefix?', 'Насколько приватны поля класса, объявленные с префиксом-хеш?'),
+      options: [
+        L('A private field is only a naming convention and can be read from outside', 'Приватное поле — просто соглашение об именовании, его можно читать снаружи'),
+        L('The engine enforces it, so the field cannot be accessed from outside the class', 'Движок это обеспечивает, поле недоступно вне класса'),
+        L('Private fields can only be static', 'Приватные поля могут быть только статическими'),
+        L('Private fields are copied into the prototype', 'Приватные поля копируются в прототип'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'A # field is enforced by the engine, not by convention: it is not readable, writable or even detectable from outside the class, and it is not copied into the prototype. Underlining a name is only a naming convention and gives no real protection.',
+        'Поле с # обеспечивается движком, а не соглашением: снаружи класса его нельзя прочитать, изменить и даже обнаружить, и оно не копируется в прототип. Подчёркивание в имени — это лишь соглашение и никакой реальной защиты не даёт.'
+      ),
+    },
+    {
+      id: 'js-q35',
+      question: L('How does the instanceof operator work?', 'Как работает оператор instanceof?'),
+      options: [
+        L('instanceof compares primitive values', 'instanceof сравнивает примитивные значения'),
+        L('instanceof works across realms such as iframes without issues', 'instanceof работает между realm вроде iframe без проблем'),
+        L('instanceof checks whether the constructor prototype appears in the prototype chain of the object', 'instanceof проверяет, есть ли prototype конструктора в цепочке прототипов объекта'),
+        L('instanceof is the recommended way to detect arrays', 'instanceof — рекомендуемый способ определить массив'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'instanceof walks the prototype chain of the value and checks whether the prototype of the given constructor appears in it. Because each realm has its own prototypes, an array created inside an iframe is not an instance of the outer Array, so use Array.isArray for built-ins.',
+        'instanceof идёт по цепочке прототипов значения и проверяет, есть ли в ней prototype указанного конструктора. Поскольку у каждой realm свои прототипы, массив из iframe не является экземпляром внешнего Array, поэтому для встроенных типов используйте Array.isArray.'
+      ),
+    },
+    {
+      id: 'js-q36',
+      question: L('What does new Array(3) create?', 'Что создаёт new Array(3)?'),
+      options: [
+        L('It creates a sparse array of length 3 with no elements assigned', 'Создаёт разреженный массив длины 3 без заданных элементов'),
+        L('It creates an array with three elements: 1, 2 and 3', 'Создаёт массив из трёх элементов: 1, 2 и 3'),
+        L('It creates an empty array of length 0', 'Создаёт пустой массив длины 0'),
+        L('It throws a TypeError', 'Бросает TypeError'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'With a single numeric argument the constructor sets the length instead of filling the array, so the result is a sparse array with three holes. To build real elements use Array(3).fill(0) or Array.from({ length: 3 }, (_, i) => i).',
+        'С единственным числовым аргументом конструктор задаёт длину, а не наполняет массив, поэтому получается разреженный массив с тремя дырками. Чтобы получить настоящие элементы, используйте Array(3).fill(0) или Array.from({ length: 3 }, (_, i) => i).'
+      ),
+    },
+    {
+      id: 'js-q37',
+      question: L('How does Array.prototype.sort order numbers without a comparator?', 'Как Array.prototype.sort сортирует числа без компаратора?'),
+      options: [
+        L('The default sort is numeric, so [10, 2, 1] becomes [1, 2, 10]', 'По умолчанию сортировка числовая, поэтому [10, 2, 1] станет [1, 2, 10]'),
+        L('The default sort converts elements to strings, so [10, 2, 1] becomes [1, 10, 2]', 'По умолчанию sort приводит элементы к строкам, поэтому [10, 2, 1] станет [1, 10, 2]'),
+        L('The default sort always throws without a comparator', 'Без компаратора sort всегда бросает исключение'),
+        L('The default sort removes duplicate values', 'По умолчанию sort удаляет дубликаты'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'Without a comparator the elements are converted to strings and compared as UTF-16, so 10 comes before 2 because the string "10" sorts before "2". For numbers pass a numeric comparator such as (a, b) => a - b, and remember that sort mutates the array in place.',
+        'Без компаратора элементы приводятся к строкам и сравниваются как UTF-16, поэтому 10 оказывается раньше 2: строка "10" сортируется раньше "2". Для чисел нужен числовой компаратор вида (a, b) => a - b, и помните, что sort мутирует массив на месте.'
+      ),
+    },
+    {
+      id: 'js-q38',
+      question: L('Which array methods mutate the original array?', 'Какие методы массива мутируют исходный массив?'),
+      options: [
+        L('map, filter and slice mutate the original array', 'map, filter и slice мутируют исходный массив'),
+        L('Every array method mutates the original array', 'Любой метод массива мутирует исходный массив'),
+        L('sort, reverse, splice, push and pop mutate the original array, while map, filter, slice and flatMap return new arrays', 'sort, reverse, splice, push и pop мутируют исходный массив, а map, filter, slice и flatMap возвращают новые'),
+        L('push and pop return new arrays', 'push и pop возвращают новые массивы'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'Mutating methods include push, pop, shift, unshift, splice, sort, reverse, fill and copyWithin. Non-mutating methods such as map, filter, slice, concat, flat and flatMap return new arrays, and the newer toSorted, toReversed and toSpliced give an immutable alternative to the mutating ones.',
+        'Мутирующие методы: push, pop, shift, unshift, splice, sort, reverse, fill и copyWithin. Не мутирующие — map, filter, slice, concat, flat и flatMap — возвращают новые массивы, а новые toSorted, toReversed и toSpliced дают иммутабельную альтернативу мутирующим.'
+      ),
+    },
+    {
+      id: 'js-q39',
+      question: L('What happens when reduce is called on an empty array without an initial value?', 'Что произойдёт, если вызвать reduce на пустом массиве без начального значения?'),
+      options: [
+        L('It returns 0', 'Возвращает 0'),
+        L('It returns undefined', 'Возвращает undefined'),
+        L('It returns the first element', 'Возвращает первый элемент'),
+        L('It throws a TypeError because there is no accumulator to start from', 'Бросает TypeError, потому что не с чего начать накопление'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'Without an initial value reduce takes the first element as the accumulator, and an empty array leaves it with nothing to work with, so it throws. Passing an initial value such as 0 makes the call safe for empty arrays and states the intended result type.',
+        'Без начального значения reduce берёт первый элемент как накопитель, и на пустом массиве ему не с чего начать, поэтому бросается исключение. Начальное значение вроде 0 делает вызов безопасным для пустых массивов и задаёт тип результата.'
+      ),
+    },
+    {
+      id: 'js-q40',
+      question: L('How do find, some and every differ?', 'Чем отличаются find, some и every?'),
+      options: [
+        L('find returns the first matching element, some returns true if any element matches, every returns true if all elements match', 'find возвращает первый подходящий элемент, some — true, если есть совпадение, every — true, если совпали все'),
+        L('every returns the first matching element', 'every возвращает первый подходящий элемент'),
+        L('some returns the first matching element', 'some возвращает первый подходящий элемент'),
+        L('find returns a boolean, while some and every return elements', 'find возвращает boolean, а some и every — элементы'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'find gives the element itself or undefined, some gives a boolean that turns true as soon as one element matches, and every gives a boolean that stays true only if all of them match. All three short-circuit, so they stop at the first decisive element.',
+        'find отдаёт сам элемент или undefined, some — boolean, который становится true при первом же совпадении, а every — boolean, остающийся true, только если совпали все. Все три коротко замыкаются и останавливаются на первом решающем элементе.'
+      ),
+    },
+    {
+      id: 'js-q41',
+      question: L('When is Map a better choice than a plain object?', 'Когда Map лучше обычного объекта?'),
+      options: [
+        L('Object accepts any key type, while Map only accepts strings', 'Object принимает любые ключи, а Map только строки'),
+        L('Map accepts any key type, keeps insertion order and exposes size, so it suits object keys and frequent add and remove operations', 'Map принимает любые ключи, хранит порядок вставки и имеет size, поэтому подходит для объектных ключей и частых добавлений и удалений'),
+        L('Map is always faster for string keys', 'Map всегда быстрее для строковых ключей'),
+        L('Map is JSON-serializable as is', 'Map сериализуется в JSON как есть'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'Map accepts objects and functions as keys, preserves insertion order and exposes a size property, and it is efficient when entries are added and removed often. A plain object coerces keys to strings, so the key "1" and the number 1 collide. Map is not JSON-serializable directly.',
+        'Map принимает объекты и функции в качестве ключей, сохраняет порядок вставки и имеет свойство size, а ещё эффективен при частых добавлениях и удалениях. Обычный объект приводит ключи к строкам, поэтому ключ "1" и число 1 совпадают. В JSON Map напрямую не сериализуется.'
+      ),
+    },
+    {
+      id: 'js-q42',
+      question: L('Does fetch reject when the server answers with 404?', 'Отклоняется ли fetch, когда сервер отвечает 404?'),
+      options: [
+        L('fetch rejects the promise on any status code from 400 to 599', 'fetch отклоняет промис на любом статусе от 400 до 599'),
+        L('fetch rejects only on network failures and 5xx statuses', 'fetch отклоняет только при сетевых сбоях и статусах 5xx'),
+        L('fetch resolves with the response, and res.ok is false for 4xx and 5xx', 'fetch разрешается с ответом, а res.ok равен false для 4xx и 5xx'),
+        L('fetch retries the request automatically until it gets a 2xx', 'fetch автоматически повторяет запрос, пока не получит 2xx'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'fetch rejects only on network level failures, so a 404 or a 500 is a perfectly normal resolved response. You have to check res.ok or res.status yourself before reading the body, otherwise parsing an error page as JSON throws a confusing SyntaxError.',
+        'fetch отклоняется только при сетевых сбоях, поэтому 404 или 500 — это обычный разрешённый ответ. Нужно самому проверить res.ok или res.status перед чтением тела, иначе попытка распарсить страницу ошибки как JSON даст запутанный SyntaxError.'
+      ),
+    },
+    {
+      id: 'js-q43',
+      question: L('What are the rules for WeakMap keys?', 'Какие правила действуют для ключей WeakMap?'),
+      options: [
+        L('WeakMap keys can be any primitive, and entries never expire', 'Ключи WeakMap могут быть любыми примитивами, записи не исчезают'),
+        L('WeakMap is iterable and exposes size like Map', 'WeakMap итерируем и имеет size, как Map'),
+        L('WeakMap keeps its entries until clear is called', 'WeakMap хранит записи, пока не вызвать clear'),
+        L('WeakMap keys must be objects, and an entry disappears when the key is garbage collected', 'Ключи WeakMap должны быть объектами, а запись исчезает, когда ключ собирается сборщиком мусора'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'WeakMap holds its keys weakly, so an entry is removed once nothing else references the key and the garbage collector runs. That makes it the right place for metadata attached to an object without keeping that object alive, and it is why WeakMap is not iterable and has no size.',
+        'WeakMap держит ключи слабо, поэтому запись удаляется, как только на ключ больше никто не ссылается и отработает сборщик мусора. Поэтому WeakMap подходит для метаданных, привязанных к объекту, не удерживая его, и именно поэтому он не итерируем и не имеет size.'
+      ),
+    },
+    {
+      id: 'js-q44',
+      question: L('What does the destructuring pattern const { a: renamed, ...rest } = obj do?', 'Что делает паттерн деструктуризации const { a: renamed, ...rest } = obj?'),
+      options: [
+        L('It renames a to renamed and collects every other property into rest', 'Переименовывает a в renamed и собирает все остальные свойства в rest'),
+        L('It creates a property called renamed inside obj', 'Создаёт свойство renamed внутри obj'),
+        L('The rest element collects only the explicitly named properties', 'Rest собирает только явно названные свойства'),
+        L('Destructuring with a rest element always throws', 'Деструктуризация с rest всегда бросает исключение'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'The colon renames the property a into the local variable renamed, and the rest element collects all the properties that were not named into a fresh object. The same rest idea works for arrays, where it collects the remaining elements.',
+        'Двоеточие переименовывает свойство a в локальную переменную renamed, а rest собирает все неназванные свойства в новый объект. Та же идея с rest работает и для массивов, где он забирает оставшиеся элементы.'
+      ),
+    },
+    {
+      id: 'js-q45',
+      question: L('How should a custom error class be written?', 'Как правильно написать собственный класс ошибки?'),
+      options: [
+        L('Errors can only be created by the built-in constructors', 'Ошибки можно создавать только встроенными конструкторами'),
+        L('Extend Error, call super with the message and set the name, which keeps the stack trace and allows instanceof checks', 'Наследовать Error, вызвать super с сообщением и задать name — так сохраняется стек-трейс и работают проверки instanceof'),
+        L('Extending Error removes the stack trace', 'Наследование от Error убирает стек-трейс'),
+        L('Custom errors cannot carry extra fields such as statusCode', 'Пользовательские ошибки не могут нести дополнительные поля вроде statusCode'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'A custom error extends Error, passes the message to super and sets its own name, so the stack trace is preserved and instanceof identifies the specific type. Extra fields such as statusCode or code are then just normal own properties on the instance.',
+        'Своя ошибка наследует Error, передаёт сообщение в super и задаёт своё имя — стек-трейс сохраняется, а instanceof распознаёт конкретный тип. Дополнительные поля вроде statusCode или code становятся обычными собственными свойствами экземпляра.'
+      ),
+    },
+    {
+      id: 'js-q46',
+      question: L('How do try, catch and finally interact?', 'Как взаимодействуют try, catch и finally?'),
+      options: [
+        L('finally runs only when an error was thrown', 'finally выполняется только при ошибке'),
+        L('A return inside finally is ignored', 'return внутри finally игнорируется'),
+        L('finally always runs, and a return inside it overrides the result of the try block', 'finally выполняется всегда, а return внутри него перекрывает результат блока try'),
+        L('catch must be the last block of the statement', 'catch должен быть последним блоком конструкции'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'finally is meant for cleanup and runs whether or not an error was thrown. A return inside finally silently discards the value from the try block, which is a classic source of confusing bugs, so prefer throwing from finally or restructuring the code.',
+        'finally предназначен для очистки и выполняется независимо от того, была ли ошибка. return внутри finally молча выбрасывает значение из блока try — это классический источник запутанных багов, поэтому лучше бросать из finally или переписать код.'
+      ),
+    },
+    {
+      id: 'js-q47',
+      question: L('What happens when an async function throws an exception?', 'Что происходит, когда async-функция бросает исключение?'),
+      options: [
+        L('The exception is swallowed by the promise machinery', 'Исключение поглощается механизмом промисов'),
+        L('The exception propagates to the caller synchronously', 'Исключение синхронно пробрасывается вызывающему коду'),
+        L('The exception stops the event loop', 'Исключение останавливает событийный цикл'),
+        L('The async function returns a rejected promise', 'async-функция возвращает отклонённый промис'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'An async function always returns a promise, so a throw inside it is converted into a rejected promise rather than a synchronous exception. Handle it with try and catch around the await, or with catch on the returned promise, otherwise it becomes an unhandled rejection.',
+        'async-функция всегда возвращает промис, поэтому throw внутри неё превращается в отклонённый промис, а не в синхронное исключение. Обрабатывайте его через try и catch вокруг await либо через catch у возвращённого промиса, иначе получите необработанное отклонение.'
+      ),
+    },
+    {
+      id: 'js-q48',
+      question: L('What does an async function return?', 'Что возвращает async-функция?'),
+      options: [
+        L('It always returns a promise, even for a plain return value', 'Всегда возвращает промис, даже для обычного return'),
+        L('It returns the value directly when it is not a promise', 'Возвращает значение напрямую, если это не промис'),
+        L('It returns undefined until the promise settles', 'Возвращает undefined, пока промис не завершится'),
+        L('It returns a thenable only if the body throws', 'Возвращает thenable, только если тело бросает ошибку'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'An async function always wraps its result in a promise, so a plain return value arrives as a resolved promise. That is what makes await inside it possible and why mixing await with plain functions breaks.',
+        'async-функция всегда оборачивает результат в промис, поэтому обычный return приходит как разрешённый промис. Именно это делает возможным await внутри неё и объясняет, почему смешивание await с обычными функциями ломается.'
+      ),
+    },
+    {
+      id: 'js-q49',
+      question: L('How do the promise combinators differ?', 'Чем отличаются комбинаторы промисов?'),
+      options: [
+        L('Promise.all waits for all promises and returns the status of each one', 'Promise.all ждёт все промисы и возвращает статус каждого'),
+        L('Promise.all rejects as soon as one promise rejects, while allSettled waits for all and reports the status of each', 'Promise.all отклоняется, как только один промис отклоняется, а allSettled ждёт все и возвращает статус каждого'),
+        L('Promise.all resolves with the first promise that settles', 'Promise.all разрешается первым завершившимся промисом'),
+        L('Promise.all rejects only if every promise rejects', 'Promise.all отклоняется, только если отклонились все промисы'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'Promise.all rejects on the first rejection, which makes it unsuitable when you want every result regardless of failures. Promise.allSettled waits for everything and returns a status per promise, Promise.race settles with the first result, and Promise.any resolves with the first fulfilled promise.',
+        'Promise.all отклоняется при первом отклонении, поэтому он не подходит, когда нужны все результаты независимо от ошибок. Promise.allSettled ждёт всё и возвращает статус каждого промиса, Promise.race завершается первым результатом, а Promise.any разрешается первым успешным промисом.'
+      ),
+    },
+    {
+      id: 'js-q50',
+      question: L('In what order does the event loop run this code: console.log(1); setTimeout(fn, 0); Promise.resolve().then(fn)?', 'В каком порядке событийный цикл выполнит этот код: console.log(1); setTimeout(fn, 0); Promise.resolve().then(fn)?'),
+      options: [
+        L('The setTimeout callback, then the promise callback, then the synchronous code', 'Коллбэк setTimeout, затем коллбэк промиса, затем синхронный код'),
+        L('The promise callback, then the setTimeout callback, then the synchronous code', 'Коллбэк промиса, затем коллбэк setTimeout, затем синхронный код'),
+        L('The synchronous code, then the promise callback, then the setTimeout callback', 'Синхронный код, затем коллбэк промиса, затем коллбэк setTimeout'),
+        L('The order depends on how long the timer is', 'Порядок зависит от длительности таймера'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'Synchronous code runs first, then the microtask queue is drained completely, and only after that does the next macrotask such as a timer callback run. Promise callbacks are microtasks and setTimeout callbacks are macrotasks, so the order is 1, then the promise callback, then the timer callback.',
+        'Сначала выполняется синхронный код, затем полностью опустошается очередь микрозадач, и только после этого запускается следующая макрозадача, например коллбэк таймера. Коллбэки промисов — микрозадачи, а setTimeout — макрозадачи, поэтому порядок такой: 1, потом коллбэк промиса, потом коллбэк таймера.'
+      ),
+    },
   ],
 };

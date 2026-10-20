@@ -54,27 +54,905 @@ export const routerModule: Module = {
     { id: 'router-045', title: L('defer', 'defer'), question: L('How does deferred data loading work?', 'Как работает отложенная загрузка данных?'), answer: L('defer allows route to resolve initial data while streaming slow data. Wrap promises in defer(). Use <Await> in component. Requires Suspense boundary. Suspends only the deferred part.', 'defer позволяет маршруту разрешить начальные данные, стримленные медленные данные. Оберните промисы в defer(). Используйте <Await> в компоненте. Требует границы Suspense. Приостанавливает только отложенную часть.'), code: `loader: () => ({ users: fetchUsers(), stats: defer(fetchStats()) })` },
   ],
   quiz: [
-    { id: 'rtq1', question: L('BrowserRouter uses...', 'BrowserRouter использует...'), options: [L('hash history', 'hash history'), L('HTML5 history API', 'HTML5 history API')], correctIndex: 1 },
-    { id: 'rtq2', question: L('Route matching in v6+ is based on...', 'Сопоставление маршрутов в v6+ основано на...'), options: [L('declaration order', 'порядке объявления'), L('ranking algorithm', 'алгоритме ранжирования')], correctIndex: 1 },
-    { id: 'rtq3', question: L('NavLink adds which attribute when active?', 'Какой атрибут добавляет NavLink при активном состоянии?'), options: [L('aria-current="page"', 'aria-current="page"'), L('data-active="true"', 'data-active="true"')], correctIndex: 0 },
-    { id: 'rtq4', question: L('Dynamic segments start with...', 'Динамические сегменты начинаются с...'), options: [L('*', '*'), L(':', ':')], correctIndex: 1 },
-    { id: 'rtq5', question: L('Catch-all routes use...', 'Catch-all маршруты используют...'), options: [L('?', '?'), L('*', '*')], correctIndex: 1 },
-    { id: 'rtq6', question: L('useLoaderData returns...', 'useLoaderData возвращает...'), options: [L('data from nearest loader', 'данные из ближайшего loader'), L('form data', 'данные формы')], correctIndex: 0 },
-    { id: 'rtq7', question: L('Data routers were introduced in...', 'Data-маршрутизаторы были введены в...'), options: [L('v5', 'v5'), L('v6.4', 'v6.4')], correctIndex: 1 },
-    { id: 'rtq8', question: L('createBrowserRouter requires...', 'createBrowserRouter требует...'), options: [L('BrowserRouter wrapper', 'обёртку BrowserRouter'), L('RouterProvider', 'RouterProvider')], correctIndex: 1 },
-    { id: 'rtq9', question: L('Index routes use...', 'Index-маршруты используют...'), options: [L('index prop', 'проп index'), L('path="/"', 'path="/"')], correctIndex: 0 },
-    { id: 'rtq10', question: L('MemoryRouter is ideal for...', 'MemoryRouter идеален для...'), options: [L('production apps', 'продакшен-приложений'), L('tests', 'тестов')], correctIndex: 1 },
-    { id: 'rtq11', question: L('defer() is used for...', 'defer() используется для...'), options: [L('deferred data loading', 'отложенной загрузки данных'), L('form submission', 'отправки форм')], correctIndex: 0 },
-    { id: 'rtq12', question: L('useFetcher is used for...', 'useFetcher используется для...'), options: [L('mutations without navigation', 'мутаций без навигации'), L('route matching', 'сопоставления маршрутов')], correctIndex: 0 },
-    { id: 'rtq13', question: L('Link with replace prop...', 'Link с пропом replace...'), options: [L('adds history entry', 'добавляет запись истории'), L('replaces history entry', 'заменяет запись истории')], correctIndex: 1 },
-    { id: 'rtq14', question: L('shouldRevalidate controls...', 'shouldRevalidate контролирует...'), options: [L('loader re-execution', 'перезапуск loader'), L('component rendering', 'рендеринг компонента')], correctIndex: 0 },
-    { id: 'rtq15', question: L('Route errorElement renders...', 'errorElement маршрута рендерит...'), options: [L('on error', 'при ошибке'), L('always', 'всегда')], correctIndex: 0 },
-    { id: 'rtq16', question: L('Relative paths in v6 are relative to...', 'Относительные пути в v6 относятся к...'), options: [L('root', 'корню'), L('parent route', 'родительскому маршруту')], correctIndex: 1 },
-    { id: 'rtq17', question: L('useNavigate returns...', 'useNavigate возвращает...'), options: [L('location object', 'объект местоположения'), L('navigation function', 'функцию навигации')], correctIndex: 1 },
-    { id: 'rtq18', question: L('Optional parameters use...', 'Необязательные параметры используют...'), options: [L('?', '?'), L('!', '!')], correctIndex: 0 },
-    { id: 'rtq19', question: L('useSearchParams setSearchParams...', 'setSearchParams...'), options: [L('updates query string', 'обновляет query-строку'), L('replaces pathname', 'заменяет pathname')], correctIndex: 0 },
-    { id: 'rtq20', question: L('View transitions in v7 use...', 'View transitions в v7 используют...'), options: [L('useViewTransitionState', 'useViewTransitionState'), L('useTransition', 'useTransition')], correctIndex: 0 },
-    { id: 'rtq21', question: L('Route precedence ranks static segments...', 'Приоритет маршрутов ранжирует статические сегменты...'), options: [L('higher than dynamic', 'выше динамических'), L('lower than dynamic', 'ниже динамических')], correctIndex: 0 },
-    { id: 'rtq22', question: L('createStaticRouter is for...', 'createStaticRouter для...'), options: [L('client routing', 'клиентской маршрутизации'), L('server rendering', 'серверного рендеринга')], correctIndex: 1 },
+    {
+      id: 'router-q01',
+      question: L(
+        'Which browser API does BrowserRouter use to keep the URL and the interface in sync?',
+        'Какое API браузера использует BrowserRouter, чтобы URL и интерфейс оставались синхронными?'
+      ),
+      options: [
+        L('The hash part of the URL', 'Хэш-часть URL'),
+        L('The HTML5 history API with pushState and popstate', 'HTML5 History API с pushState и popstate'),
+        L('The Web Storage API', 'Web Storage API'),
+        L('The server sent events API', 'Server Sent Events API'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'BrowserRouter stores the current location in the browser history: pushState adds an entry without a reload and popstate tells the router that the user pressed the back button. The hash is what HashRouter uses, and the other two APIs have nothing to do with routing.',
+        'BrowserRouter хранит текущее местоположение в истории браузера: pushState добавляет запись без перезагрузки, а popstate сообщает роутеру, что пользователь нажал «назад». Хэш использует HashRouter, а два других API к маршрутизации отношения не имеют.'
+      ),
+    },
+    {
+      id: 'router-q02',
+      question: L(
+        'A user opens /users/42 directly and the server answers with 404. What is missing?',
+        'Пользователь открывает /users/42 напрямую, а сервер отвечает 404. Чего не хватает?'
+      ),
+      options: [
+        L('The server must return index.html for every path, so the client router can take over', 'Сервер должен отдавать index.html на любой путь, чтобы клиентский роутер мог взять управление'),
+        L('The application must use HashRouter instead of BrowserRouter', 'Приложение должно использовать HashRouter вместо BrowserRouter'),
+        L('The routes must be declared with absolute paths', 'Маршруты должны быть объявлены с абсолютными путями'),
+        L('The dev server must listen on port 3000', 'Dev-сервер должен слушать на порту 3000'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'With the HTML5 history API the browser asks the server for the real path, and if the server has no file for it the request fails before React even starts. The fix is a rewrite rule that returns index.html for every path. HashRouter avoids the problem because the server only ever sees the file, and the other options do not change what the server does.',
+        'С HTML5 History API браузер спрашивает у сервера настоящий путь, и если у сервера нет такого файла, запрос падает ещё до старта React. Лечение — правило перезаписи, которое отдаёт index.html на любой путь. HashRouter проблему снимает, потому что сервер видит только файл, а остальные варианты на поведение сервера не влияют.'
+      ),
+    },
+    {
+      id: 'router-q03',
+      question: L(
+        'When is HashRouter the better choice?',
+        'Когда лучше выбрать HashRouter?'
+      ),
+      options: [
+        L('When you need the shortest possible URLs', 'Когда нужны максимально короткие URL'),
+        L('When you use server side rendering', 'Когда вы используете серверный рендеринг'),
+        L('When the app is hosted statically and the server cannot rewrite unknown paths to index.html', 'Когда приложение хостится статически и сервер не может перезаписывать неизвестные пути на index.html'),
+        L('When you need loaders and actions', 'Когда нужны loaders и actions'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'The hash is never sent to the server, so any static host can serve the application and the router reads the path after the #, which is why HashRouter works without rewrite rules. It is not about the length of the URL, it does not support server side rendering, and loaders and actions belong to the data routers, not to the history type.',
+        'Хэш никогда не отправляется на сервер, поэтому любая статическая платформа отдаст приложение, а роутер прочитает путь после # — вот почему HashRouter работает без правил перезаписи. Он не про длину URL, не поддерживает серверный рендеринг, а loaders и actions относятся к data-роутерам, а не к типу истории.'
+      ),
+    },
+    {
+      id: 'router-q04',
+      question: L(
+        'Where is MemoryRouter used?',
+        'Где используется MemoryRouter?'
+      ),
+      options: [
+        L('In production applications that need SEO', 'В продакшен-приложениях, которым нужен SEO'),
+        L('In applications that need the real browser history', 'В приложениях, которым нужна настоящая история браузера'),
+        L('In components that render outside of a router', 'В компонентах, которые рендерятся вне роутера'),
+        L('In tests and in server side rendering, where the history must stay in memory', 'В тестах и при серверном рендеринге, где история должна оставаться в памяти'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'MemoryRouter keeps the history in an internal array and never touches the URL, which makes it the right choice for tests where you need a predictable starting entry and for environments without an address bar. Production apps want the real history, SEO needs a real URL, and being outside a router is not a reason to use it.',
+        'MemoryRouter держит историю во внутреннем массиве и не трогает URL, поэтому он подходит для тестов с предсказуемой начальной записью и для сред без адресной строки. Продакшену нужна настоящая история, SEO — настоящий URL, а «рендерится вне роутера» поводом для него не является.'
+      ),
+    },
+    {
+      id: 'router-q05',
+      question: L(
+        'How many routes of a Routes block can be rendered at the same time?',
+        'Сколько маршрутов блока Routes может отрисовываться одновременно?'
+      ),
+      options: [
+        L('Only one: the route that matches the URL best', 'Только один: маршрут, который лучше всего совпал с URL'),
+        L('All the routes whose path is a prefix of the URL', 'Все маршруты, чей путь является префиксом URL'),
+        L('All of them, in the order they are declared', 'Все их, в порядке объявления'),
+        L('The one with the longest path, even if it does not match', 'Тот, у которого путь длиннее, даже если он не совпадает'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'Since version 6 the Routes component picks a single branch of the tree, so only the element of the best matching route is rendered. A prefix match is not enough, the branch has to match completely, and the declaration order does not decide which one wins.',
+        'Начиная с шестой версии Routes выбирает одну ветку дерева, поэтому отрисовывается только элемент лучше всего совпавшего маршрута. Совпадения по префиксу мало, ветка должна совпасть полностью, а порядок объявления не решает, кто победит.'
+      ),
+    },
+    {
+      id: 'router-q06',
+      question: L(
+        'What should the element prop of a Route contain?',
+        'Что должно содержаться в пропе element у Route?'
+      ),
+      options: [
+        L('The name of the component as a string', 'Имя компонента в виде строки'),
+        L('A React element, for example element={<Home />}', 'React-элемент, например element={<Home />}'),
+        L('A lazy import function', 'Функция ленивого импорта'),
+        L('The path of the file with the component', 'Путь к файлу с компонентом'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'The element prop takes an element that is created when the route is rendered, so the component is mounted and the hooks inside it work. Passing a string does not create a component, and the lazy import is handled by React.lazy inside a Suspense boundary, not by the Route itself.',
+        'Проп element принимает элемент, который создаётся при отрисовке маршрута, поэтому компонент монтируется и его хуки работают. Строка компонент не создаёт, а ленивый импорт берёт на себя React.lazy внутри границы Suspense, а не сам Route.'
+      ),
+    },
+    {
+      id: 'router-q07',
+      question: L(
+        'In version 6, how is the best matching route chosen?',
+        'В шестой версии как выбирается лучше всего совпавший маршрут?'
+      ),
+      options: [
+        L('The route that is declared first in the JSX wins', 'Побеждает маршрут, объявленный первым в JSX'),
+        L('The route with the shortest path wins', 'Побеждает маршрут с самым коротким путём'),
+        L('By a ranking algorithm where static segments beat dynamic ones and a splat ranks last', 'Алгоритмом ранжирования: статические сегменты сильнее динамических, а splat слабее всех'),
+        L('By the order in which the user visited the pages', 'Порядком, в котором пользователь посещал страницы'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'React Router 6 ranks the candidates: a static segment is more specific than a dynamic one, more segments beat fewer, and a splat has the lowest rank, so /users/new wins over /users/:id no matter how they are written. The declaration order only mattered in version 5 with Switch.',
+        'React Router 6 ранжирует кандидатов: статический сегмент конкретнее динамического, больше сегментов лучше меньшего, а splat рангом ниже всех, поэтому /users/new побеждает /users/:id независимо от порядка записи. Порядок объявления имел значение только в пятой версии с Switch.'
+      ),
+    },
+    {
+      id: 'router-q08',
+      question: L(
+        'What does an index route render?',
+        'Что отрисовывает index-маршрут?'
+      ),
+      options: [
+        L('The parent route element when the parent path matches only partially', 'Элемент родительского маршрута, когда путь родителя совпал лишь частично'),
+        L('A route that matches every URL', 'Маршрут, совпадающий с любым URL'),
+        L('A route that replaces the parent element', 'Маршрут, заменяющий элемент родителя'),
+        L('The child route when the path of the parent matches exactly', 'Дочерний маршрут, когда путь родителя совпал точно'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'An index route has no path of its own and renders when the path of the parent is matched exactly, so /users shows the index child and /users/42 shows the parameter child. It does not replace the parent element, the parent layout with the Outlet still wraps it, and it does not match every URL.',
+        'У index-маршрута нет собственного пути, и он отрисовывается, когда путь родителя совпал точно: на /users виден index-ребёнок, а на /users/42 — ребёнок с параметром. Элемент родителя он не заменяет, родительский layout с Outlet по-прежнему его оборачивает, и любой URL он не ловит.'
+      ),
+    },
+    {
+      id: 'router-q09',
+      question: L(
+        'What is a layout route?',
+        'Что такое layout-маршрут?'
+      ),
+      options: [
+        L('A route that has an element but no path and renders an Outlet for its children', 'Маршрут с элементом, но без пути, который отрисовывает Outlet для детей'),
+        L('A route whose path is an empty string', 'Маршрут, у которого путь — пустая строка'),
+        L('A route that only defines a loader', 'Маршрут, у которого определён только loader'),
+        L('A route that redirects to another route', 'Маршрут, который перенаправляет на другой маршрут'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'A layout route has no path, so it consumes no part of the URL, but it has an element that usually contains an Outlet, which is where the children are rendered. That is how a sidebar or a header is shared by several routes. It is not the same as an empty path, and it has nothing to do with loaders or redirects.',
+        'У layout-маршрута нет пути, поэтому он не забирает ни часть URL, но есть элемент, обычно с Outlet — именно там отрисовываются дети. Так несколько маршрутов делят сайдбар или шапку. Это не то же самое, что пустой путь, и к loaders или редиректам отношения не имеет.'
+      ),
+    },
+    {
+      id: 'router-q10',
+      question: L(
+        'What is a pathless layout route used for?',
+        'Для чего используется pathless layout-маршрут?'
+      ),
+      options: [
+        L('For a route that matches every URL and renders nothing', 'Для маршрута, совпадающего с любым URL и ничего не отрисовывающего'),
+        L('For a layout that applies to a group of routes regardless of the URL', 'Для layout, применяемого к группе маршрутов независимо от URL'),
+        L('For a route that only has a loader and no element', 'Для маршрута, у которого есть только loader и нет элемента'),
+        L('For redirecting unknown paths to the home page', 'Для перенаправления неизвестных путей на главную страницу'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'A pathless route groups routes under a shared layout without adding a segment to the URL, which is how you wrap a set of pages in a layout or in an error boundary. It still renders its children through the Outlet, so it is not an empty route, and it is not a redirect.',
+        'Pathless-маршрут группирует маршруты под общим layout, не добавляя сегмент к URL, — так набор страниц заворачивают в layout или в границу ошибок. Он по-прежнему отрисовывает детей через Outlet, поэтому это не пустой маршрут, и редиректом он не является.'
+      ),
+    },
+    {
+      id: 'router-q11',
+      question: L(
+        'Which path pattern captures the segment 42 of the URL /users/42?',
+        'Какой шаблон пути захватывает сегмент 42 в URL /users/42?'
+      ),
+      options: [
+        L('/users/*', '/users/*'),
+        L('/users/:id?', '/users/:id?'),
+        L('/users/:id', '/users/:id'),
+        L('/users/42', '/users/42'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'A dynamic segment is written with a colon followed by the name of the parameter, so :id captures 42 and it is read with useParams. The star is a splat that captures everything that is left, the question mark makes the parameter optional, and a literal segment would only match that exact value.',
+        'Динамический сегмент записывается с двоеточием и именем параметра, поэтому :id захватывает 42, и его читают через useParams. Звёздочка — это splat, захватывающий всё остальное, вопросительный знак делает параметр необязательным, а литеральный сегмент совпадёт только с этим точным значением.'
+      ),
+    },
+    {
+      id: 'router-q12',
+      question: L(
+        'What type is the value that useParams returns for the parameter id?',
+        'Какого типа значение возвращает useParams для параметра id?'
+      ),
+      options: [
+        L('A number, because the segment of the URL is a number', 'Число, потому что сегмент URL — это число'),
+        L('An object with the parsed value and the raw string', 'Объект с разобранным значением и сырой строкой'),
+        L('A string or a number, depending on the route', 'Строка или число, в зависимости от маршрута'),
+        L('A string, always', 'Всегда строка'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'URL segments are always strings, so useParams gives you strings even when the segment looks like a number and you have to convert it yourself. The router does not guess a type and it does not return a wrapper object, it returns the raw parameter values.',
+        'Сегменты URL — всегда строки, поэтому useParams отдаёт строки, даже если сегмент похож на число, и преобразовывать нужно самому. Роутер не угадывает тип и не возвращает объект-обёртку, он отдаёт сырые значения параметров.'
+      ),
+    },
+    {
+      id: 'router-q13',
+      question: L(
+        'How do you declare a route that matches every path nothing else matched?',
+        'Как объявить маршрут, совпадающий со всеми путями, которые не совпали с остальными?'
+      ),
+      options: [
+        L('path="*"', 'path="*"'),
+        L('path="?"', 'path="?"'),
+        L('path="**"', 'path="**"'),
+        L('path="/:any"', 'path="/:any"'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'The star is the splat: it matches every remaining segment, so it is the standard way to write a not found page. The question mark marks an optional parameter, two stars are not a thing, and a named parameter would only match a single segment.',
+        'Звёздочка — это splat: она совпадает со всеми оставшимися сегментами, и это стандартный способ написать страницу 404. Вопросительный знак помечает необязательный параметр, двух звёздочек не бывает, а именованный параметр поймал бы только один сегмент.'
+      ),
+    },
+    {
+      id: 'router-q14',
+      question: L(
+        'How do you make the parameter query of the route /search/:query optional?',
+        'Как сделать параметр query маршрута /search/:query необязательным?'
+      ),
+      options: [
+        L('path="/search/:query/?"', 'path="/search/:query/?"'),
+        L('path="/search/:query?"', 'path="/search/:query?"'),
+        L('path="/search/query?"', 'path="/search/query?"'),
+        L('path="/search/:query*?"', 'path="/search/:query*?"'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'A question mark right after the name of the parameter makes it optional, and the value is undefined when the segment is missing. A trailing slash changes the path, the name has to stay, and a star turns it into a splat instead of an optional parameter.',
+        'Вопросительный знак сразу после имени параметра делает его необязательным, и значение равно undefined, когда сегмента нет. Слэш в конце меняет сам путь, имя параметра сохраняется, а звёздочка превращает его в splat, а не в необязательный параметр.'
+      ),
+    },
+    {
+      id: 'router-q15',
+      question: L(
+        'A child route is declared as path=":id" inside a parent with path="/users". Which URL does it match?',
+        'Дочерний маршрут объявлен как path=":id" внутри родителя с path="/users". Какой URL он совпадает?'
+      ),
+      options: [
+        L('/:id', '/:id'),
+        L('/id', '/id'),
+        L('/users/:id', '/users/:id'),
+        L('It depends on the order of the routes', 'Это зависит от порядка маршрутов'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'A path without a leading slash is relative, so it is appended to the path of the parent and the result is /users/:id. A path with a leading slash would be absolute and would ignore the parent, and the order of the routes does not change how a nested path is composed.',
+        'Путь без ведущей косой черты относительный, поэтому он приписывается к пути родителя, и получается /users/:id. Путь с ведущей косой чертой абсолютный и игнорирует родителя, а порядок маршрутов на составление вложенного пути не влияет.'
+      ),
+    },
+    {
+      id: 'router-q16',
+      question: L(
+        'What happens when navigate("/home") is called from the page /users/42?',
+        'Что произойдёт, если со страницы /users/42 вызвать navigate("/home")?'
+      ),
+      options: [
+        L('It navigates to /users/42/home, because the current route is used as the base', 'Переход на /users/42/home, потому что базой служит текущий маршрут'),
+        L('It goes to the parent route /users', 'Переход на родительский маршрут /users'),
+        L('It does nothing, because the path is not relative', 'Ничего не произойдёт, потому что путь не относительный'),
+        L('It goes to /home, because a leading slash makes the path absolute', 'Переход на /home, потому что ведущая косая черта делает путь абсолютным'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'A path that starts with a slash is absolute and is resolved from the root of the router, so the current location is ignored. It is the relative navigation that uses the route hierarchy as the base, and there is no such thing as going to the parent route with a path.',
+        'Путь, начинающийся с косой черты, абсолютный и разрешается от корня роутера, поэтому текущее местоположение игнорируется. Именно относительная навигация использует иерархию маршрутов как базу, а «перейти к родительскому маршруту путём» не существует.'
+      ),
+    },
+    {
+      id: 'router-q17',
+      question: L(
+        'What does the Outlet component render?',
+        'Что отрисовывает компонент Outlet?'
+      ),
+      options: [
+        L('The element of the matched child route inside the parent layout', 'Элемент совпавшего дочернего маршрута внутри родительского layout'),
+        L('The whole application, like a root layout', 'Всё приложение, как корневой layout'),
+        L('The element of the route that has no children', 'Элемент маршрута, у которого нет детей'),
+        L('The loader data of the parent route', 'Данные loader родительского маршрута'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'The Outlet is the placeholder where the child route appears, so the parent component keeps the header, the sidebar and the layout while the child fills the content area. It renders the matched child element and nothing else, and it has nothing to do with loader data.',
+        'Outlet — это место, где появляется дочерний маршрут: родительский компонент сохраняет шапку, сайдбар и общий layout, а ребёнок занимает область контента. Он отрисовывает только совпавший дочерний элемент и никак не связан с данными loader.'
+      ),
+    },
+    {
+      id: 'router-q18',
+      question: L(
+        'How is the path of a nested route composed?',
+        'Как составляется путь вложенного маршрута?'
+      ),
+      options: [
+        L('The path of the child replaces the path of the parent', 'Путь ребёнка заменяет путь родителя'),
+        L('The path of the parent is the prefix and the path of the child is appended to it', 'Путь родителя становится префиксом, и к нему приписывается путь ребёнка'),
+        L('Only the path of the child is used', 'Используется только путь ребёнка'),
+        L('The paths are joined with a slash, so a slash inside the child breaks the route', 'Пути соединяются косой чертой, поэтому слеш внутри ребёнка ломает маршрут'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'The path of the child is relative to the parent, so the path of the parent is the prefix and the path of the child is appended to it. A child path that starts with a slash is absolute and breaks out of the parent, but a slash inside a relative path is fine.',
+        'Путь ребёнка относителен родителю, поэтому путь родителя становится префиксом, а путь ребёнка приписывается к нему. Путь ребёнка с ведущей косой чертой абсолютный и вырывается из родителя, но слеш внутри относительного пути вполне допустим.'
+      ),
+    },
+    {
+      id: 'router-q19',
+      question: L(
+        'What does useNavigate return?',
+        'Что возвращает useNavigate?'
+      ),
+      options: [
+        L('The current location object', 'Объект текущего местоположения'),
+        L('A React state setter', 'Функцию обновления состояния React'),
+        L('A function that navigates to a path or moves through the history with a number', 'Функцию, которая переходит по пути или двигается по истории числом'),
+        L('The matched route object', 'Объект совпавшего маршрута'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'useNavigate gives you the navigation function: you pass it a path to go somewhere or a number such as -1 to move through the history. It is not a state setter, and it does not return the location, that is what useLocation is for.',
+        'useNavigate отдаёт функцию навигации: ей передают путь, чтобы перейти, или число вроде -1, чтобы пройти по истории. Это не функция обновления состояния, и она не возвращает местоположение — для этого есть useLocation.'
+      ),
+    },
+    {
+      id: 'router-q20',
+      question: L(
+        'What does navigate(-1) do?',
+        'Что делает navigate(-1)?'
+      ),
+      options: [
+        L('It reloads the current page', 'Перезагружает текущую страницу'),
+        L('It removes the current route from the configuration', 'Удаляет текущий маршрут из конфигурации'),
+        L('It navigates to the parent route', 'Переходит на родительский маршрут'),
+        L('It goes one entry back in the history', 'Отходит на одну запись назад по истории'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'A negative number is a delta in the browser history, so -1 goes back one entry, exactly like the back button of the browser. A reload is not navigation, the configuration of the routes cannot be changed at runtime, and going to the parent route is done with a relative path such as ..',
+        'Отрицательное число — это дельта по истории браузера, поэтому -1 отходит на запись назад, ровно как кнопка «назад». Перезагрузка — не навигация, конфигурацию маршрутов не меняют в рантайме, а к родительскому маршруту идут относительным путём вроде ..'
+      ),
+    },
+    {
+      id: 'router-q21',
+      question: L(
+        'When is the Navigate component used?',
+        'Когда используется компонент Navigate?'
+      ),
+      options: [
+        L('When a component has to redirect while it renders, for example because the user is not signed in', 'Когда компоненту нужно перенаправить при отрисовке, например из-за отсутствия авторизации'),
+        L('When a link has to look like a button', 'Когда ссылка должна выглядеть как кнопка'),
+        L('When the history has to be cleaned up', 'Когда нужно почистить историю'),
+        L('When a loader has to return data', 'Когда loader должен вернуть данные'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'Navigate performs the redirect while the component renders, which is what a guard for a not signed in user needs. It is not a link, it does not touch the history entries, and the data of a route comes from a loader.',
+        'Navigate выполняет перенаправление во время отрисовки компонента — именно это и нужно гарду для неавторизованного пользователя. Это не ссылка, записи истории он не трогает, а данные маршрута приходят из loader.'
+      ),
+    },
+    {
+      id: 'router-q22',
+      question: L(
+        'Which fields does the object returned by useLocation contain?',
+        'Какие поля содержит объект, возвращаемый useLocation?'
+      ),
+      options: [
+        L('Only the pathname', 'Только pathname'),
+        L('pathname, search, hash, state and key', 'pathname, search, hash, state и key'),
+        L('pathname, params and data', 'pathname, params и data'),
+        L('pathname, search and the matched routes', 'pathname, search и совпавшие маршруты'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'The location describes where the user is and how they got there: the pathname, the query string, the hash, the state that was passed during the navigation and a key that is unique per navigation. The params come from useParams and the data from useLoaderData.',
+        'Location описывает, где находится пользователь и как он туда пришёл: pathname, строку запроса, хэш, состояние, переданное при навигации, и уникальный для каждой навигации key. Параметры берутся из useParams, а данные — из useLoaderData.'
+      ),
+    },
+    {
+      id: 'router-q23',
+      question: L(
+        'How do you pass data to the next page during a navigation?',
+        'Как передать данные на следующую страницу при навигации?'
+      ),
+      options: [
+        L('With a query parameter in the path', 'Через параметр запроса в пути'),
+        L('With a global variable', 'Через глобальную переменную'),
+        L('With the state property of the location, set by the state option of Link or navigate', 'Через свойство state местоположения, которое задаёт опция state у Link или navigate'),
+        L('With a prop of the target component', 'Через проп целевого компонента'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'The state option of Link and navigate puts data into location.state, where the next page reads it with useLocation. It does not appear in the URL and it disappears on a reload, while a query parameter would be visible and shareable.',
+        'Опция state у Link и navigate кладёт данные в location.state, откуда следующая страница читает их через useLocation. В URL они не попадают и исчезают при перезагрузке, тогда как параметр запроса был бы виден и мог бы передаваться ссылкой.'
+      ),
+    },
+    {
+      id: 'router-q24',
+      question: L(
+        'What does useSearchParams return?',
+        'Что возвращает useSearchParams?'
+      ),
+      options: [
+        L('Only the current query string as a string', 'Только текущую строку запроса как строку'),
+        L('A function that reloads the page', 'Функцию, перезагружающую страницу'),
+        L('An object with the parsed parameters', 'Объект с разобранными параметрами'),
+        L('A tuple with the URLSearchParams object and a function that updates the query string', 'Кортеж с объектом URLSearchParams и функцией, обновляющей строку запроса'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'The hook gives you the current parameters as a URLSearchParams instance and a setter that writes new parameters into the URL. The setter is the second item of the tuple, and the parameters are read with methods such as get and getAll.',
+        'Хук отдаёт текущие параметры в виде экземпляра URLSearchParams и сеттер, который записывает новые параметры в URL. Сеттер — второй элемент кортежа, а параметры читают методами вроде get и getAll.'
+      ),
+    },
+    {
+      id: 'router-q25',
+      question: L(
+        'What happens to the history when setSearchParams is called?',
+        'Что происходит с историей при вызове setSearchParams?'
+      ),
+      options: [
+        L('The current entry is replaced by default, so the back button skips the change', 'Текущая запись по умолчанию заменяется, поэтому кнопка «назад» пропускает изменение'),
+        L('A new entry is always added', 'Всегда добавляется новая запись'),
+        L('The whole page is reloaded with the new query string', 'Вся страница перезагружается с новой строкой запроса'),
+        L('The pathname is replaced by the query string', 'Pathname заменяется строкой запроса'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'By default the setter replaces the current history entry, which is what you want for filters and pages, because the back button should return to the previous page and not to every intermediate filter. The setter also accepts a replace option to add a new entry instead, and only the query string changes, the path stays the same.',
+        'По умолчанию сеттер заменяет текущую запись истории — это удобно для фильтров и пагинации, потому что кнопка «назад» должна возвращать на предыдущую страницу, а не на каждый промежуточный фильтр. Сеттер принимает и опцию replace, чтобы добавить запись, и меняется только строка запроса — путь остаётся прежним.'
+      ),
+    },
+    {
+      id: 'router-q26',
+      question: L(
+        'What is the difference between Link and a plain anchor tag?',
+        'Чем Link отличается от обычного тега anchor?'
+      ),
+      options: [
+        L('The anchor tag cannot be styled with CSS', 'Тег anchor нельзя стилизовать через CSS'),
+        L('Link renders an anchor but intercepts the click, so the page is not reloaded', 'Link отрисовывает anchor, но перехватывает клик, поэтому страница не перезагружается'),
+        L('Link sends the user to another browser', 'Link отправляет пользователя в другой браузер'),
+        L('The anchor tag cannot be used for internal navigation', 'Тег anchor нельзя использовать для внутренней навигации'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'Link renders a real anchor, so it keeps the accessibility and the middle click behaviour, but it prevents the default navigation and pushes the path into the history instead of loading the page again. An anchor with href does a full page reload, which is what you want for external links but not for internal ones.',
+        'Link отрисовывает настоящий anchor, поэтому сохраняются доступность и поведение средней кнопки мыши, но переход по умолчанию отменяется, а путь кладётся в историю вместо полной перезагрузки. Обычный anchor с href перезагружает страницу — для внешних ссылок это нужно, а для внутренних нет.'
+      ),
+    },
+    {
+      id: 'router-q27',
+      question: L(
+        'What does NavLink add when the link points to the current location?',
+        'Что добавляет NavLink, когда ссылка ведёт на текущее местоположение?'
+      ),
+      options: [
+        L('A class called current', 'Класс с именем current'),
+        L('An attribute data-active', 'Атрибут data-active'),
+        L('The attribute aria-current with the value page', 'Атрибут aria-current со значением page'),
+        L('A red colour by default', 'Красный цвет по умолчанию'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'NavLink knows whether it is active and adds aria-current="page", which is the accessible way to mark the current page, and it can pass the state to the className and style functions. It does not add a class on its own and it has no built in colours.',
+        'NavLink знает, активен ли он, и добавляет aria-current="page" — доступный способ отметить текущую страницу; состояние он передаёт в функции className и style. Сам по себе класс он не навешивает и никаких встроенных цветов у него нет.'
+      ),
+    },
+    {
+      id: 'router-q28',
+      question: L(
+        'What does useMatch return when the given pattern does not match the current location?',
+        'Что возвращает useMatch, когда заданный шаблон не совпадает с текущим местоположением?'
+      ),
+      options: [
+        L('An empty object', 'Пустой объект'),
+        L('The boolean false', 'Логическое false'),
+        L('The same match object with empty params', 'Тот же объект совпадения с пустыми параметрами'),
+        L('null', 'null'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'useMatch returns the match object with the params when the pattern matches and null when it does not, so the check is a simple if on the result. It never returns an empty object or false, and the params are filled in only in the matching case.',
+        'useMatch возвращает объект совпадения с параметрами, если шаблон подошёл, и null, если не подошёл, поэтому проверка — обычный if по результату. Пустой объект или false он не возвращает, и параметры заполняются только при совпадении.'
+      ),
+    },
+    {
+      id: 'router-q29',
+      question: L(
+        'How does a layout route pass data to its children?',
+        'Как layout-маршрут передаёт данные своим детям?'
+      ),
+      options: [
+        L('With the context property of the Outlet, read in the child with useOutletContext', 'Через свойство context у Outlet, которое ребёнок читает через useOutletContext'),
+        L('With a prop on the child route', 'Через проп у дочернего маршрута'),
+        L('With a global variable', 'Через глобальную переменную'),
+        L('With the state of the location', 'Через состояние местоположения'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'The Outlet accepts a context property and the child reads it with useOutletContext, which is the usual way to pass the current user or a configuration from the layout down to the pages. Props and the location state do not cross the route boundary.',
+        'Outlet принимает свойство context, а ребёнок читает его через useOutletContext — обычно так передают текущего пользователя или конфигурацию от layout к страницам. Пропы и состояние местоположения через границу маршрута не проходят.'
+      ),
+    },
+    {
+      id: 'router-q30',
+      question: L(
+        'What does useInRouterContext tell you?',
+        'Что сообщает useInRouterContext?'
+      ),
+      options: [
+        L('Whether the current path matches a route', 'Совпадает ли текущий путь с каким-либо маршрутом'),
+        L('Whether the component is rendered inside a router', 'Отрисован ли компонент внутри роутера'),
+        L('How many routes are configured', 'Сколько маршрутов настроено'),
+        L('Whether the router is still loading', 'Загружается ли ещё роутер'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'The hook returns true when the component is inside a router and false otherwise, so a reusable component can fall back to a plain anchor when it is used outside the routing tree. It says nothing about the path, the number of routes or the loading state.',
+        'Хук возвращает true, если компонент внутри роутера, и false иначе, поэтому переиспользуемый компонент может откатиться на обычный anchor вне дерева маршрутизации. Ни о пути, ни о числе маршрутов, ни о состоянии загрузки он не говорит.'
+      ),
+    },
+    {
+      id: 'router-q31',
+      question: L(
+        'What is useLinkClickHandler for?',
+        'Для чего нужен useLinkClickHandler?'
+      ),
+      options: [
+        L('For blocking the click on a link', 'Чтобы блокировать клик по ссылке'),
+        L('For logging every navigation', 'Чтобы логировать каждую навигацию'),
+        L('For building custom components that navigate like a link, such as a button', 'Чтобы строить свои компоненты, навигирующие как ссылка, например кнопку'),
+        L('For measuring how long the navigation took', 'Чтобы измерять, сколько заняла навигация'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'The handler does exactly what the click of a Link does, including the modifiers and the prevention of the default behaviour, so you can attach it to a button or to a menu item. It is not a way to block or to log the navigation.',
+        'Обработчик делает ровно то же, что клик по Link, включая учёт модификаторов и отмену поведения по умолчанию, поэтому его вешают на кнопку или пункт меню. Это не способ блокировать или логировать навигацию.'
+      ),
+    },
+    {
+      id: 'router-q32',
+      question: L(
+        'Which pair of pieces creates a data router in version 6?',
+        'Какая пара создаёт data-роутер в шестой версии?'
+      ),
+      options: [
+        L('BrowserRouter and Routes', 'BrowserRouter и Routes'),
+        L('RouterProvider and useNavigate', 'RouterProvider и useNavigate'),
+        L('Routes and Route', 'Routes и Route'),
+        L('createBrowserRouter and RouterProvider', 'createBrowserRouter и RouterProvider'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'A data router is created with createBrowserRouter (or the hash and memory variants) from a configuration of route objects, and the RouterProvider renders it. BrowserRouter with Routes belongs to the classic mode and cannot run loaders and actions.',
+        'Data-роутер создаётся через createBrowserRouter (или hash и memory варианты) из конфигурации объектов маршрутов, а отрисовывает его RouterProvider. BrowserRouter с Routes — это классический режим, он не умеет выполнять loaders и actions.'
+      ),
+    },
+    {
+      id: 'router-q33',
+      question: L(
+        'Can RouterProvider be wrapped in a BrowserRouter?',
+        'Можно ли обернуть RouterProvider в BrowserRouter?'
+      ),
+      options: [
+        L('No, the router created by createBrowserRouter already provides the routing context', 'Нет, роутер из createBrowserRouter уже предоставляет контекст маршрутизации'),
+        L('Yes, but the inner router is then ignored', 'Да, но внутренний роутер тогда игнорируется'),
+        L('Yes, and it is the recommended way', 'Да, и это рекомендуемый способ'),
+        L('No, because RouterProvider must be inside a Provider', 'Нет, потому что RouterProvider должен быть внутри Provider'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'RouterProvider is the top level component of a data router: it mounts the router that already contains the history, so adding a BrowserRouter around it would create a second, conflicting routing context. Provider is the react-redux component and has nothing to do with this.',
+        'RouterProvider — компонент верхнего уровня для data-роутера: он монтирует роутер, в котором уже есть история, поэтому обёртка из BrowserRouter создала бы второй, конфликтующий контекст маршрутизации. Provider — это компонент react-redux, к делу он отношения не имеет.'
+      ),
+    },
+    {
+      id: 'router-q34',
+      question: L(
+        'How do you test a component that uses routers?',
+        'Как протестировать компонент, использующий роутер?'
+      ),
+      options: [
+        L('With createBrowserRouter, because it is the only one that supports loaders', 'Через createBrowserRouter, потому что он единственный поддерживает loaders'),
+        L('With createMemoryRouter and a given initial entry, so the URL stays under control', 'Через createMemoryRouter с заданной начальной записью, чтобы URL оставался под контролем'),
+        L('By rendering the component without any router at all', 'Отрисовав компонент вообще без роутера'),
+        L('With HashRouter and a real browser window', 'Через HashRouter и настоящее окно браузера'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'createMemoryRouter keeps the history in memory and lets you define the starting entries, so a test can navigate to /users/42 and assert what is rendered without touching the address bar. The browser router changes the real URL, and a component that uses router hooks needs a router around it.',
+        'createMemoryRouter держит историю в памяти и позволяет задать начальные записи, поэтому в тесте можно перейти на /users/42 и проверить результат, не трогая адресную строку. Браузерный роутер меняет настоящий URL, а компоненту с роутерными хуками роутер вокруг нужен обязательно.'
+      ),
+    },
+    {
+      id: 'router-q35',
+      question: L(
+        'When does a route loader run?',
+        'Когда выполняется loader маршрута?'
+      ),
+      options: [
+        L('After the element of the route is rendered', 'После отрисовки элемента маршрута'),
+        L('Only when the user opens the network panel', 'Только когда пользователь открывает панель сети'),
+        L('When the action of the route is submitted', 'Когда отправляется action маршрута'),
+        L('Before the route is rendered, as part of the navigation', 'До отрисовки маршрута, как часть навигации'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'The loader is part of the navigation: it runs before the route is rendered and its result is ready when the element appears, which removes the loading state from the component. It does not run after the render, and it is not triggered by the action, the action is the one that runs on a submission.',
+        'Loader — часть навигации: он выполняется до отрисовки маршрута, и его результат уже готов, когда элемент появляется, поэтому состояние загрузки уходит из компонента. После отрисовки он не запускается и экшеном не вызывается: action запускается по отправке формы.'
+      ),
+    },
+    {
+      id: 'router-q36',
+      question: L(
+        'What does useLoaderData return?',
+        'Что возвращает useLoaderData?'
+      ),
+      options: [
+        L('The data returned by the loader of the closest route in the matched branch', 'Данные, возвращённые loader ближайшего маршрута в совпавшей ветке'),
+        L('The data of all the loaders of the application', 'Данные всех loader приложения'),
+        L('The result of the last action', 'Результат последнего action'),
+        L('The state of the store', 'Состояние стора'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'useLoaderData gives the data of the loader of the route that renders the component, so a child component sees the data of its own route and a layout sees the data of the layout loader. It does not merge the loaders and it has nothing to do with actions or with the store.',
+        'useLoaderData отдаёт данные loader того маршрута, который отрисовывает компонент: дочерний компонент видит данные своего маршрута, а layout — данные своего loader. Они не объединяются, и к actions или стору хук отношения не имеет.'
+      ),
+    },
+    {
+      id: 'router-q37',
+      question: L(
+        'A page has a layout loader and a child loader. How do they run?',
+        'У страницы есть loader у layout и loader у ребёнка. Как они выполняются?'
+      ),
+      options: [
+        L('The child loader runs first, then the layout loader', 'Сначала выполняется loader ребёнка, затем loader layout'),
+        L('They run in parallel, so the total time is the slower of the two', 'Они выполняются параллельно, поэтому общее время равно времени более медленного'),
+        L('They run one after the other, because the child depends on the layout', 'Они выполняются по очереди, потому что ребёнок зависит от layout'),
+        L('Only the layout loader runs, the child data comes from the layout', 'Выполняется только loader layout, данные ребёнка приходят из layout'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'React Router starts the loaders of the matched branch together, so the page waits for the slowest one instead of the sum of both. This is why a layout loader that a child needs should read the request data itself instead of waiting for the parent result.',
+        'React Router запускает loaders совпавшей ветки одновременно, поэтому страница ждёт самого медленного, а не суммы обоих. Именно поэтому layout loader, который нужен ребёнку, должен сам читать данные запроса, а не ждать результата родителя.'
+      ),
+    },
+    {
+      id: 'router-q38',
+      question: L(
+        'How does a loader send the user to the login page?',
+        'Как loader отправляет пользователя на страницу входа?'
+      ),
+      options: [
+        L('By returning the string /login', 'Возвращая строку /login'),
+        L('By calling navigate from inside the loader', 'Вызывая navigate внутри loader'),
+        L('By throwing a redirect, which stops the navigation', 'Бросая redirect, что останавливает навигацию'),
+        L('By setting the state of the location', 'Задавая state у местоположения'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'A loader cannot navigate imperatively, because the navigation is still running, so it throws a redirect response and the router performs the redirect instead of the navigation. Returning a path would render it as data, and navigate inside a loader is not available there.',
+        'Loader не может навигировать императивно, потому что навигация ещё выполняется, поэтому он бросает ответ redirect, и перенаправление делает роутер. Возврат пути отрисовал бы его как данные, а navigate внутри loader недоступен.'
+      ),
+    },
+    {
+      id: 'router-q39',
+      question: L(
+        'A loader throws a Response with the status 404. What happens?',
+        'Loader бросает Response со статусом 404. Что произойдёт?'
+      ),
+      options: [
+        L('The router renders the element of the route with the status code', 'Роутер отрисует элемент маршрута вместе с кодом статуса'),
+        L('The router retries the request once', 'Роутер повторит запрос один раз'),
+        L('The whole application is unmounted', 'Всё приложение будет размонтировано'),
+        L('The errorElement of the closest route that has one is rendered', 'Отрисуется errorElement ближайшего маршрута, у которого он есть'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'The router catches the thrown response and renders the errorElement of the nearest route that declares one, so a failure of a deep child does not blank the application. Without an errorElement the nearest boundary of the router is used, and the status of the response is what the error component reads with useRouteError.',
+        'Роутер перехватывает брошенный ответ и отрисовывает errorElement ближайшего маршрута, где он объявлен, поэтому сбой глубокого ребёнка не оставляет приложение пустым. Если errorElement нет, работает ближайшая граница роутера, а статус ответа читает компонент ошибки через useRouteError.'
+      ),
+    },
+    {
+      id: 'router-q40',
+      question: L(
+        'Which requests does a route action handle?',
+        'Какие запросы обрабатывает action маршрута?'
+      ),
+      options: [
+        L('The non GET submissions, such as POST, PUT and DELETE', 'Отправки, отличные от GET, то есть POST, PUT и DELETE'),
+        L('The data loading of the route', 'Загрузку данных маршрута'),
+        L('Only the validation of the form of the route', 'Только валидацию формы маршрута'),
+        L('The redirect of the route', 'Перенаправление маршрута'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'The action is the write side of a route: it receives the request of a submission and performs the mutation, while the loader is the read side. The action also triggers the revalidation of the loaders afterwards, and it never loads the data of the page by itself.',
+        'Action — это сторона записи маршрута: он получает запрос отправки и выполняет мутацию, а loader — сторона чтения. Action заодно вызывает ревалидацию loaders и сам по себе никогда не грузит данные страницы.'
+      ),
+    },
+    {
+      id: 'router-q41',
+      question: L(
+        'What does the Form component of React Router do?',
+        'Что делает компонент Form из React Router?'
+      ),
+      options: [
+        L('It renders a plain html form that does nothing special', 'Отрисовывает обычную html-форму, которая ничего особенного не делает'),
+        L('It submits the data to the action of the route and lets the router handle the navigation', 'Отправляет данные в action маршрута и позволяет роутеру обработать навигацию'),
+        L('It validates the fields before the submission', 'Проверяет поля перед отправкой'),
+        L('It sends the data with fetch in the background', 'Отправляет данные через fetch в фоне'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'The Form works like a normal html form but instead of a full page request it sends the data to the action of the current route, and the result is handled by the router, so the page is not reloaded. Validation is still your job and there is no fetch call behind it.',
+        'Form работает как обычная html-форма, но вместо полной перезагрузки страницы отправляет данные в action текущего маршрута, а результат обрабатывает роутер. Валидация остаётся вашей заботой, и никакого fetch внутри нет.'
+      ),
+    },
+    {
+      id: 'router-q42',
+      question: L(
+        'What does useActionData return?',
+        'Что возвращает useActionData?'
+      ),
+      options: [
+        L('The data of the loader of the route', 'Данные loader маршрута'),
+        L('The FormData of the submission', 'FormData отправленной формы'),
+        L('The result of the last action of the route', 'Результат последнего action маршрута'),
+        L('The state of the location', 'Состояние местоположения'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'useActionData gives the value that the action returned, so you can show a confirmation or a validation message after a submission. The loader data comes from useLoaderData, the FormData is what the action receives, and the location state comes from the navigation.',
+        'useActionData отдаёт значение, которое вернул action, чтобы показать подтверждение или сообщение об ошибке после отправки. Данные loader берутся из useLoaderData, FormData — это то, что получает action, а state местоположения приходит из навигации.'
+      ),
+    },
+    {
+      id: 'router-q43',
+      question: L(
+        'What happens to the loaders after an action succeeds?',
+        'Что происходит с loaders после успешного action?'
+      ),
+      options: [
+        L('Nothing, they only run on a navigation', 'Ничего, они выполняются только при навигации'),
+        L('They run only if the component asks for it', 'Они выполняются, только если компонент попросит'),
+        L('They run before the action, to prepare the data', 'Они выполняются до action, чтобы подготовить данные'),
+        L('They are revalidated, so the page shows the new data', 'Они ревалидируются, и страница показывает новые данные'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'After an action the router revalidates the loaders of the branch, which is what makes the updated data appear without a manual reload. The revalidation runs after the action, not before, and it happens automatically, so the component does not have to ask for it.',
+        'После action роутер ревалидирует loaders ветки — именно так обновлённые данные появляются без ручной перезагрузки. Ревалидация идёт после action, а не до, и происходит автоматически, так что компоненту просить об этом не нужно.'
+      ),
+    },
+    {
+      id: 'router-q44',
+      question: L(
+        'What does shouldRevalidate control?',
+        'Что контролирует shouldRevalidate?'
+      ),
+      options: [
+        L('Whether the loaders run again after a navigation or after an action', 'Будут ли loaders запускаться снова после навигации или после action'),
+        L('Whether the errorElement is rendered', 'Отрисуется ли errorElement'),
+        L('Whether the component re-renders', 'Перерисуется ли компонент'),
+        L('Whether the action is allowed to run', 'Разрешено ли выполняться action'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'shouldRevalidate is a per route hook that receives the result of the action, the location and the matches, and returning false skips the revalidation, which saves requests on routes whose data did not change. It does not control rendering, the error element or the action itself.',
+        'shouldRevalidate — хук на уровне маршрута: он получает результат action, местоположение и список совпадений, а возврат false пропускает ревалидацию и экономит запросы на маршрутах, где данные не менялись. Отрисовку, элемент ошибки и сам action он не управляет.'
+      ),
+    },
+    {
+      id: 'router-q45',
+      question: L(
+        'When is the errorElement of a route rendered?',
+        'Когда отрисовывается errorElement маршрута?'
+      ),
+      options: [
+        L('While the loader is still running', 'Пока loader ещё выполняется'),
+        L('Instead of the element of the route, when the route throws', 'Вместо элемента маршрута, когда маршрут бросает ошибку'),
+        L('Whenever the route has no children', 'Всегда, когда у маршрута нет детей'),
+        L('After every successful navigation', 'После каждой успешной навигации'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'The errorElement replaces the element of the route when something in that route fails, in the loader, in the action or during the render, and it is the fallback of the closest boundary. It is not a loading state and it is not related to the children of the route.',
+        'errorElement заменяет элемент маршрута, когда что-то в этом маршруте падает: в loader, в action или во время рендера, и он служит запасным вариантом ближайшей границы. Это не состояние загрузки и не связано с детьми маршрута.'
+      ),
+    },
+    {
+      id: 'router-q46',
+      question: L(
+        'How does an error component tell a thrown response from a thrown error?',
+        'Как компонент ошибки отличает брошенный Response от брошенной Error?'
+      ),
+      options: [
+        L('With a try/catch around the hook', 'Через try/catch вокруг хука'),
+        L('By reading the message of the error', 'По сообщению ошибки'),
+        L('With the type guard isRouteErrorResponse, and useRouteError gives the error itself', 'Через защитник типа isRouteErrorResponse, а саму ошибку даёт useRouteError'),
+        L('By comparing the status with 500', 'Сравнением статуса с 500'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'useRouteError returns the unknown error and isRouteErrorResponse narrows it to a response with status, statusText and data, so the component can render a different message for a 404 that the loader threw on purpose and for an unexpected exception. A try/catch cannot catch an error that was thrown earlier, and the status alone does not say what kind of failure it was.',
+        'useRouteError отдаёт ошибку типа unknown, а isRouteErrorResponse сужает её до Response с полями status, statusText и data, поэтому компонент может показать разные сообщения для намеренного 404 и для неожиданного исключения. try/catch не поймает ошибку, брошенную раньше, а один лишь статус не говорит о виде сбоя.'
+      ),
+    },
+    {
+      id: 'router-q47',
+      question: L(
+        'Where should the check for a protected page live?',
+        'Где должна жить проверка доступа к защищённой странице?'
+      ),
+      options: [
+        L('In the component, with a conditional render of the login form', 'В компоненте, с условным рендером формы входа'),
+        L('In the loader, which throws a redirect before the protected data is requested', 'В loader, который бросает redirect до запроса защищённых данных'),
+        L('In the reducer of the auth slice', 'В редьюсере слайса авторизации'),
+        L('In a useEffect that runs after the first render', 'В useEffect, который выполняется после первого рендера'),
+      ],
+      correctIndex: 3,
+      explanation: L(
+        'A guard in the loader stops the navigation before the protected content and its loaders run, so there is no flash of protected data and no request to the protected endpoint. A check in the component renders the page first, an effect runs even later, and the auth state does not belong in a reducer.',
+        'Гард в loader останавливает навигацию до запуска защищённого контента и его loaders, поэтому нет вспышки защищённых данных и запроса к закрытому эндпоинту. Проверка в компоненте сначала отрисует страницу, эффект запустится ещё позже, а состояние авторизации в редьюсере не живёт.'
+      ),
+    },
+    {
+      id: 'router-q48',
+      question: L(
+        'How do you split a rarely used page into its own bundle?',
+        'Как вынести редко используемую страницу в отдельный бандл?'
+      ),
+      options: [
+        L('With React.lazy for the component and a Suspense boundary around it', 'Через React.lazy для компонента и границу Suspense вокруг него'),
+        L('With a dynamic import in a useEffect and a state flag', 'Через динамический импорт в useEffect и флаг состояния'),
+        L('With a separate store for the page', 'Через отдельный стор для страницы'),
+        L('With the defer option of the loader', 'Через опцию defer у loader'),
+      ],
+      correctIndex: 0,
+      explanation: L(
+        'React.lazy turns a dynamic import into a component that suspends until the chunk arrives, and the nearest Suspense boundary shows its fallback in the meantime, so the rest of the application stays usable. A dynamic import inside an effect with a state flag is the manual version of the same idea, a separate store has nothing to do with bundling, and defer is about streaming data inside the loader.',
+        'React.lazy превращает динамический импорт в компонент, который приостанавливается до прихода чанка, а ближайшая граница Suspense показывает fallback, так что остальное приложение остаётся рабочим. Динамический импорт в эффекте с флагом — ручная версия той же идеи, отдельный стор к бандлингу отношения не имеет, а defer — про потоковую передачу данных внутри loader.'
+      ),
+    },
+    {
+      id: 'router-q49',
+      question: L(
+        'What does the ScrollRestoration component do?',
+        'Что делает компонент ScrollRestoration?'
+      ),
+      options: [
+        L('It scrolls the window to the top after every navigation', 'Прокручивает окно наверх после каждой навигации'),
+        L('It restores the previous scroll position when the user goes back and keeps it in the session storage', 'Восстанавливает прежнюю позицию прокрутки при возврате назад и хранит её в session storage'),
+        L('It blocks the scroll while a loader is running', 'Блокирует прокрутку, пока работает loader'),
+        L('It adds smooth scrolling to the anchor links', 'Добавляет плавную прокрутку к якорным ссылкам'),
+      ],
+      correctIndex: 1,
+      explanation: L(
+        'ScrollRestoration keeps the scroll position of the entries in the session storage, so returning with the back button lands where the user left the page, and a new navigation starts at the top. It does not force the top on every navigation and it has nothing to do with loaders or with the smooth behaviour of the anchors.',
+        'ScrollRestoration хранит позицию прокрутки записей в session storage, поэтому возврат кнопкой «назад» попадает туда, где пользователь остановился, а новая навигация начинается сверху. Он не принуждает прокрутку наверх при каждом переходе и не связан ни с loaders, ни с плавностью якорей.'
+      ),
+    },
+    {
+      id: 'router-q50',
+      question: L(
+        'How do you build breadcrumbs from the routes that are currently matched?',
+        'Как построить хлебные крошки из текущих совпавших маршрутов?'
+      ),
+      options: [
+        L('With useLocation and a manual list of the paths', 'Через useLocation и ручной список путей'),
+        L('With a useEffect that parses the pathname', 'Через useEffect, разбирающий pathname'),
+        L('With useMatches, which returns one entry per matched route with its id, pathname and loader data', 'Через useMatches, возвращающий по записи на каждый совпавший маршрут с id, pathname и данными loader'),
+        L('With useParams, which contains the whole path', 'Через useParams, содержащий весь путь'),
+      ],
+      correctIndex: 2,
+      explanation: L(
+        'useMatches returns the chain of the matched routes from the outermost to the innermost, and every entry carries the id, the pathname and the data of its loader, so each crumb can use its own label and the last one can be rendered as the current page. useLocation gives only the current path, useParams only the dynamic segments, and parsing the pathname by hand breaks with every new nesting level.',
+        'useMatches возвращает цепочку совпавших маршрутов от внешнего к вложенному, и в каждой записи есть id, pathname и данные его loader, поэтому у каждой крошки своя подпись, а последнюю можно отрисовать как текущую страницу. useLocation даёт только текущий путь, useParams — только динамические сегменты, а разбор pathname вручную ломается на каждом новом уровне вложенности.'
+      ),
+    },
   ],
 };

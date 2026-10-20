@@ -14,6 +14,15 @@ interface ModuleQuizProps {
   onBackToModule?: () => void;
 }
 
+function shuffle(length: number): number[] {
+  const order = Array.from({ length }, (_, index) => index);
+  for (let i = order.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  return order;
+}
+
 export function ModuleQuiz({ module, onBackToModule }: ModuleQuizProps) {
   const locale = useLocale();
   const dispatch = useAppDispatch();
@@ -22,6 +31,12 @@ export function ModuleQuiz({ module, onBackToModule }: ModuleQuizProps) {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [finished, setFinished] = useState(false);
+  const [order, setOrder] = useState(() => shuffle(module.quiz.length));
+
+  const questions = useMemo(
+    () => order.map((item) => module.quiz[item]).filter(Boolean),
+    [order, module.quiz]
+  );
 
   const score = useMemo(
     () =>
@@ -48,6 +63,7 @@ export function ModuleQuiz({ module, onBackToModule }: ModuleQuizProps) {
     setIndex(0);
     setAnswers({});
     setChecked({});
+    setOrder(shuffle(module.quiz.length));
     setFinished(false);
   };
 
@@ -94,7 +110,7 @@ export function ModuleQuiz({ module, onBackToModule }: ModuleQuizProps) {
         <section className="review">
           <h2>{t(locale, 'quiz.review')}</h2>
           <div className="review__list">
-            {module.quiz.map((question, questionIndex) => {
+            {questions.map((question, questionIndex) => {
               const userAnswer = answers[question.id];
               const correct = userAnswer === question.correctIndex;
               return (
@@ -137,7 +153,7 @@ export function ModuleQuiz({ module, onBackToModule }: ModuleQuizProps) {
     );
   }
 
-  const question = module.quiz[index];
+  const question = questions[index];
   const selected = answers[question.id];
   const isChecked = Boolean(checked[question.id]);
   const isLast = index === total - 1;
