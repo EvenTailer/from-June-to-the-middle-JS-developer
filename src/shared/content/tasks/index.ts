@@ -12,22 +12,35 @@ import { reduxTasks } from './redux';
 import { reactRouterTasks } from './reactRouter';
 import { nextjsTasks } from './nextjs';
 import { moduleTopicTaskCounts, topicTaskCounts } from './counts';
+import { htmlCssChapterTasks } from './chapters/htmlCss';
+import { gitChapterTasks } from './chapters/git';
+import { cliChapterTasks } from './chapters/cli';
+import { oopChapterTasks } from './chapters/oop';
+import { httpChapterTasks } from './chapters/http';
+import { jsCoreChapterTasks } from './chapters/jsCore';
+import { typescriptChapterTasks } from './chapters/typescript';
+import { reactChapterTasks } from './chapters/react';
+import { reduxChapterTasks } from './chapters/redux';
+import { reactRouterChapterTasks } from './chapters/reactRouter';
+import { nextjsChapterTasks } from './chapters/nextjs';
+import { architectureChapterTasks } from './chapters/architecture';
 
 export { loadModuleTopicTasks, loadTopicTasks } from './topics/registry';
 export { moduleTopicTaskCounts, topicTaskCounts } from './counts';
 
 const moduleTasks: Record<string, PracticeTask[]> = {
-  'html-css': htmlCssTasks,
-  git: gitTasks,
-  cli: cliTasks,
-  oop: oopTasks,
-  http: httpTasks,
-  'js-core': jsCoreTasks,
-  typescript: typescriptTasks,
-  react: reactTasks,
-  redux: reduxTasks,
-  'react-router': reactRouterTasks,
-  nextjs: nextjsTasks,
+  'html-css': [...htmlCssTasks, ...htmlCssChapterTasks],
+  git: [...gitTasks, ...gitChapterTasks],
+  cli: [...cliTasks, ...cliChapterTasks],
+  oop: [...oopTasks, ...oopChapterTasks],
+  http: [...httpTasks, ...httpChapterTasks],
+  'js-core': [...jsCoreTasks, ...jsCoreChapterTasks],
+  typescript: [...typescriptTasks, ...typescriptChapterTasks],
+  react: [...reactTasks, ...reactChapterTasks],
+  redux: [...reduxTasks, ...reduxChapterTasks],
+  'react-router': [...reactRouterTasks, ...reactRouterChapterTasks],
+  nextjs: [...nextjsTasks, ...nextjsChapterTasks],
+  architecture: architectureChapterTasks,
 };
 
 export const tasksByModule: Record<string, PracticeTask[]> = Object.fromEntries(

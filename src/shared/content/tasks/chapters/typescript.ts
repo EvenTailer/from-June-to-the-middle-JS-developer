@@ -187,10 +187,10 @@ console.log(get(user, 'name'), getters.getName(), visible.name);`,
     solution: `type Resource = 'orders' | 'users';
 
 // A template literal type is the cross product of the union with the suffix.
-type Route = Resource + '-' + string;
+type Route = \`\${Resource}-\${string}\`;
 
 // infer captures the part of the pattern that matched.
-type ItemId<Path extends string> = Path extends 'item-' + infer Id ? Id : never;
+type ItemId<Path extends string> = Path extends \`item-\${infer Id}\` ? Id : never;
 
 // A naked type parameter distributes over a union.
 type AllStrings<T> = T extends string ? true : false;
