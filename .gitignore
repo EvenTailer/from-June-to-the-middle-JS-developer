@@ -25,3 +25,6 @@ dist-ssr
 
 # Warden local database
 .warden/
+
+# temporary files written by the solution checker
+.tmp-task-solutions

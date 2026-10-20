@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && node scripts/copy-404.mjs",
+    "build": "node scripts/validate-content.mjs && tsc -b && vite build && node scripts/copy-404.mjs",
     "lint": "oxlint",
     "validate:content": "node scripts/validate-content.mjs",
     "generate:task-index": "node scripts/generate-task-index.mjs",
+    "generate:module-index": "node scripts/generate-module-index.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
