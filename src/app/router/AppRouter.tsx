@@ -7,6 +7,7 @@ import { QuizPage } from '../../pages/quiz/QuizPage';
 import { PracticePage } from '../../pages/practice/PracticePage';
 import { TopicPage } from '../../pages/practice/TopicPage';
 import { NotFoundPage } from '../../pages/notFound/NotFoundPage';
+import { ErrorBoundary } from '../providers/ErrorBoundary';
 import { useAppSelector } from '../../shared/hooks/useAppSelector';
 import { t } from '../../shared/lib/i18n';
 
@@ -56,14 +57,16 @@ function AppShell() {
       <Header />
       <ScrollToTop />
       <div className="app-content">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/module/:moduleId" element={<ModulePage />} />
-          <Route path="/quiz/:moduleId" element={<QuizPage />} />
-          <Route path="/practice" element={<PracticePage />} />
-          <Route path="/practice/:topicId" element={<TopicPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/module/:moduleId" element={<ModulePage />} />
+            <Route path="/quiz/:moduleId" element={<QuizPage />} />
+            <Route path="/practice" element={<PracticePage />} />
+            <Route path="/practice/:topicId" element={<TopicPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </ErrorBoundary>
       </div>
       <Footer />
     </div>
