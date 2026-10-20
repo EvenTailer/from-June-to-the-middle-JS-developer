@@ -15,22 +15,38 @@ import { pathToFileURL } from 'node:url';
 const ROOT = process.argv[2] ?? process.cwd();
 const TASKS = join(ROOT, 'src/shared/content/tasks');
 
+// A sample is TypeScript only when it carries a TypeScript marker and carries
+// no marker of another language. The explicit non-TypeScript markers win: an
+// HTML snippet can contain => and const inside a script tag.
 const TS_MARKERS = [
   /\binterface\s+\w+/,
   /\btype\s+\w+\s*[=<]/,
   /\bimport\s+[{'"]/,
-  /\bconst\s+\w+\s*:/,
+  /\b(const|let)\s+\w+\s*[:=]/,
   /\bfunction\s+\w+\s*\(/,
-  /=>/,
-  /:\s*(string|number|boolean|void|never|unknown|any)\b/,
+  /\bexport\s+(const|function|default|type|interface|class)\b/,
+  /:\s*(string|number|boolean|void|never|unknown|any|null|undefined)\b/,
   /\bas\s+(const|[A-Z]\w*)/,
+  /=>\s*[{(]/,
 ];
 
-const NOT_TS_MARKERS = [/^#!/m, /^\s*#\s/m, /\bcurl\s+-/, /\bSELECT\b/i, /\bgit\s+\w+/];
+const NOT_TS_MARKERS = [
+  /^#!\s*\//m,
+  /^#{1,2}\s/m,
+  /^\s*curl\s/m,
+  /^\s*(GET|POST|PUT|PATCH|DELETE|HEAD)\s+[/\w]/m,
+  /^\s*HTTP\/[\d.]/m,
+  /^\s*(SELECT|INSERT|UPDATE|DELETE|CREATE TABLE)\b/im,
+  /\bSELECT\b[\s\S]*\bFROM\b/i,
+  /<\/?(div|span|article|section|html|head|body|main|header|footer|nav|p|ul|ol|li|table|tbody|tr|td|th|form|input|button|select|option|textarea|label|h[1-6]|img|a|strong|em|pre|code)\b[^>]*>/i,
+  /\bgit\s+(commit|rebase|merge|checkout|log|status|add|push|pull|branch|tag|stash|reset|restore|bisect|blame|cherry-pick|worktree|switch|diff|show)\b/,
+  /^\s*npm\s+(run|install|ci|test)\b/m,
+  /^\s*(echo|export|set\s+-[euxo]|for\s+\w+\s+in|if\s+\[)\b/m,
+];
 
 function isProbablyTypeScript(code) {
-  if (TS_MARKERS.some((marker) => marker.test(code))) return true;
-  return !NOT_TS_MARKERS.some((marker) => marker.test(code));
+  if (NOT_TS_MARKERS.some((marker) => marker.test(code))) return false;
+  return TS_MARKERS.some((marker) => marker.test(code));
 }
 
 function collect(dir, out = []) {
