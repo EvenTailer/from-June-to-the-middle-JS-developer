@@ -1,15 +1,20 @@
-import { useParams, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import type { QuizBlock } from '../../entities/module/model/types';
 import { getModule } from '../../shared/content';
 import { useLocale } from '../../shared/hooks/useLocale';
 import { usePageTitle } from '../../shared/hooks/usePageTitle';
 import { t } from '../../shared/lib/i18n';
 import { Icon } from '../../shared/ui/Icon';
 import { ModuleQuiz } from '../../widgets/moduleQuiz/ModuleQuiz';
+import { QuizBlockList } from '../../widgets/moduleQuiz/QuizBlockList';
 
 export function QuizPage() {
   const { moduleId } = useParams();
   const locale = useLocale();
   const mod = moduleId ? getModule(moduleId) : undefined;
+  const [activeBlock, setActiveBlock] = useState<QuizBlock | null>(null);
+
   usePageTitle(
     mod
       ? locale === 'en'
@@ -43,7 +48,17 @@ export function QuizPage() {
         </Link>
       </div>
 
-      <ModuleQuiz key={mod.id} module={mod} />
+      {activeBlock ? (
+        <ModuleQuiz
+          module={mod}
+          questions={activeBlock.questions}
+          blockId={activeBlock.id}
+          blockTitle={activeBlock.title[locale]}
+          onBackToBlocks={() => setActiveBlock(null)}
+        />
+      ) : (
+        <QuizBlockList module={mod} onSelect={setActiveBlock} />
+      )}
     </main>
   );
 }

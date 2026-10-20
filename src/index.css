@@ -1267,6 +1267,124 @@ a:hover {
 
 /* ---------- Quiz ---------- */
 
+.quiz-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.quiz-blocks__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.quiz-blocks__head h2 {
+  font-size: clamp(1.3rem, 2.6vw, 1.7rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.quiz-blocks__head p {
+  margin-top: 6px;
+  max-width: 62ch;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.quiz-blocks__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+.quiz-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: linear-gradient(165deg, var(--surface), var(--surface-2));
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.quiz-block:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  box-shadow: var(--shadow-sm);
+}
+
+.quiz-block.is-started {
+  border-color: color-mix(in srgb, var(--success) 32%, var(--border));
+}
+
+.quiz-block__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.quiz-block__num {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 28px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.quiz-block__count {
+  color: var(--faint);
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.quiz-block h3 {
+  font-size: 1rem;
+  font-weight: 720;
+  line-height: 1.3;
+}
+
+.quiz-block__progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quiz-block__progress .progress {
+  flex: 1;
+}
+
+.quiz-block__progress span {
+  color: var(--faint);
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.quiz-block__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .quiz-panel {
   max-width: 880px;
   margin: 0 auto;

@@ -153,6 +153,16 @@ export const uiText: Record<string, { en: string; ru: string }> = {
   },
   'notFound.home': { en: 'Go home', ru: 'На главную' },
   'quiz.backToLearn': { en: 'Back to learning', ru: 'К обучению' },
+  'quiz.blocks.title': { en: 'Quiz blocks', ru: 'Тесты по блокам' },
+  'quiz.blocks.subtitle': {
+    en: 'Each block is a short test of 10 questions on one topic. Pass a block to move on.',
+    ru: 'Каждый блок — короткий тест из 10 вопросов по одной теме. Пройдите блок, чтобы идти дальше.',
+  },
+  'quiz.blocks.questions': { en: 'questions', ru: 'вопросов' },
+  'quiz.blocks.start': { en: 'Start block', ru: 'Начать блок' },
+  'quiz.blocks.passed': { en: 'Passed', ru: 'Пройдено' },
+  'quiz.blocks.notStarted': { en: 'not started', ru: 'не начат' },
+  'quiz.blocks.allBlocks': { en: 'All blocks', ru: 'Все блоки' },
 
   'lesson.question': { en: 'Question', ru: 'Вопрос' },
   'lesson.answer': { en: 'Answer', ru: 'Ответ' },

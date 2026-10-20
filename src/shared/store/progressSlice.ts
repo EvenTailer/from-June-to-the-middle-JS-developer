@@ -38,9 +38,9 @@ const progressSlice = createSlice({
         state.completedTasks.push(action.payload);
       }
     },
-    setQuizScore: (state, action: PayloadAction<{ moduleId: string; score: number }>) => {
-      const best = state.quizScores[action.payload.moduleId] ?? 0;
-      state.quizScores[action.payload.moduleId] = Math.max(best, action.payload.score);
+    setQuizScore: (state, action: PayloadAction<{ blockId: string; score: number }>) => {
+      const best = state.quizScores[action.payload.blockId] ?? 0;
+      state.quizScores[action.payload.blockId] = Math.max(best, action.payload.score);
     },
     resetProgress: () => initialState,
   },

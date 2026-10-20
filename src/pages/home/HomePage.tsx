@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
+import type { QuizBlock } from '../../entities/module/model/types';
 import { modules } from '../../shared/content';
 import { getModuleTaskTotal, totalTaskCount } from '../../shared/content/tasks';
 import { taskModuleById } from '../../shared/content/tasks/taskIndex';
@@ -54,11 +55,14 @@ export function HomePage() {
     [completedTasks]
   );
 
+  const allQuizBlocks = useMemo(() => modules.flatMap((module) => module.quizBlocks ?? []), []);
+
   const passedQuizzes = useMemo(
     () =>
-      modules.filter((module) => (quizScores[module.id] ?? 0) >= Math.ceil(module.quiz.length * 0.6))
-        .length,
-    [quizScores]
+      allQuizBlocks.filter(
+        (block) => (quizScores[block.id] ?? 0) >= Math.ceil(block.questions.length * 0.6)
+      ).length,
+    [allQuizBlocks, quizScores]
   );
 
   const startedModule = modules.find((module) => {
@@ -146,7 +150,7 @@ export function HomePage() {
             <div>
               <dt>{t(locale, 'home.stats.quizzes')}</dt>
               <dd>
-                {passedQuizzes}/{modules.length}
+                {passedQuizzes}/{allQuizBlocks.length}
               </dd>
             </div>
             <div>
@@ -236,7 +240,15 @@ export function HomePage() {
           {filteredModules.map((module) => {
             const meta = metaFor(module.id);
             const done = module.lessons.filter((lesson) => completed.has(lesson.id)).length;
-            const bestScore = quizScores[module.id] ?? 0;
+            const bestBlock = (module.quizBlocks ?? []).reduce<QuizBlock | null>(
+              (best, block) => {
+                const score = quizScores[block.id] ?? 0;
+                if (!best) return score > 0 ? block : null;
+                return score > (quizScores[best.id] ?? 0) ? block : best;
+              },
+              null
+            );
+            const bestScore = bestBlock ? (quizScores[bestBlock.id] ?? 0) : 0;
             const taskCount = getModuleTaskTotal(module.id);
             const solvedTasks = completedTasks.filter(
               (id) => taskModuleById[id] === module.id
@@ -274,7 +286,7 @@ export function HomePage() {
                   {bestScore > 0 && (
                     <span className="module-card__best">
                       <Icon name="quiz" size={14} />
-                      {bestScore}/{module.quiz.length}
+                      {bestScore}/{bestBlock?.questions.length ?? 0}
                     </span>
                   )}
                 </div>

@@ -10,6 +10,7 @@ import { routerModule } from './reactRouter';
 import { nextModule } from './nextjs';
 import { reduxModule } from './redux';
 import { tasksByModule } from './tasks';
+import { buildQuizBlocks } from './quizBlocks';
 import type { Module } from '../../entities/module/model/types';
 
 const baseModules: Module[] = [
@@ -29,6 +30,7 @@ const baseModules: Module[] = [
 export const modules: Module[] = baseModules.map((module) => ({
   ...module,
   tasks: tasksByModule[module.id] ?? [],
+  quizBlocks: buildQuizBlocks(module.id, module.quiz),
 }));
 
 export function getModule(id: string): Module | undefined {

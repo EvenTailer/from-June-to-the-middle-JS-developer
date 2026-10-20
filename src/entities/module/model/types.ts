@@ -21,6 +21,13 @@ export interface QuizQuestion {
   explanation?: LocalizedText;
 }
 
+export interface QuizBlock {
+  id: string;
+  title: LocalizedText;
+  description?: LocalizedText;
+  questions: QuizQuestion[];
+}
+
 export type TaskLevel = 'basic' | 'intermediate' | 'advanced';
 
 export type PracticeTopicId =
@@ -71,5 +78,6 @@ export interface Module {
   description: LocalizedText;
   lessons: Lesson[];
   quiz: QuizQuestion[];
+  quizBlocks?: QuizBlock[];
   tasks?: PracticeTask[];
 }

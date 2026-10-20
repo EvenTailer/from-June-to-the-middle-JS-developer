@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import type { Module } from '../../entities/module/model/types';
+import type { Module, QuizQuestion } from '../../entities/module/model/types';
 import { useLocale } from '../../shared/hooks/useLocale';
 import { useAppDispatch } from '../../shared/hooks/useAppDispatch';
 import { useAppSelector } from '../../shared/hooks/useAppSelector';
@@ -11,7 +11,11 @@ import { ProgressBar } from '../../shared/ui/ProgressBar';
 
 interface ModuleQuizProps {
   module: Module;
+  questions: QuizQuestion[];
+  blockId: string;
+  blockTitle?: string;
   onBackToModule?: () => void;
+  onBackToBlocks?: () => void;
 }
 
 function shuffle(length: number): number[] {
@@ -23,7 +27,14 @@ function shuffle(length: number): number[] {
   return order;
 }
 
-export function ModuleQuiz({ module, onBackToModule }: ModuleQuizProps) {
+export function ModuleQuiz({
+  module,
+  questions,
+  blockId,
+  blockTitle,
+  onBackToModule,
+  onBackToBlocks,
+}: ModuleQuizProps) {
   const locale = useLocale();
   const dispatch = useAppDispatch();
   const quizScores = useAppSelector((s) => s.progress.quizScores);
@@ -31,24 +42,24 @@ export function ModuleQuiz({ module, onBackToModule }: ModuleQuizProps) {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [finished, setFinished] = useState(false);
-  const [order, setOrder] = useState(() => shuffle(module.quiz.length));
+  const [order, setOrder] = useState(() => shuffle(questions.length));
 
-  const questions = useMemo(
-    () => order.map((item) => module.quiz[item]).filter(Boolean),
-    [order, module.quiz]
+  const ordered = useMemo(
+    () => order.map((item) => questions[item]).filter(Boolean),
+    [order, questions]
   );
 
   const score = useMemo(
     () =>
-      module.quiz.reduce(
+      questions.reduce(
         (total, question) => total + (answers[question.id] === question.correctIndex ? 1 : 0),
         0
       ),
-    [answers, module]
+    [answers, questions]
   );
 
-  const total = module.quiz.length;
-  const bestScore = quizScores[module.id] ?? 0;
+  const total = questions.length;
+  const bestScore = quizScores[blockId] ?? 0;
 
   if (total === 0) {
     return (
@@ -63,8 +74,13 @@ export function ModuleQuiz({ module, onBackToModule }: ModuleQuizProps) {
     setIndex(0);
     setAnswers({});
     setChecked({});
-    setOrder(shuffle(module.quiz.length));
+    setOrder(shuffle(questions.length));
     setFinished(false);
+  };
+
+  const exit = () => {
+    if (onBackToBlocks) onBackToBlocks();
+    else if (onBackToModule) onBackToModule();
   };
 
   if (finished) {
@@ -95,6 +111,9 @@ export function ModuleQuiz({ module, onBackToModule }: ModuleQuizProps) {
               <Icon name="reset" size={16} />
               {t(locale, 'quiz.retry')}
             </button>
+            <button type="button" className="btn btn--ghost" onClick={exit}>
+              {t(locale, 'quiz.blocks.allBlocks')}
+            </button>
             {onBackToModule ? (
               <button type="button" className="btn btn--ghost" onClick={onBackToModule}>
                 {t(locale, 'quiz.backToLearn')}
@@ -110,7 +129,7 @@ export function ModuleQuiz({ module, onBackToModule }: ModuleQuizProps) {
         <section className="review">
           <h2>{t(locale, 'quiz.review')}</h2>
           <div className="review__list">
-            {questions.map((question, questionIndex) => {
+            {ordered.map((question, questionIndex) => {
               const userAnswer = answers[question.id];
               const correct = userAnswer === question.correctIndex;
               return (
@@ -153,7 +172,7 @@ export function ModuleQuiz({ module, onBackToModule }: ModuleQuizProps) {
     );
   }
 
-  const question = questions[index];
+  const question = ordered[index];
   const selected = answers[question.id];
   const isChecked = Boolean(checked[question.id]);
   const isLast = index === total - 1;
@@ -161,7 +180,7 @@ export function ModuleQuiz({ module, onBackToModule }: ModuleQuizProps) {
 
   const advance = () => {
     if (isLast) {
-      dispatch(setQuizScore({ moduleId: module.id, score }));
+      dispatch(setQuizScore({ blockId, score }));
       setFinished(true);
       return;
     }
@@ -172,7 +191,7 @@ export function ModuleQuiz({ module, onBackToModule }: ModuleQuizProps) {
     <div className="quiz-panel">
       <section className="quiz-head">
         <div>
-          <h2>{t(locale, 'quiz.title')}</h2>
+          <h2>{blockTitle ?? t(locale, 'quiz.title')}</h2>
           <p>{module.title[locale]}</p>
         </div>
         <div className="quiz-head__meta">
@@ -261,6 +280,9 @@ export function ModuleQuiz({ module, onBackToModule }: ModuleQuizProps) {
               <Icon name="arrow" size={16} />
             </button>
           )}
+          <button type="button" className="btn btn--ghost" onClick={exit}>
+            {t(locale, 'quiz.blocks.allBlocks')}
+          </button>
         </div>
       </section>
     </div>

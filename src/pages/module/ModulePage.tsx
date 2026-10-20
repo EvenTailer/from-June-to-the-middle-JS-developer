@@ -18,6 +18,7 @@ import { Icon } from '../../shared/ui/Icon';
 import { ProgressBar } from '../../shared/ui/ProgressBar';
 import { CodeBlock } from '../../shared/ui/CodeBlock';
 import { ModuleQuiz } from '../../widgets/moduleQuiz/ModuleQuiz';
+import { QuizBlockList } from '../../widgets/moduleQuiz/QuizBlockList';
 import { TasksPanel } from '../../widgets/moduleTasks/TasksPanel';
 
 type Filter = 'all' | 'todo' | 'done';
@@ -150,6 +151,7 @@ function ModuleView({ module: mod }: { module: Module }) {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const [openIds, setOpenIds] = useState<Set<string>>(() => new Set());
+  const activeBlockId = searchParams.get('block');
 
   const tabParam = searchParams.get('tab');
   const tab: ModuleTab = tabParam === 'quiz' || tabParam === 'tasks' ? tabParam : 'learn';
@@ -160,10 +162,18 @@ function ModuleView({ module: mod }: { module: Module }) {
     const nextParams = new URLSearchParams(searchParams);
     if (next === 'learn') nextParams.delete('tab');
     else nextParams.set('tab', next);
+    if (next !== 'quiz') nextParams.delete('block');
     setSearchParams(nextParams, { replace: true });
     window.setTimeout(() => {
       document.getElementById('module-tabs')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
     }, 0);
+  };
+
+  const selectBlock = (blockId: string | null) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (blockId) nextParams.set('block', blockId);
+    else nextParams.delete('block');
+    setSearchParams(nextParams, { replace: true });
   };
 
   const onTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -178,7 +188,16 @@ function ModuleView({ module: mod }: { module: Module }) {
 
   const meta = metaFor(mod.id);
   const doneCount = mod.lessons.filter((lesson) => completed.has(lesson.id)).length;
-  const bestScore = quizScores[mod.id] ?? 0;
+  const quizBlocks = mod.quizBlocks ?? [];
+  const bestBlock = quizBlocks.reduce<(typeof quizBlocks)[number] | null>(
+    (best, block) => {
+      const score = quizScores[block.id] ?? 0;
+      if (!best) return score > 0 ? block : null;
+      return score > (quizScores[best.id] ?? 0) ? block : best;
+    },
+    null
+  );
+  const bestScore = bestBlock ? (quizScores[bestBlock.id] ?? 0) : 0;
   const taskTotal = getModuleTaskTotal(mod.id);
   const doneTasks = completedTasks.filter((id) => taskModuleById[id] === mod.id).length;
   const theoryRatio = mod.lessons.length > 0 ? doneCount / mod.lessons.length : 0;
@@ -266,7 +285,7 @@ function ModuleView({ module: mod }: { module: Module }) {
             )}
             {bestScore > 0 && (
               <span className="chip chip--accent">
-                {t(locale, 'module.quiz.best')}: {bestScore}/{mod.quiz.length}
+                {t(locale, 'module.quiz.best')}: {bestScore}/{bestBlock?.questions.length ?? 0}
               </span>
             )}
           </div>
@@ -300,7 +319,7 @@ function ModuleView({ module: mod }: { module: Module }) {
       >
         {[
           { id: 'learn' as const, icon: 'book' as const, label: t(locale, 'module.tab.learn'), count: mod.lessons.length },
-          { id: 'quiz' as const, icon: 'quiz' as const, label: t(locale, 'module.tab.quiz'), count: mod.quiz.length },
+          { id: 'quiz' as const, icon: 'quiz' as const, label: t(locale, 'module.tab.quiz'), count: (mod.quizBlocks ?? []).length },
           { id: 'tasks' as const, icon: 'spark' as const, label: t(locale, 'module.tab.tasks'), count: taskTotal },
         ].map((item) => (
           <button
@@ -328,7 +347,25 @@ function ModuleView({ module: mod }: { module: Module }) {
         aria-labelledby={`module-tab-${tab}`}
       >
         {tab === 'quiz' && (
-          <ModuleQuiz module={mod} onBackToModule={() => changeTab('learn')} />
+          (() => {
+            const blocks = mod.quizBlocks ?? [];
+            const activeBlock = blocks.find((block) => block.id === activeBlockId);
+
+            if (!activeBlock) {
+              return <QuizBlockList module={mod} onSelect={(block) => selectBlock(block.id)} />;
+            }
+
+            return (
+              <ModuleQuiz
+                module={mod}
+                questions={activeBlock.questions}
+                blockId={activeBlock.id}
+                blockTitle={activeBlock.title[locale]}
+                onBackToBlocks={() => selectBlock(null)}
+                onBackToModule={() => changeTab('learn')}
+              />
+            );
+          })()
         )}
         {tab === 'tasks' && <TasksPanel module={mod} />}
         {tab === 'learn' && (
