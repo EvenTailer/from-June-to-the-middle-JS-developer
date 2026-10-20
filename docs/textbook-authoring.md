@@ -57,6 +57,8 @@ can be written in parallel.
 2. **Prose, not bullets.** `body` is 3 to 4 paragraphs of 45 to 90 English words
    each, separated by `\n\n` inside a single string. No Markdown, no headings,
    no lists, no emoji. Never open with "In this chapter we will".
+   `L()` takes exactly two arguments, one string for `en` and one for `ru`:
+   the paragraphs live inside those two strings, not as extra arguments.
 3. **A section earns its place.** Name the trap it prevents. If a section could
    be deleted without losing anything, delete it.
 4. **Bullets are claims.** 4 to 6 items, each one specific and checkable.

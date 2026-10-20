@@ -211,6 +211,55 @@ function checkChapter(target, chapter, seen) {
 const seen = { chapters: new Set(), sections: new Set() };
 const chaptersDir = join(ROOT, 'src/shared/content/chapters');
 
+/**
+ * The localisation helper takes exactly two arguments, one string per language.
+ * A body written as one argument pair per paragraph is a common slip and the
+ * TypeScript compiler catches it, but the content linter should say it plainly.
+ */
+function checkLocalizedCallArity(file, source) {
+  const pattern = /\bL\(/g;
+  let match;
+  while ((match = pattern.exec(source)) !== null) {
+    const open = match.index + match[0].length - 1;
+    let depth = 0;
+    let quote = null;
+    let commas = 0;
+    for (let i = open; i < source.length; i += 1) {
+      const ch = source[i];
+      if (quote) {
+        if (ch === '\\') i += 1;
+        else if (ch === quote) quote = null;
+        continue;
+      }
+      if (ch === "'" || ch === '"' || ch === '`') {
+        quote = ch;
+        continue;
+      }
+      if (ch === '(' || ch === '[' || ch === '{') depth += 1;
+      if (ch === ')' || ch === ']' || ch === '}') {
+        depth -= 1;
+        if (depth === 0) {
+          if (commas > 1) {
+            const line = source.slice(0, match.index).split('\n').length;
+            report(
+              relative(ROOT, file),
+              'error',
+              `L() at line ${line} takes ${commas + 1} arguments, expected 2 (one per language)`
+            );
+          }
+          pattern.lastIndex = i;
+          break;
+        }
+      }
+      if (ch === ',' && depth === 1) commas += 1;
+    }
+  }
+}
+
+for (const file of collectFiles(chaptersDir)) {
+  checkLocalizedCallArity(file, readFileSync(file, 'utf8'));
+}
+
 // Barrels are checked statically because Node cannot resolve the extensionless
 // relative imports that Vite and TypeScript accept.
 for (const file of collectFiles(chaptersDir)) {
