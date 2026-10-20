@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Chapter } from '../../entities/module/model/types';
+import type { Chapter, ChapterCallout } from '../../entities/module/model/types';
 import { loadChapters } from '../../shared/content/chapters';
 import { useLocale } from '../../shared/hooks/useLocale';
 import { t } from '../../shared/lib/i18n';
@@ -9,6 +9,13 @@ import { CodeBlock } from '../../shared/ui/CodeBlock';
 interface ModuleTheoryProps {
   moduleId: string;
 }
+
+const CALLOUT_LABELS: Record<ChapterCallout['tone'], { en: string; ru: string }> = {
+  note: { en: 'Note', ru: 'Заметка' },
+  tip: { en: 'Tip', ru: 'Совет' },
+  warning: { en: 'Warning', ru: 'Внимание' },
+  pitfall: { en: 'Pitfall', ru: 'Ловушка' },
+};
 
 export function ModuleTheory({ moduleId }: ModuleTheoryProps) {
   const locale = useLocale();
@@ -99,6 +106,61 @@ export function ModuleTheory({ moduleId }: ModuleTheoryProps) {
                     {section.code && (
                       <div className="theory-section__code">
                         <CodeBlock code={section.code} />
+                      </div>
+                    )}
+
+                    {section.table && (
+                      <div className="theory-table-wrap">
+                        {section.table.caption && (
+                          <p className="theory-table__caption">{section.table.caption[locale]}</p>
+                        )}
+                        <table className="theory-table">
+                          <thead>
+                            <tr>
+                              {section.table.headers.map((header, index) => (
+                                <th key={index}>{header[locale]}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {section.table.rows.map((row, rowIndex) => (
+                              <tr key={rowIndex}>
+                                {row.map((cell, cellIndex) => (
+                                  <td key={cellIndex}>{cell[locale]}</td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {section.callouts && section.callouts.length > 0 && (
+                      <div className="theory-callouts">
+                        {section.callouts.map((callout, index) => (
+                          <aside
+                            key={index}
+                            className={`theory-callout theory-callout--${callout.tone}`}
+                          >
+                            <span className="theory-callout__label">
+                              {callout.title
+                                ? callout.title[locale]
+                                : CALLOUT_LABELS[callout.tone][locale]}
+                            </span>
+                            <p>{callout.text[locale]}</p>
+                          </aside>
+                        ))}
+                      </div>
+                    )}
+
+                    {section.seeAlso && section.seeAlso.length > 0 && (
+                      <div className="theory-seealso">
+                        <span className="theory-seealso__label">{t(locale, 'theory.seeAlso')}</span>
+                        <ul>
+                          {section.seeAlso.map((item, index) => (
+                            <li key={index}>{item[locale]}</li>
+                          ))}
+                        </ul>
                       </div>
                     )}
 

@@ -73,6 +73,20 @@ export interface PracticeTask {
   explanation?: LocalizedText;
 }
 
+export type CalloutTone = 'note' | 'tip' | 'warning' | 'pitfall';
+
+export interface ChapterCallout {
+  tone: CalloutTone;
+  title?: LocalizedText;
+  text: LocalizedText;
+}
+
+export interface ChapterTable {
+  caption?: LocalizedText;
+  headers: LocalizedText[];
+  rows: LocalizedText[][];
+}
+
 export interface ChapterSection {
   id: string;
   title: LocalizedText;
@@ -80,6 +94,9 @@ export interface ChapterSection {
   bullets?: LocalizedText[];
   code?: string;
   takeaway?: LocalizedText;
+  table?: ChapterTable;
+  callouts?: ChapterCallout[];
+  seeAlso?: LocalizedText[];
 }
 
 export interface Chapter {

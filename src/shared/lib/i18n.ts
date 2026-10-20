@@ -177,6 +177,7 @@ export const uiText: Record<string, { en: string; ru: string }> = {
   'quiz.title': { en: 'Module Quiz', ru: 'Тест по модулю' },
   'theory.empty': { en: 'Chapters for this module are coming soon.', ru: 'Главы этого модуля скоро появятся.' },
   'theory.takeaway': { en: 'Remember', ru: 'Запомни' },
+  'theory.seeAlso': { en: 'See also', ru: 'См. также' },
   'theory.chapters': { en: 'chapters', ru: 'глав' },
   'quiz.submit': { en: 'Submit', ru: 'Проверить' },
   'quiz.score': { en: 'Your score', ru: 'Ваш результат' },
