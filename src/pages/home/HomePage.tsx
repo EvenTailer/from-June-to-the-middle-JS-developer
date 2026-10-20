@@ -5,6 +5,7 @@ import type { QuizBlock } from '../../entities/module/model/types';
 import { modules } from '../../shared/content';
 import { getModuleTaskTotal, totalTaskCount } from '../../shared/content/tasks';
 import { taskModuleById } from '../../shared/content/tasks/taskIndex';
+import { chapterCountByModule } from '../../shared/content/chapters';
 import { practiceTopics } from '../../shared/content/tasks/topics';
 import { useLocale } from '../../shared/hooks/useLocale';
 import { usePageTitle } from '../../shared/hooks/usePageTitle';
@@ -29,6 +30,7 @@ export function HomePage() {
   const dispatch = useAppDispatch();
   const completedLessons = useAppSelector((s) => s.progress.completedLessons);
   const completedTasks = useAppSelector((s) => s.progress.completedTasks);
+  const readChapters = useAppSelector((s) => s.progress.readChapters);
   const quizScores = useAppSelector((s) => s.progress.quizScores);
   const [query, setQuery] = useState('');
 
@@ -82,9 +84,24 @@ export function HomePage() {
 
   const theoryRatio = totalLessons > 0 ? doneLessons / totalLessons : 0;
   const practiceRatio = totalTasks > 0 ? doneTasks / totalTasks : 0;
+
+  const totalChapters = useMemo(
+    () => modules.reduce((sum, module) => sum + (chapterCountByModule[module.id] ?? 0), 0),
+    []
+  );
+
+  const doneChapters = useMemo(
+    () => readChapters.filter((key) => key.includes('::')).length,
+    [readChapters]
+  );
+
+  const textbookRatio = totalChapters > 0 ? doneChapters / totalChapters : 0;
   const theoryPercent = Math.round(theoryRatio * 100);
+  const textbookPercent = Math.round(textbookRatio * 100);
   const practicePercent = Math.round(practiceRatio * 100);
-  const overall = Math.round((theoryRatio * 0.2 + practiceRatio * 0.8) * 100);
+  const overall = Math.round(
+    (theoryRatio * 0.15 + textbookRatio * 0.35 + practiceRatio * 0.5) * 100
+  );
 
   const filteredModules = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -142,6 +159,10 @@ export function HomePage() {
             <div>
               <dt>{t(locale, 'home.stats.theory')}</dt>
               <dd>{theoryPercent}%</dd>
+            </div>
+            <div>
+              <dt>{t(locale, 'home.stats.textbook')}</dt>
+              <dd>{textbookPercent}%</dd>
             </div>
             <div>
               <dt>{t(locale, 'home.stats.practice')}</dt>
@@ -256,8 +277,13 @@ export function HomePage() {
             const moduleTheory =
               module.lessons.length > 0 ? done / module.lessons.length : 0;
             const modulePractice = taskCount > 0 ? solvedTasks / taskCount : 0;
+            const chapterCount = chapterCountByModule[module.id] ?? 0;
+            const readCount = readChapters.filter((key) =>
+              key.startsWith(`${module.id}::`)
+            ).length;
+            const moduleTextbook = chapterCount > 0 ? readCount / chapterCount : 0;
             const moduleProgress = Math.round(
-              (moduleTheory * 0.2 + modulePractice * 0.8) * 100
+              (moduleTheory * 0.15 + moduleTextbook * 0.35 + modulePractice * 0.5) * 100
             );
 
             return (
@@ -274,6 +300,10 @@ export function HomePage() {
                 <h3>{module.title[locale]}</h3>
                 <p className="module-card__description">{module.description[locale]}</p>
                 <div className="module-card__meta">
+                  <span>
+                    {chapterCount} {t(locale, 'theory.chapters')} · {readCount}/
+                    {chapterCount}
+                  </span>
                   <span>
                     {module.lessons.length} {t(locale, 'module.lesson')} · {solvedTasks}/
                     {taskCount}{' '}

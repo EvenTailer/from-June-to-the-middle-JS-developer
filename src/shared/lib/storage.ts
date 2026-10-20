@@ -40,9 +40,12 @@ export function loadState(): PersistedState | undefined {
             )
           )
         : {};
+    const readChapters = Array.isArray(parsed.progress?.readChapters)
+      ? parsed.progress.readChapters.filter((id): id is string => typeof id === 'string')
+      : [];
     return {
       ui: { language, theme },
-      progress: { completedLessons, completedTasks, quizScores },
+      progress: { completedLessons, completedTasks, readChapters, quizScores },
     };
   } catch {
     return undefined;

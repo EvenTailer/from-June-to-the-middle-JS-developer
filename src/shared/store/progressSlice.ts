@@ -4,12 +4,24 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 export interface ProgressState {
   completedLessons: string[];
   completedTasks: string[];
+  readChapters: string[];
   quizScores: Record<string, number>;
 }
+
+/**
+ * Chapters are stored under their module so the home page can show how much of
+ * each module has been read without loading every chapter bundle.
+ */
+export const chapterProgressKey = (moduleId: string, chapterId: string): string =>
+  `${moduleId}::${chapterId}`;
+
+export const isChapterProgressKey = (key: string, moduleId: string): boolean =>
+  key.startsWith(`${moduleId}::`);
 
 const initialState: ProgressState = {
   completedLessons: [],
   completedTasks: [],
+  readChapters: [],
   quizScores: {},
 };
 
@@ -38,6 +50,14 @@ const progressSlice = createSlice({
         state.completedTasks.push(action.payload);
       }
     },
+    toggleChapterRead: (state, action: PayloadAction<string>) => {
+      const index = state.readChapters.indexOf(action.payload);
+      if (index >= 0) {
+        state.readChapters.splice(index, 1);
+      } else {
+        state.readChapters.push(action.payload);
+      }
+    },
     setQuizScore: (state, action: PayloadAction<{ blockId: string; score: number }>) => {
       const best = state.quizScores[action.payload.blockId] ?? 0;
       state.quizScores[action.payload.blockId] = Math.max(best, action.payload.score);
@@ -50,6 +70,7 @@ export const {
   markLessonComplete,
   toggleLessonComplete,
   toggleTaskComplete,
+  toggleChapterRead,
   setQuizScore,
   resetProgress,
 } = progressSlice.actions;

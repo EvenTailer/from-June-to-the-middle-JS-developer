@@ -65,6 +65,8 @@ export interface PracticeTask {
   id: string;
   moduleId?: string;
   topic?: PracticeTopicId;
+  /** Textbook chapter this task drills, as in "js-core-ch3". */
+  chapterId?: string;
   level?: TaskLevel;
   title: LocalizedText;
   brief: LocalizedText;

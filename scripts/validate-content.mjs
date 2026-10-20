@@ -387,6 +387,74 @@ for (const file of files) {
 
 checkChapterCounts();
 
+/**
+ * Practice tasks carry their own contract: a unique id, both languages, a
+ * brief that states the goal, a hint that gives direction without giving the
+ * answer away, and a solution that runs.
+ */
+const TASK_LEVELS = ['basic', 'intermediate', 'advanced'];
+const SKIP_TASK_FILES = new Set(['index.ts', 'taskIndex.ts', 'counts.ts', 'registry.ts', 'topics.ts']);
+const taskFiles = collectFiles(join(ROOT, 'src/shared/content/tasks')).filter((file) => {
+  const relative = file.replace(join(ROOT, 'src/shared/content/tasks') + '\\', '');
+  if (SKIP_TASK_FILES.has(relative)) return false;
+  // Barrels re-export topic files that are scanned on their own, and Node
+  // cannot resolve the extensionless relative imports they use.
+  if (relative.startsWith('topics\\byModule\\')) return false;
+  return true;
+});
+
+const taskIds = new Set();
+for (const file of taskFiles) {
+  let mod;
+  try {
+    mod = await import(pathToFileURL(file).href);
+  } catch (error) {
+    report(relative(ROOT, file), 'error', `cannot import: ${error.message}`);
+    continue;
+  }
+
+  const tasks = [];
+  for (const value of Object.values(mod)) {
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (item && typeof item === 'object' && typeof item.id === 'string' && item.brief) {
+          tasks.push(item);
+        }
+      }
+    }
+  }
+
+  for (const task of tasks) {
+    const target = `${relative(ROOT, file)} > ${task.id}`;
+    if (taskIds.has(task.id)) {
+      report(target, 'error', `duplicate task id "${task.id}"`);
+    }
+    taskIds.add(task.id);
+
+    checkLocalized(target, 'title', task.title);
+    checkLocalized(target, 'brief', task.brief);
+    if (task.hint) checkLocalized(target, 'hint', task.hint);
+    if (task.explanation) checkLocalized(target, 'explanation', task.explanation);
+
+    if (typeof task.solution !== 'string' || !task.solution.trim()) {
+      report(target, 'error', 'solution is missing');
+    } else if (task.solution.trim().split('\n').length < 3) {
+      report(target, 'warning', 'solution has fewer than 3 lines');
+    }
+
+    if (task.level && !TASK_LEVELS.includes(task.level)) {
+      report(target, 'error', `unknown level "${task.level}"`);
+    }
+    if (task.chapterId && !/^[a-z0-9-]+-ch\d+$/.test(task.chapterId)) {
+      report(target, 'error', `chapterId "${task.chapterId}" is not a chapter id`);
+    }
+    const brief = String(task.brief?.en ?? '');
+    if (brief && brief.length < 40) {
+      report(target, 'warning', 'brief is shorter than 40 characters');
+    }
+  }
+}
+
 stats.sort((a, b) => a.file.localeCompare(b.file));
 
 const totalChapters = stats.length;

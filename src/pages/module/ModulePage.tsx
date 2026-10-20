@@ -148,6 +148,7 @@ function ModuleView({ module: mod }: { module: Module }) {
   const dispatch = useAppDispatch();
   const completedLessons = useAppSelector((s) => s.progress.completedLessons);
   const completedTasks = useAppSelector((s) => s.progress.completedTasks);
+  const readChapters = useAppSelector((s) => s.progress.readChapters);
   const quizScores = useAppSelector((s) => s.progress.quizScores);
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState('');
@@ -205,7 +206,12 @@ function ModuleView({ module: mod }: { module: Module }) {
   const doneTasks = completedTasks.filter((id) => taskModuleById[id] === mod.id).length;
   const theoryRatio = mod.lessons.length > 0 ? doneCount / mod.lessons.length : 0;
   const practiceRatio = taskTotal > 0 ? doneTasks / taskTotal : 0;
-  const moduleProgress = Math.round((theoryRatio * 0.2 + practiceRatio * 0.8) * 100);
+  const chapterTotal = chapterCountByModule[mod.id] ?? 0;
+  const chaptersRead = readChapters.filter((key) => key.startsWith(`${mod.id}::`)).length;
+  const textbookRatio = chapterTotal > 0 ? chaptersRead / chapterTotal : 0;
+  const moduleProgress = Math.round(
+    (theoryRatio * 0.15 + textbookRatio * 0.35 + practiceRatio * 0.5) * 100
+  );
 
   const visibleLessons = mod.lessons
     .map((lesson, index) => ({ lesson, index }))
