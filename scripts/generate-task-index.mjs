@@ -70,9 +70,11 @@ const topicCounts = {};
 const moduleTopicCounts = {};
 
 for (const file of topicFiles) {
-  const topic = relative(TOPIC_DIR, file).replace(/\.ts$/, '');
   const tasks = await tasksOf(file);
-  topicCounts[topic] = tasks.length;
+  // The file name is camelCase, the topic id is kebab-case: read it off the task.
+  const topicIds = new Set(tasks.map(({ task }) => task.topic).filter(Boolean));
+  const topic = topicIds.size === 1 ? [...topicIds][0] : relative(TOPIC_DIR, file).replace(/\.ts$/, '');
+  topicCounts[topic] = (topicCounts[topic] ?? 0) + tasks.length;
   for (const { task, fallbackModule } of tasks) {
     const moduleId = task.moduleId ?? fallbackModule;
     if (moduleId) {
