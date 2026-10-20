@@ -1,4 +1,4 @@
-# Textbook plan
+﻿# Textbook plan
 
 Target structure of the Learn > Textbook (Theory) tab for every module.
 
@@ -355,6 +355,17 @@ ids follow `chapter N, section M`.
    - will-change, content-visibility and render cost
    - Dark mode and prefers-color-scheme
 
+What each chapter must cover:
+
+1. Why a div soup is not a layout; how the browser builds the accessibility tree from the DOM; main, nav, header, footer, aside and their rules; heading levels as an outline that screen readers navigate by; why tables need captions and headers; title and meta description as the first thing a reader and a crawler see.
+2. The full control inventory: input types, name, value, placeholder versus label, autocomplete; the label element and why a placeholder is not a label; fieldset and legend for grouped controls; the constraint validation API and when the browser message is enough; button versus a versus role=button and keyboard behaviour; a form that works without JavaScript and is enhanced with it.
+3. WCAG as a contract, not a checklist; tab order and focus order are different things; the visible focus indicator; the first rule of ARIA is not to use ARIA; when role and aria-* are the right answer; contrast ratios and why colour is not the only signal; meaningful alt text, empty alt for decorative images, captions for video; testing with a keyboard and a screen reader.
+4. content-box versus border-box and why box-sizing: border-box is the sane default; the containing block decides what percentage width means; collapsing margins, why they collapse and how to stop it; static, relative, absolute, fixed, sticky; overflow hidden creating a scroll container and a stacking context.
+5. Origins, importance, specificity, inheritance, order; the specificity tuple and why inline styles and !important win; initial versus inherited values; custom properties are inherited and can hold anything; theming with custom properties and fallbacks; @layer makes the cascade order explicit instead of a specificity war.
+6. main axis and cross axis; the flex properties as a shorthand for three values; justify-content versus align-items; align-content only matters with multiple lines; the flex basis decides the starting size and free space is distributed afterwards; gap replaced margins and does not collapse.
+7. explicit versus implicit tracks, the line numbers, fr as a fraction of the free space; minmax and why it prevents overflow; placing items by line number or by name; grid-template-areas as a layout description; auto-fit collapses empty tracks and auto-fill keeps them; subgrid for aligning a nested grid with its parent.
+8. Media queries by width, height, orientation and prefers-reduced-motion; container queries measure the component, not the viewport; clamp for fluid type and spacing; mobile first means the base styles are the small case; transitions for small state changes and keyframes for sequences; will-change costs memory, content-visibility skips rendering offscreen work; prefers-color-scheme and how to combine it with a manual toggle.
+
 ### http (9 chapters, 46 sections)
 
 1. The HTTP protocol
@@ -413,6 +424,18 @@ ids follow `chapter N, section M`.
    - Health checks and readiness
    - Tracing, logs and metrics
 
+What each chapter must cover:
+
+1. The request line, headers and body and the response status line, headers and body; GET, POST, PUT, PATCH, DELETE and HEAD and their safety and idempotency semantics; the status code classes and which code to return for which outcome; HTTP/1.1 keep-alive versus HTTP/2; what happens between a click and a response: DNS, TCP, TLS, request, response.
+2. Request headers that change behaviour: Host, Origin, Referer, User-Agent, Cookie, Accept, Authorization; response headers: Content-Type, Content-Length, Cache-Control, ETag, Location, Set-Cookie; content negotiation through Accept and Content-Type; content encoding (gzip, br) versus content type; the CORS preflight, which requests are simple and which trigger OPTIONS.
+3. Cache-Control directives and what each one forbids or permits: no-store, no-cache, private, public, max-age, s-maxage, immutable; freshness versus validation; stale-while-revalidate; validators ETag and Last-Modified; conditional requests with If-None-Match and If-Modified-Since and the 304 response; CDN edge caching and cache keys; invalidation by purge, versioned URLs or TTL.
+4. Connection reuse and the cost of a handshake; HTTP/2 multiplexing and HPACK header compression and the head-of-line blocking it removes; HTTP/3 over QUIC and what 0-RTT means; which content compresses well and what to exclude.
+5. Cookie attributes and their scope: Domain, Path, Expires, Max-Age, Secure, HttpOnly, SameSite; session cookies versus persistent ones; opaque server-side tokens versus self-contained tokens; what a JWT actually proves and what it does not (revocation, storage, size, audience); OAuth 2 roles and the authorization code flow with PKCE; OpenID Connect and the ID token; how CSRF and XSS interact with the auth mechanism.
+6. TLS in brief: handshake, certificate chain and validation; HSTS and preload; Content Security Policy as an XSS mitigation and why output encoding is still required; CSRF tokens and SameSite=Lax/Strict/None; X-Frame-Options and frame-ancestors; SQL and command injection, SSRF and path traversal as a family of unvalidated input bugs.
+7. Resources as nouns and URLs as identifiers; the cost of deep hierarchies; status codes in practice including 201 with Location, 204, 409, 422 and 429; versioning by URI, header or date and their trade-offs; pagination by offset, cursor and keyset and the skip problem of offset; idempotency keys for safe retries.
+8. Request and response envelopes; naming and field conventions including dates, money, enums and nulls; error formats and the problem details shape; filtering, sorting and search parameters; long-running work with 202, polling and webhooks.
+9. TTFB and where the time actually goes; payload size as the cheapest performance lever; rate limiting with 429 and Retry-After and token buckets; backpressure; health checks versus readiness probes; request ids, structured logs and the three pillars of observability.
+
 ### oop (8 chapters, 41 sections)
 
 1. The object model in JavaScript
@@ -465,6 +488,17 @@ ids follow `chapter N, section M`.
    - Retries, idempotency and failure modes
    - Logging and observability in the domain layer
 
+What each chapter must cover:
+
+1. Objects as maps of properties with hidden classes behind them; prototypes and the chain of lookups; class as syntax over a constructor function and a prototype; real encapsulation with private fields, with getters and with closures; identity versus equality and why === compares references for objects; value objects that compare by value; shallow versus deep copying and immutability as the way out.
+2. Where the rules live: in the class, in the module or in the type system; module privacy as the cheap form of encapsulation; information hiding and the deliberately small public surface; data clumps and the value object that removes them; when a class is the wrong tool and plain data with functions is better.
+3. The fragile base class problem and what actually breaks when a base class changes; polymorphism through interfaces and structural typing; the template method with a protected hook and why it is still inheritance; composition over inheritance with a worked example; mixins and trait-like composition in TypeScript.
+4. Single responsibility as one reason to change; open-closed as extending without touching; Liskov substitution and how to break it with a mutable base state; interface segregation and the fat interface problem; dependency inversion at the API boundary; how all five look in a React codebase where hooks replace inheritance and feature folders replace packages.
+5. Strategy for a replaceable algorithm; factory for creation; observer for event subscription; repository for the persistence boundary; unit of work for the transaction; decorator for wrapping; adapter for interface translation; facade for a simplified entry point; command and state; which patterns still pay off in modern frontend code and which are cargo cult.
+6. Entity with identity, value object without it, aggregate as the consistency boundary and the rule that only the aggregate root is modified from outside; domain events named in the past tense and published after the fact; application service or use case as the orchestrator; application context as the place where collaborators are wired; anemic versus rich domain models and the tell for each.
+7. Purity and referential transparency; composition and pipe; currying and partial application; point-free style and when it hurts readability; immutable data structures and how JavaScript approximates them; Object.freeze and the conventions that make immutability real.
+8. Exceptions versus result types and the trade-off between them; error boundaries and recovery; retries with backoff and why idempotency is the precondition; failure modes and circuit breakers; logging inside the domain layer and what never belongs in a log.
+
 ### git (7 chapters, 38 sections)
 
 1. The object model and the three trees
@@ -512,6 +546,16 @@ ids follow `chapter N, section M`.
    - Sparse checkout and partial clone
    - Signing commits and tags
    - Hooks, CI and monorepos
+
+What each chapter must cover:
+
+1. Blobs, trees and commits as the three object types and what each stores; a commit as a snapshot plus pointers to a tree and to parent commits; the working directory, the index and HEAD as three separate places a change can live; HEAD as a symbolic ref and the reflog as the local history of HEAD; the commit graph and how ancestry is computed; SHA-1 hashes as content addresses and what that guarantees.
+2. git add writing to the index and what the index really is; partial staging with git add -p; what a commit records: the tree, the parent and the message; commit messages that explain why and not what; git commit --amend and the rule about never amending a public commit; pre-commit hooks and why linting belongs before the commit rather than in CI alone.
+3. A branch as a movable pointer to a commit; the merge base and the three-way merge; fast-forward versus a real merge commit; when to merge and when to rebase; interactive rebase with reword, squash, fixup and drop and why it rewrites history; resolving conflicts and the stages of the index; merge versus rebase and why the rule "rebase your own work, merge shared work" exists.
+4. git reset with soft, mixed and hard and exactly what each one moves; git restore for both the working tree and the index; git revert as a new commit that undoes an old one; git stash and the stash stack; the reflog as the safety net that recovers work nobody committed; git clean and how dangerous it is; the recovery playbook for the three common accidents.
+5. Remotes as named URLs; fetch versus pull; pull strategies: merge, rebase and pull --rebase; upstream tracking and git push -u; force push and why --force-with-lease is the safe form; submodules and worktrees and when each is the right tool.
+6. Branch naming conventions that encode intent; pull requests as a review artefact rather than a git feature; review comments and how to respond to them; lightweight versus annotated tags and semver; changelogs and release automation; hotfix branches released straight to production.
+7. git bisect and automating the search with git bisect run; git blame and reading it correctly, with the caveats about moved lines; cherry-pick for selective changes and why it duplicates commits; revert versus cherry-pick for undoing; sparse checkout and partial clone for huge repositories; signing commits and tags and verifying them; hooks of every kind and how CI fits around them.
 
 ### cli (8 chapters, 43 sections)
 
@@ -567,6 +611,17 @@ ids follow `chapter N, section M`.
    - Linters, formatters and pre-commit
    - CI pipelines from the command line
 
+What each chapter must cover:
+
+1. What a shell actually is and how it turns a line into a process: lexing, tokenising, expansion, then execution; quoting rules that decide whether a string is a word or a glob; the difference between the shell's own glob expansion and a program's argument parsing; the working directory, absolute versus relative paths and how a symlink changes what a path means; exporting variables versus shell variables; exit codes as the contract between programs.
+2. Shell expansion of globs and what happens when nothing matches; find with its predicates and the difference from globbing; grep, fgrep and rg with the options that matter; fd and ripgrep against the classic tools and why the modern ones are faster; chaining a search into another tool.
+3. stdin, stdout, stderr and the three redirections plus the append forms; the Unix philosophy of one tool per job; cat, sort, uniq, cut, tr and head and tail as the core set; sed for stream edits and awk as a programming language over lines; jq for JSON as a structured alternative to text munging; tee and process substitution; pipefail and why the exit status of a pipeline is only the last command by default.
+4. Running a command in the background with & and with nohup; job control with jobs, fg and bg; what a terminal session actually is and how the shell and the child process share it; signals: SIGINT, SIGTERM, SIGHUP and what a process should do on SIGTERM; ps, top and kill and reading a process tree; disown and why a background job dies with the shell.
+5. Users, groups and ownership and how the kernel checks them; the nine permission bits and how they combine into rwx for the owner, the group and others; umask and where default permissions come from; su, sudo and the principle of least privilege; hard links versus symlinks versus device and fifo files.
+6. Variables, quoting and the difference between "$var" and $var; test and its failure modes under set -e; set -euo pipefail and what each flag protects against and what it does not; functions, positional parameters and returning codes; traps for cleanup and why exit codes must be preserved; arrays, globbing, parameter expansion and command substitution; reading a file line by line safely.
+7. curl for each HTTP verb, headers and saving responses; ssh with the config file, keys and agent forwarding; scp and rsync and why rsync transfers only differences; local and remote port forwarding and when each is used; talking to a database and to a container runtime from the terminal.
+8. Node as the runtime and npm as the package manager; the lockfile and why it is committed; the difference between dependencies, devDependencies and peerDependencies; workspaces for a monorepo; npm scripts, the pre and post hooks and cross-platform problems with shell syntax in scripts; what a bundler, a transpiler and a type checker each do and in which order they run; linters, formatters and pre-commit hooks; a CI pipeline expressed as commands you can run locally.
+
 ### redux (7 chapters, 38 sections)
 
 1. The mental model of Redux
@@ -615,6 +670,16 @@ ids follow `chapter N, section M`.
    - Testing components with a store
    - Common state architecture mistakes
 
+What each chapter must cover:
+
+1. The store as a single object holding the whole state tree; actions as plain descriptions of what happened and why nothing else belongs in them; the reducer as a pure function from state and action to state; dispatch as the only way to change anything; why reducers must be pure and what breaks when they are not; Immer producing a new state and how that fits the immutability contract.
+2. createSlice and the three things it generates: actions, action creators and the reducer; extraReducers for reacting to actions from other slices and the action type strings behind it; prepare for normalising a payload before it reaches the reducer; choosing the shape of one slice; how to organise slices per feature rather than per type.
+3. Selectors as the read side and why components should not reach into state directly; parameterised selectors built as factories so the memoisation is per argument set; createSelector and how it caches the last result; Reselect and the reference equality that makes memoisation work; when memoisation pays off and when it is pure overhead.
+4. The three states of a thunk and the action types they produce; handling pending, fulfilled and rejected in extraReducers; unwrapResult and the alternative of try and catch around unwrap; polling and cancelling a thunk; the race condition when two requests for the same resource overlap and the last one to start is not the last one to finish; normalising the request lifecycle inside one slice.
+5. RTK Query as a data layer inside Redux; endpoints and the cache that the library owns; tags for describing which entries an endpoint invalidates; optimistic updates and the rollback when the request fails; mutations and choosing between invalidation, optimistic update and manual patching; the generated hooks and why they are better than raw thunks for data; when RTK Query is the wrong tool.
+6. Normalised state as ids in an array and entities in a map; the entity adapter and the operations it provides; sorting, filtering and selectors over an adapter; pagination with an adapter and the cursor bookkeeping; deduplicating by id and what happens when the server changes the id.
+7. Listener middleware as the place for side effects that are not thunks; persistence and rehydration and the hydration edge cases; the DevTools and time travel and what it is actually good for; testing slices, thunks and selectors in isolation; testing components with a real store and a mocked API; the common architecture mistakes, including state duplication, fetching the same data twice and business logic in components.
+
 ### react-router (7 chapters, 35 sections)
 
 1. Route trees and navigation
@@ -659,6 +724,16 @@ ids follow `chapter N, section M`.
    - useMatches and breadcrumbs
    - Nested error handling
    - Custom history and file-based routing
+
+What each chapter must cover:
+
+1. The route tree as data: path, element, children, index; layout routes that add no path segment; index routes and the index prop; pathless routes for grouping without a segment; splat routes for the not-found case; Outlet and how the layout hierarchy renders; Link, NavLink and the active state; navigate and the difference between push and replace.
+2. Path parameters and useParams and the rules for optional and catch-all segments; query strings as serialised state with useSearchParams; helper functions that wrap search parameter access; location state and its defining weakness, that it disappears on refresh; the rule that anything shareable belongs in the URL.
+3. createBrowserRouter and what the router object actually is; loaders and useLoaderData and why the data arrives before the component renders; actions and useActionData; forms and fetcher and progressive enhancement without JavaScript; errorElement and how error boundaries work in the router; defer and streaming data with Suspense.
+4. Redirects as a return value from a loader and when to use them instead of rendering; authentication versus authorisation and why a guard is not a security boundary; protecting loaders on the server where the decision can be trusted; handling a 401 versus a 403 and the different UI each needs; role-based access control expressed in the route tree.
+5. Lazy route segments and code splitting per route; Suspense and route-level fallbacks so the layout does not blink; scroll restoration and moving focus to the new page heading after navigation; preloading on intent so the route is ready before the click lands.
+6. The loader cache and what revalidation means; revalidation strategies and when the router refetches after an action; optimistic UI with actions and how to keep the UI consistent when the action fails; handling errors in mutations; when a dedicated query library is the better choice.
+7. createMemoryRouter for tests with a controlled history; asserting on what the loader was called with and what the action returned; useMatches and building breadcrumbs from the matched routes; nested error handling and which boundary catches what; custom history implementations; file-based routing and how it maps onto the same route objects.
 
 ### nextjs (9 chapters, 47 sections)
 
@@ -719,6 +794,18 @@ ids follow `chapter N, section M`.
    - Background jobs and webhooks
    - Migrations and schema changes
 
+What each chapter must cover:
+
+1. The App Router conventions and how a folder becomes a URL; layout, template and page and the difference between them; route groups with parentheses and their effect on the URL; dynamic, catch-all and optional segments; loading, error and not-found boundaries and where they may be placed; route handlers and when a page and a handler are different things.
+2. The server component model and the rule that a component is a server component unless it opts out; what runs where and why it matters for bundle size; the client boundary and the rules about what may cross it; serialisation of props across the boundary and the values that cannot be passed; passing server-rendered children into client components; the most common use client mistakes and their cost.
+3. The fetch request memoisation cache and how it differs from the data cache; the full route cache for pages and the separate cache for route handlers; the data cache and the tags attached to it; dynamic versus static rendering and what opts a route into dynamic; on-demand revalidation with revalidateTag and revalidatePath; the cache components model and what changes when nothing is cached by default.
+4. What a server action is and how the framework turns a function into an endpoint; the security requirement that every action validates its input and authorises the caller; useActionState and the pending and error state of a form; revalidation after a mutation and how the client learns about it; progressive enhancement and the no-JavaScript path.
+5. What middleware runs on and what it cannot reach; redirects, rewrites and header modification; the matcher configuration and the cost of a broad matcher; authentication at the edge and why it is a fast check and not a substitute for a real one; the performance budget of middleware and where it runs.
+6. Static generation and what it means for a build; dynamic rendering and the cost per request; incremental static regeneration with a revalidate window and the on-demand variant; streaming and Suspense and what reaches the browser first; partial prerendering and what it suspends; choosing a strategy per route instead of one global setting.
+7. The metadata API and static versus generated metadata; Open Graph and Twitter cards and the images they need; next/image and what the loader does for you; fonts and why self-hosting removes a render-blocking request.
+8. Environment variables and the split between server and client; deployment targets and the adapters; cache headers and how the CDN is configured; error reporting and observability in production; bundle size and the cost of the client boundary.
+9. Server-side data access and keeping the database connection on the server; route handlers as an API and their limits; tRPC and end-to-end type safety; background jobs and webhooks and why a request should not wait for slow work; migrations and the rule that a schema change ships separately from the code that depends on it.
+
 ### architecture (7 chapters, 39 sections)
 
 1. Layers and dependency direction
@@ -767,5 +854,15 @@ ids follow `chapter N, section M`.
    - Cost of a decision and reversibility
    - Quality attributes and scenarios
    - Reviewing an architecture over time
+
+What each chapter must cover:
+
+1. A layer as a ring of code that may only depend on the ring inside it; the two axes of organisation, by technical layer and by feature; why dependencies point inward, because the policy should not depend on the mechanism; the presentation, application and data layers with a concrete example each; how layer violations look in a real codebase and how to spot them.
+2. Entities and the domain rules that belong to them; use cases as the application core and why the core has no framework in it; ports as the interfaces the core declares and adapters as the implementations the outside world provides; dependency inversion applied to a fetch call and to a clock; mapping between layers and the cost of translation; when clean architecture is overkill and plain functions are better.
+3. Folders by feature versus folders by type; the public API of a module and why an explicit index is what enforces it; barrels and the two problems they cause, cycles and lost tree shaking; detecting cycles and enforcing boundaries with tooling; deciding what is shared code and what stays inside a feature.
+4. Monolith and modular monolith and the difference that matters is the deployment unit; microservices and the criteria that justify the split; communication between services and the API gateway; data ownership and why a shared database couples services silently; what distribution costs in operations, latency and debugging; testing a distributed system and why it is harder than it looks.
+5. Configuration and feature flags and how a flag lets you separate deployment from release; errors, logging and observability as cross-cutting concerns; transactions and the outbox pattern for reliable events; timeouts, retries with backoff and circuit breakers; caching layers and the invalidation problem; testing the architecture itself with dependency rules.
+6. State ownership and the rule that a piece of state has exactly one owner; server state versus client state and the different tools for each; design systems and the contract between a component and its consumers; routing as an application boundary that divides the codebase; micro-frontends and what they cost in runtime and in organisation; migrating a legacy frontend incrementally.
+7. ADRs, what they are and why the decision matters more than the implementation; making a decision, recording it and reviewing it later; the cost of a decision and the question of reversibility; quality attributes expressed as scenarios with stimuli and responses; reviewing an architecture over time and letting it evolve without rewriting it.
 
 
