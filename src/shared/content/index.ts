@@ -9,6 +9,7 @@ import { reactModule } from './react';
 import { routerModule } from './reactRouter';
 import { nextModule } from './nextjs';
 import { reduxModule } from './redux';
+import { architectureModule } from './architecture';
 import { tasksByModule } from './tasks';
 import { buildQuizBlocks } from './quizBlocks';
 import type { Module } from '../../entities/module/model/types';
@@ -25,6 +26,7 @@ const baseModules: Module[] = [
   reduxModule,
   routerModule,
   nextModule,
+  architectureModule,
 ];
 
 export const modules: Module[] = baseModules.map((module) => ({

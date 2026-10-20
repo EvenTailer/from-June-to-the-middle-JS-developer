@@ -12,6 +12,7 @@ const moduleLoaders: Record<string, () => Promise<PracticeTask[]>> = {
   redux: () => import('./byModule/redux').then((m) => m.reduxTopicTasks),
   'react-router': () => import('./byModule/reactRouter').then((m) => m.reactRouterTopicTasks),
   nextjs: () => import('./byModule/nextjs').then((m) => m.nextjsTopicTasks),
+  architecture: () => import('./byModule/architecture').then((m) => m.architectureTopicTasks),
 };
 
 export function loadModuleTopicTasks(moduleId: string): Promise<PracticeTask[]> {
@@ -48,6 +49,7 @@ const topicLoaders: Record<PracticeTopicId, () => Promise<PracticeTask[]>> = {
   next: () => import('./next').then((m) => m.nextTasks),
   markup: () => import('./markup').then((m) => m.markupTasks),
   tooling: () => import('./tooling').then((m) => m.toolingTasks),
+  architecture: () => import('./architecture').then((m) => m.architectureTasks),
 };
 
 export function loadTopicTasks(topicId: string): Promise<PracticeTask[]> {

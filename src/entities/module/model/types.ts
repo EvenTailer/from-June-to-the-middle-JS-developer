@@ -58,7 +58,8 @@ export type PracticeTopicId =
   | 'router'
   | 'next'
   | 'testing'
-  | 'tooling';
+  | 'tooling'
+  | 'architecture';
 
 export interface PracticeTask {
   id: string;
@@ -72,11 +73,28 @@ export interface PracticeTask {
   explanation?: LocalizedText;
 }
 
+export interface ChapterSection {
+  id: string;
+  title: LocalizedText;
+  body: LocalizedText;
+  bullets?: LocalizedText[];
+  code?: string;
+  takeaway?: LocalizedText;
+}
+
+export interface Chapter {
+  id: string;
+  title: LocalizedText;
+  summary: LocalizedText;
+  sections: ChapterSection[];
+}
+
 export interface Module {
   id: string;
   title: LocalizedText;
   description: LocalizedText;
   lessons: Lesson[];
+  chapters?: Chapter[];
   quiz: QuizQuestion[];
   quizBlocks?: QuizBlock[];
   tasks?: PracticeTask[];

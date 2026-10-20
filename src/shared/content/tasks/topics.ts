@@ -262,4 +262,13 @@ export const practiceTopics: PracticeTopicMeta[] = [
       'Модули, бандлеры, линтеры, npm-скрипты, переменные окружения и CI.'
     ),
   },
+  {
+    id: 'architecture',
+    code: 'ARC',
+    title: L('Application architecture', 'Архитектура приложений'),
+    description: L(
+      'Layers, module boundaries, ports and adapters, events, resilience and observability.',
+      'Слои, границы модулей, порты и адаптеры, события, отказоустойчивость и наблюдаемость.'
+    ),
+  },
 ];

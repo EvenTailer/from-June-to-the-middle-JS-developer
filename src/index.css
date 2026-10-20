@@ -2442,6 +2442,164 @@ a:hover {
   }
 }
 
+/* ---------- Textbook ---------- */
+
+.theory {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.theory-chapter {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+
+.theory-chapter.is-open {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+}
+
+.theory-chapter__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px 18px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.theory-chapter__head:hover {
+  background: var(--surface-2);
+}
+
+.theory-chapter__num {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.theory-chapter__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.theory-chapter__titles strong {
+  font-size: 1.02rem;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+.theory-chapter__titles span {
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.theory-chapter__chevron {
+  flex: none;
+  color: var(--faint);
+  transition: transform 0.2s ease;
+}
+
+.theory-chapter.is-open .theory-chapter__chevron {
+  transform: rotate(180deg);
+}
+
+.theory-chapter__body {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  padding: 4px 20px 22px;
+}
+
+.theory-section h3 {
+  margin-bottom: 10px;
+  font-size: 1.05rem;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.theory-section__text p {
+  color: var(--text);
+  font-size: 0.92rem;
+  line-height: 1.68;
+}
+
+.theory-section__text p + p {
+  margin-top: 12px;
+}
+
+.theory-section__list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 12px;
+  padding-left: 0;
+  list-style: none;
+}
+
+.theory-section__list li {
+  position: relative;
+  padding-left: 20px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.theory-section__list li::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 9px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.theory-section__code {
+  margin-top: 14px;
+}
+
+.theory-takeaway {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 12px 12px 0;
+  background: var(--accent-soft);
+}
+
+.theory-takeaway .label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--accent);
+}
+
+.theory-takeaway p {
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
 /* ---------- Practice blocks ---------- */
 
 .topic-head {

@@ -85,6 +85,13 @@ export const quizBlockTitles: Record<string, LocalizedText[]> = {
     L('Metadata, next/image, middleware', 'Метаданные, next/image, middleware'),
     L('Streaming and dynamic rendering', 'Стриминг и динамический рендеринг'),
   ],
+  architecture: [
+    L('Layers and dependency direction', 'Слои и направление зависимостей'),
+    L('Clean architecture, ports and adapters', 'Чистая архитектура, порты и адаптеры'),
+    L('Module boundaries and feature structure', 'Границы модулей и структура по фичам'),
+    L('Monolith, modular monolith, microservices', 'Монолит, модульный монолит, микросервисы'),
+    L('Cross-cutting: events, resilience, observability', 'Сквозные аспекты: события, отказоустойчивость, наблюдаемость'),
+  ],
 };
 
 export function buildQuizBlocks(moduleId: string, quiz: QuizQuestion[]): QuizBlock[] {

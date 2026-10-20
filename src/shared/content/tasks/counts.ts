@@ -28,7 +28,8 @@ export const topicTaskCounts: Record<PracticeTopicId, number> = {
   "router": 8,
   "next": 8,
   "markup": 8,
-  "tooling": 8
+  "tooling": 8,
+  "architecture": 8
 };
 
 export const moduleTopicTaskCounts: Record<string, number> = {
@@ -42,5 +43,6 @@ export const moduleTopicTaskCounts: Record<string, number> = {
   "redux": 8,
   "react-router": 8,
   "nextjs": 8,
-  "html-css": 8
+  "html-css": 8,
+  "architecture": 8
 };

@@ -20,10 +20,12 @@ import { CodeBlock } from '../../shared/ui/CodeBlock';
 import { ModuleQuiz } from '../../widgets/moduleQuiz/ModuleQuiz';
 import { QuizBlockList } from '../../widgets/moduleQuiz/QuizBlockList';
 import { TasksPanel } from '../../widgets/moduleTasks/TasksPanel';
+import { ModuleTheory } from '../../widgets/moduleTheory/ModuleTheory';
+import { chapterCountByModule } from '../../shared/content/chapters';
 
 type Filter = 'all' | 'todo' | 'done';
-type ModuleTab = 'learn' | 'quiz' | 'tasks';
-const tabOrder: ModuleTab[] = ['learn', 'quiz', 'tasks'];
+type ModuleTab = 'theory' | 'learn' | 'quiz' | 'tasks';
+const tabOrder: ModuleTab[] = ['theory', 'learn', 'quiz', 'tasks'];
 
 function accentVars(meta: ModuleMeta): CSSProperties {
   return { '--accent': meta.accent, '--accent-2': meta.accent2 } as CSSProperties;
@@ -154,7 +156,8 @@ function ModuleView({ module: mod }: { module: Module }) {
   const activeBlockId = searchParams.get('block');
 
   const tabParam = searchParams.get('tab');
-  const tab: ModuleTab = tabParam === 'quiz' || tabParam === 'tasks' ? tabParam : 'learn';
+  const tab: ModuleTab =
+    tabParam === 'quiz' || tabParam === 'tasks' || tabParam === 'theory' ? tabParam : 'learn';
 
   const completed = useMemo(() => new Set(completedLessons), [completedLessons]);
 
@@ -318,7 +321,8 @@ function ModuleView({ module: mod }: { module: Module }) {
         onKeyDown={onTabKeyDown}
       >
         {[
-          { id: 'learn' as const, icon: 'book' as const, label: t(locale, 'module.tab.learn'), count: mod.lessons.length },
+          { id: 'theory' as const, icon: 'book' as const, label: t(locale, 'module.tab.theory'), count: chapterCountByModule[mod.id] ?? 0 },
+          { id: 'learn' as const, icon: 'quiz' as const, label: t(locale, 'module.tab.learn'), count: mod.lessons.length },
           { id: 'quiz' as const, icon: 'quiz' as const, label: t(locale, 'module.tab.quiz'), count: (mod.quizBlocks ?? []).length },
           { id: 'tasks' as const, icon: 'spark' as const, label: t(locale, 'module.tab.tasks'), count: taskTotal },
         ].map((item) => (
@@ -368,6 +372,7 @@ function ModuleView({ module: mod }: { module: Module }) {
           })()
         )}
         {tab === 'tasks' && <TasksPanel module={mod} />}
+        {tab === 'theory' && <ModuleTheory moduleId={mod.id} />}
         {tab === 'learn' && (
           <>
             <div className="toolbar">

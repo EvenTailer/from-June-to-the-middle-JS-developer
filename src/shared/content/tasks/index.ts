@@ -31,9 +31,9 @@ const moduleTasks: Record<string, PracticeTask[]> = {
 };
 
 export const tasksByModule: Record<string, PracticeTask[]> = Object.fromEntries(
-  Object.entries(baseTasksByModule).map(([moduleId, tasks]) => [
+  [...Object.keys(baseTasksByModule), 'architecture'].map((moduleId) => [
     moduleId,
-    [...tasks, ...(moduleTasks[moduleId] ?? [])],
+    [...(baseTasksByModule[moduleId] ?? []), ...(moduleTasks[moduleId] ?? [])],
   ])
 );
 

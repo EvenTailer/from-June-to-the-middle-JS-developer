@@ -16,6 +16,7 @@ export const moduleMeta: Record<string, ModuleMeta> = {
   redux: { code: 'RTK', accent: '#e879f9', accent2: '#a855f7' },
   'react-router': { code: 'ROUTER', accent: '#fb923c', accent2: '#f43f5e' },
   nextjs: { code: 'NEXT', accent: '#cbd5e1', accent2: '#64748b' },
+  architecture: { code: 'ARCH', accent: '#2dd4bf', accent2: '#0ea5e9' },
 };
 
 export const fallbackMeta: ModuleMeta = {
