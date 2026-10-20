@@ -73,6 +73,26 @@ and the same length within 45 percent.
 - `npm run validate:content` checks ids, bilingual completeness, paragraph and
   bullet minimums, table shape, cross references and broken encoding.
 
+## Practice follows the textbook
+
+The practice layer used to be the thinnest: 117 tasks against 144 theory
+sections. The rule now is one task per textbook chapter, attached to the
+chapter it drills through the `chapterId` field of `PracticeTask`.
+
+- Task files live in `src/shared/content/tasks/chapters/<module>.ts` and export
+  `<module>ChapterTasks`.
+- The task id is `ch-<chapterId>-<n>`, the level follows the chapter number
+  (1-3 basic, 4-7 intermediate, 8 and up advanced), and the topic is the
+  practice topic that matches the chapter, so the task lands in the right group
+  of the practice tab.
+- `src/shared/content/tasks/taskIndex.ts` and `counts.ts` are generated:
+  `npm run generate:task-index` rebuilds them from the task files. Never edit
+  them by hand.
+- `npm run validate:content` checks the task files too.
+
+Result: 502 tasks across the twelve modules, one for every chapter.
+
+
 ## Chapter blueprints
 
 Each line is `N. Chapter title` with its sections listed underneath. Section
