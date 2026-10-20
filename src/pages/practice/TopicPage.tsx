@@ -70,12 +70,17 @@ export function TopicPage() {
         </Link>
       </div>
 
-      <section className="module-hero">
-        <div className="module-hero__icon">{meta.code}</div>
-        <div className="module-hero__body">
-          <h1>{meta.title[locale]}</h1>
-          <p>{meta.description[locale]}</p>
-          <div className="chips">
+      <section className="topic-head">
+        <div className="topic-head__main">
+          <span className="topic-head__code">{meta.code}</span>
+          <div className="topic-head__text">
+            <h1>{meta.title[locale]}</h1>
+            <p>{meta.description[locale]}</p>
+          </div>
+        </div>
+
+        <div className="topic-head__side">
+          <div className="topic-head__stats">
             <span className="chip">
               {total}{' '}
               {plural(locale, total, {
@@ -88,7 +93,7 @@ export function TopicPage() {
               {t(locale, 'module.tasks.done')}: {doneCount}/{total}
             </span>
           </div>
-          <div className="module-hero__progress">
+          <div className="topic-head__progress">
             <ProgressBar
               value={doneCount}
               max={total}

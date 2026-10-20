@@ -46,6 +46,8 @@ export function TaskCollection({
 
   const completed = new Set(completedTasks);
   const doneCount = tasks.filter((task) => completed.has(task.id)).length;
+  const moduleCount = new Set(tasks.map((task) => task.moduleId)).size;
+  const showModules = showModuleBadge && moduleCount > 1;
 
   const counts = {
     all: tasks.length,
@@ -54,7 +56,8 @@ export function TaskCollection({
     advanced: tasks.filter((task) => levelOf(task) === 'advanced').length,
   };
 
-  const filtered = levelFilter === 'all' ? tasks : tasks.filter((task) => levelOf(task) === levelFilter);
+  const filtered =
+    levelFilter === 'all' ? tasks : tasks.filter((task) => levelOf(task) === levelFilter);
 
   const sortByLevel = (list: PracticeTask[]) =>
     [...list].sort((a, b) => levelOrder.indexOf(levelOf(a)) - levelOrder.indexOf(levelOf(b)));
@@ -110,20 +113,22 @@ export function TaskCollection({
 
   return (
     <>
-      <div className="practice-filters" role="group" aria-label={t(locale, 'practice.level.filter')}>
-        {filters.map((filter) => (
-          <button
-            key={filter.id}
-            type="button"
-            className={`chip chip--button${levelFilter === filter.id ? ' is-active' : ''}`}
-            onClick={() => setLevelFilter(filter.id)}
-            aria-pressed={levelFilter === filter.id}
-          >
-            {filter.label}
-            <span className="practice-filter__count">{filter.count}</span>
-          </button>
-        ))}
-        <span className="practice-filters__done">
+      <div className="task-toolbar">
+        <div className="practice-filters" role="group" aria-label={t(locale, 'practice.level.filter')}>
+          {filters.map((filter) => (
+            <button
+              key={filter.id}
+              type="button"
+              className={`chip chip--button${levelFilter === filter.id ? ' is-active' : ''}`}
+              onClick={() => setLevelFilter(filter.id)}
+              aria-pressed={levelFilter === filter.id}
+            >
+              {filter.label}
+              <span className="practice-filter__count">{filter.count}</span>
+            </button>
+          ))}
+        </div>
+        <span className="task-toolbar__progress">
           <b>{doneCount}</b> / {tasks.length} {t(locale, 'practice.solved')}
         </span>
       </div>
@@ -135,15 +140,11 @@ export function TaskCollection({
           return (
             <section key={group.key} className="task-group">
               <div className="task-group__head">
-                {group.tone ? (
-                  <span className={`task-level task-level--${group.tone}`}>{group.title}</span>
-                ) : (
-                  <>
-                    {group.code && <span className="task-group__code">{group.code}</span>}
-                    <h3 className="task-group__title">{group.title}</h3>
-                  </>
-                )}
+                {group.tone && <span className={`task-dot task-dot--${group.tone}`} />}
+                {group.code && <span className="task-group__code">{group.code}</span>}
+                <h3 className="task-group__title">{group.title}</h3>
                 <span className="task-group__count">{group.tasks.length}</span>
+                <span className="task-group__rule" />
               </div>
 
               <div className="task-group__list">
@@ -152,6 +153,7 @@ export function TaskCollection({
                   const hintOpen = openHints.has(task.id);
                   const solutionOpen = openSolutions.has(task.id);
                   const index = groupStart + offset;
+                  const level = levelOf(task);
                   const moduleCode = task.moduleId ? metaFor(task.moduleId).code : null;
 
                   return (
@@ -161,20 +163,17 @@ export function TaskCollection({
                           {String(index + 1).padStart(2, '0')}
                         </span>
                         <div className="task-card__content">
-                          <h3>{task.title[locale]}</h3>
+                          <div className="task-card__titleline">
+                            <h3>{task.title[locale]}</h3>
+                            <span className={`task-level task-level--${level}`}>
+                              {t(locale, levelKey(level))}
+                            </span>
+                            {showModules && moduleCode && (
+                              <span className="task-card__module">{moduleCode}</span>
+                            )}
+                          </div>
                           <p className="task-card__brief">{task.brief[locale]}</p>
                         </div>
-                        {showModuleBadge && moduleCode && (
-                          <span className="task-card__module">{moduleCode}</span>
-                        )}
-                        {done && (
-                          <span
-                            className="task-card__check"
-                            title={t(locale, 'practice.solvedState')}
-                          >
-                            <Icon name="check" size={15} />
-                          </span>
-                        )}
                       </div>
 
                       <div className="task-card__actions">
@@ -186,7 +185,9 @@ export function TaskCollection({
                             aria-expanded={hintOpen}
                           >
                             <Icon name="spark" size={15} />
-                            {hintOpen ? t(locale, 'practice.hideHint') : t(locale, 'practice.hint')}
+                            {hintOpen
+                              ? t(locale, 'practice.hideHint')
+                              : t(locale, 'practice.hint')}
                           </button>
                         )}
                         <button
@@ -203,7 +204,7 @@ export function TaskCollection({
                         </button>
                         <button
                           type="button"
-                          className={`btn btn--sm ${done ? 'btn--soft' : 'btn--ghost'}`}
+                          className={`btn btn--ghost btn--sm task-card__done${done ? ' is-done' : ''}`}
                           onClick={() => dispatch(toggleTaskComplete(task.id))}
                           aria-pressed={done}
                         >
