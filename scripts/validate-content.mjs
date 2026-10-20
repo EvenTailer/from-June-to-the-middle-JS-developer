@@ -119,6 +119,17 @@ function checkChapter(target, chapter, seen) {
     if (paragraphs.length < MIN_PARAGRAPHS) {
       report(st, 'error', `body has ${paragraphs.length} paragraphs, expected at least ${MIN_PARAGRAPHS}`);
     }
+    const ruParagraphs = String(section.body?.ru ?? '')
+      .split('\n\n')
+      .map((p) => p.trim())
+      .filter(Boolean);
+    if (ruParagraphs.length !== paragraphs.length) {
+      report(
+        st,
+        'error',
+        `body has ${paragraphs.length} English paragraphs but ${ruParagraphs.length} Russian ones`
+      );
+    }
     for (const paragraph of paragraphs) {
       if (words(paragraph) < MIN_WORDS_PER_PARAGRAPH) {
         report(st, 'warning', `a body paragraph has only ${words(paragraph)} words`);
