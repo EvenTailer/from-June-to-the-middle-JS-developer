@@ -19,6 +19,8 @@ export const RUNNER_CHANNEL = 'js-tutorial.code-runner';
 
 export interface RunnerCase {
   input: string;
+  /** An expression that reads the result of the call, when the result is not the answer itself. */
+  expect?: string;
   expected: string;
 }
 
@@ -38,6 +40,8 @@ export interface RunnerRequest {
   runId: number;
   code: string;
   cases: RunnerCase[];
+  /** The name of the function the runner calls. */
+  fn?: string;
 }
 
 export interface RunnerResponse {
@@ -47,22 +51,23 @@ export interface RunnerResponse {
   results?: RunnerCaseResult[];
   /** A message for the whole run, `no-solution` when the code defines no `solution`. */
   error?: string | null;
+  /** The name of the function the runner did not find. */
+  missing?: string | null;
 }
 
 /**
- * The document of the frame. It holds the worker that compiles the code of a
- * learner, calls the function `solution` with the input of every case and
- * posts the results back.
+ * The worker that compiles the code of a learner, calls the function with the
+ * input of every case and posts the results back.
+ *
+ * The source is a string, because the worker is built from a blob inside the
+ * frame. The generator of the tests runs the very same source in Node, so the
+ * expected values of the cases cannot drift from the runner of the app.
  */
-export const RUNNER_FRAME_SRC = String.raw`<!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><title>runner</title></head>
-<body>
-<script type="javascript/worker" id="worker-source">
-self.onmessage = function (event) {
+export const RUNNER_WORKER_SRC = String.raw`self.onmessage = function (event) {
   var request = event.data;
   var results = [];
   var error = null;
+  var missing = null;
   var logs = [];
   var originalLog = console.log;
 
@@ -147,34 +152,56 @@ self.onmessage = function (event) {
   };
 
   try {
-    var factory = new Function(
-      request.code + '\n;return typeof solution === "function" ? solution : null;'
-    );
-    var solution = factory();
-    if (typeof solution !== 'function') {
-      error = 'no-solution';
-    } else {
-      for (var c = 0; c < request.cases.length; c += 1) {
-        var testCase = request.cases[c];
-        logs = [];
-        try {
-          var args = splitArguments(testCase.input).map(evaluate);
-          var value = solution.apply(null, args);
-          var actual =
-            value === undefined
-              ? logs.length
-                ? logs[logs.length - 1]
-                : 'undefined'
-              : describe(value);
-          results.push({ index: c, actual: actual, value: serialize(value), error: null });
-        } catch (caseError) {
-          results.push({
-            index: c,
-            actual: '',
-            value: null,
-            error: String((caseError && caseError.message) || caseError),
-          });
+    for (var c = 0; c < request.cases.length; c += 1) {
+      var testCase = request.cases[c];
+      logs = [];
+      try {
+        // The name of the function the case calls. A task names it, and the
+        // name has to be a plain identifier, because it is read inside the
+        // code of the learner.
+        var entry =
+          typeof testCase.fn === 'string' && testCase.fn !== ''
+            ? testCase.fn
+            : typeof request.fn === 'string' && request.fn !== ''
+              ? request.fn
+              : 'solution';
+        if (!/^[A-Za-z_$][\w$]*$/.test(entry)) {
+          error = 'bad-entry';
+          break;
         }
+        var factory = new Function(
+          request.code +
+            '\n;return typeof ' + entry + ' === "function" ? ' + entry +
+            ' : (typeof solution === "function" ? solution : null);'
+        );
+        var solution = factory();
+        if (typeof solution !== 'function') {
+          error = 'no-solution';
+          missing = entry;
+          break;
+        }
+        var args = splitArguments(testCase.input).map(evaluate);
+        var value = solution.apply(null, args);
+        // A case can read the result of the call, for a task that returns
+        // an object instead of the answer itself.
+        if (testCase.expect) {
+          var reader = new Function('result', 'return (' + testCase.expect + ');');
+          value = reader(value);
+        }
+        var actual =
+          value === undefined
+            ? logs.length
+              ? logs[logs.length - 1]
+              : 'undefined'
+            : describe(value);
+        results.push({ index: c, actual: actual, value: serialize(value), error: null });
+      } catch (caseError) {
+        results.push({
+          index: c,
+          actual: '',
+          value: null,
+          error: String((caseError && caseError.message) || caseError),
+        });
       }
     }
   } catch (runError) {
@@ -183,9 +210,21 @@ self.onmessage = function (event) {
     console.log = originalLog;
   }
 
-  self.postMessage({ results: results, error: error });
+  self.postMessage({ results: results, error: error, missing: missing || null });
 };
-</script>
+`;
+
+/**
+ * The document of the frame. It holds the worker that compiles the code of a
+ * learner, calls the function with the input of every case and posts the
+ * results back.
+ */
+export const RUNNER_FRAME_SRC = String.raw`<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>runner</title></head>
+<body>
+<script type="javascript/worker" id="worker-source">
+${RUNNER_WORKER_SRC}</script>
 <script>
 (function () {
   var CHANNEL = 'js-tutorial.code-runner';
@@ -220,6 +259,7 @@ self.onmessage = function (event) {
           runId: request.runId,
           results: data.results || [],
           error: data.error || null,
+          missing: data.missing || null,
         },
         '*'
       );
@@ -239,7 +279,7 @@ self.onmessage = function (event) {
       );
     };
 
-    worker.postMessage({ code: request.code, cases: request.cases });
+    worker.postMessage({ code: request.code, cases: request.cases, fn: request.fn });
   }
 
   window.addEventListener('message', function (event) {

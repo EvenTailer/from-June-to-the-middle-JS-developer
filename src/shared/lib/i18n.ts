@@ -137,14 +137,14 @@ export const uiText: Record<string, { en: string; ru: string }> = {
   'practice.explanation': { en: 'Why it works', ru: 'Почему это работает' },
   'practice.runner.title': { en: 'Your code', ru: 'Ваш код' },
   'practice.runner.contract': {
-    en: 'Define a function named solution. The runner calls solution(...) with the input of a case and compares the result with the expected output. Separate several arguments with a comma, an array stays a single argument. The code runs in a sandbox: no page, no DOM.',
-    ru: 'Определите функцию с именем solution. Раннер вызывает solution(...) с входом из кейса и сравнивает результат с ожидаемым выводом. Несколько аргументов разделяйте запятой, массив остаётся одним аргументом. Код выполняется в песочнице: без страницы и без DOM.',
+    en: 'Write the function the task asks for. The runner calls it with the input of a case and compares the result with the expected output. Separate several arguments with a comma, an array stays a single argument. The code runs in a sandbox: no page, no DOM.',
+    ru: 'Напишите функцию, которую просит задача. Раннер вызывает её с входом из кейса и сравнивает результат с ожидаемым выводом. Несколько аргументов разделяйте запятой, массив остаётся одним аргументом. Код выполняется в песочнице: без страницы и без DOM.',
   },
   'practice.runner.editorLabel': { en: 'Code of the learner', ru: 'Код ученика' },
   'practice.runner.frameTitle': { en: 'Sandbox for the code of the learner', ru: 'Песочница для кода ученика' },
   'practice.runner.run': { en: 'Run', ru: 'Запустить' },
   'practice.runner.running': { en: 'Running…', ru: 'Запускаем…' },
-  'practice.runner.reset': { en: 'Reset to the solution', ru: 'Вернуть решение' },
+  'practice.runner.reset': { en: 'Clear', ru: 'Очистить' },
   'practice.runner.passedAll': { en: 'All cases passed', ru: 'Все кейсы пройдены' },
   'practice.runner.passedCount': {
     en: '{passed} of {total} cases passed',
@@ -159,8 +159,17 @@ export const uiText: Record<string, { en: string; ru: string }> = {
     ru: 'Код не отработал за {seconds} с. Скорее всего бесконечный цикл.',
   },
   'practice.runner.noSolution': {
-    en: 'The code does not define a function named solution.',
-    ru: 'В коде нет функции с именем solution.',
+    en: 'The code does not define a function named {fn}.',
+    ru: 'В коде нет функции с именем {fn}.',
+  },
+  'practice.runner.badEntry': {
+    en: 'The name of the function is not a valid JavaScript name.',
+    ru: 'Имя функции не является допустимым именем в JavaScript.',
+  },
+  'practice.runner.fn': { en: 'Write the function', ru: 'Напишите функцию' },
+  'practice.runner.solvedHint': {
+    en: 'The task counts as solved when every case passes.',
+    ru: 'Задача засчитывается, когда пройдены все кейсы.',
   },
   'practice.empty': { en: 'Practice tasks are coming soon.', ru: 'Задачи для этого модуля скоро появятся.' },
   'practice.loading': { en: 'Loading practice tasks...', ru: 'Загружаем задачи...' },

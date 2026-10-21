@@ -1,5 +1,23 @@
 import type { PracticeTask, PracticeTopicId } from '../../../../entities/module/model/types';
 
+/**
+ * The cases of the tasks. The file is generated, and it is loaded on its own,
+ * so it does not weigh on the chunk of the content of a module.
+ */
+const testLoader = () => import('../generated/tests').then((m) => m.taskTests);
+
+/** Puts the cases of a task into the task. */
+function withTests(
+  tasks: PracticeTask[],
+  tests: Record<string, PracticeTask['tests']>,
+): PracticeTask[] {
+  return tasks.map((task) => {
+    const cases = tests[task.id];
+    if (!cases) return task;
+    return { ...task, tests: cases, fn: task.fn ?? cases[0]?.fn };
+  });
+}
+
 const moduleLoaders: Record<string, () => Promise<PracticeTask[]>> = {
   'html-css': () => import('./byModule/htmlCss').then((m) => m.htmlCssTopicTasks),
   git: () => import('./byModule/git').then((m) => m.gitTopicTasks),
@@ -15,9 +33,13 @@ const moduleLoaders: Record<string, () => Promise<PracticeTask[]>> = {
   architecture: () => import('./byModule/architecture').then((m) => m.architectureTopicTasks),
 };
 
-export function loadModuleTopicTasks(moduleId: string): Promise<PracticeTask[]> {
+export async function loadModuleTopicTasks(moduleId: string): Promise<PracticeTask[]> {
   const loader = moduleLoaders[moduleId];
-  return loader ? loader() : Promise.resolve([]);
+  const [tasks, tests] = await Promise.all([
+    loader ? loader() : Promise.resolve([]),
+    testLoader(),
+  ]);
+  return withTests(tasks, tests);
 }
 
 const topicLoaders: Record<PracticeTopicId, () => Promise<PracticeTask[]>> = {
@@ -52,7 +74,11 @@ const topicLoaders: Record<PracticeTopicId, () => Promise<PracticeTask[]>> = {
   architecture: () => import('./architecture').then((m) => m.architectureTasks),
 };
 
-export function loadTopicTasks(topicId: string): Promise<PracticeTask[]> {
+export async function loadTopicTasks(topicId: string): Promise<PracticeTask[]> {
   const loader = topicLoaders[topicId as PracticeTopicId];
-  return loader ? loader() : Promise.resolve([]);
+  const [tasks, tests] = await Promise.all([
+    loader ? loader() : Promise.resolve([]),
+    testLoader(),
+  ]);
+  return withTests(tasks, tests);
 }

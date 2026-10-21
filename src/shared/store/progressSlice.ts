@@ -50,6 +50,15 @@ const progressSlice = createSlice({
         state.completedTasks.push(action.payload);
       }
     },
+    /**
+     * Marks a task as solved after its cases passed. A task that can be run
+     * cannot be marked by hand, so the progress means something.
+     */
+    markTaskSolved: (state, action: PayloadAction<string>) => {
+      if (!state.completedTasks.includes(action.payload)) {
+        state.completedTasks.push(action.payload);
+      }
+    },
     toggleChapterRead: (state, action: PayloadAction<string>) => {
       const index = state.readChapters.indexOf(action.payload);
       if (index >= 0) {
@@ -70,6 +79,7 @@ export const {
   markLessonComplete,
   toggleLessonComplete,
   toggleTaskComplete,
+  markTaskSolved,
   toggleChapterRead,
   setQuizScore,
   resetProgress,

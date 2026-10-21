@@ -27,6 +27,9 @@ jobs:
       - name: Check the solutions of the tasks
         run: npm run check:solutions
 
+      - name: Check the cases of the tasks
+        run: npm run check:cases
+
       - name: Check the types
         run: npm run typecheck
 

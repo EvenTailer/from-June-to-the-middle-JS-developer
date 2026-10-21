@@ -2069,6 +2069,26 @@ a:hover {
   color: var(--success);
 }
 
+span.task-card__done {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid color-mix(in srgb, var(--success) 32%, transparent);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.task-runner__fn {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--surface-2, var(--surface));
+  color: var(--accent);
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+}
+
 .task-hint {
   margin-top: 14px;
   padding: 12px 15px;

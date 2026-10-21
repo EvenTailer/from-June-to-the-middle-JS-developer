@@ -4,7 +4,7 @@ import { practiceTopics } from '../../shared/content/tasks/topics';
 import { useLocale } from '../../shared/hooks/useLocale';
 import { useAppDispatch } from '../../shared/hooks/useAppDispatch';
 import { useAppSelector } from '../../shared/hooks/useAppSelector';
-import { toggleTaskComplete } from '../../shared/store/progressSlice';
+import { toggleTaskComplete, markTaskSolved } from '../../shared/store/progressSlice';
 import { t } from '../../shared/lib/i18n';
 import { metaFor } from '../../shared/lib/moduleMeta';
 import { Icon } from '../../shared/ui/Icon';
@@ -156,6 +156,8 @@ export function TaskCollection({
                   const index = groupStart + offset;
                   const level = levelOf(task);
                   const moduleCode = task.moduleId ? metaFor(task.moduleId).code : null;
+                  /** A task with cases is checked by the runner and cannot be marked by hand. */
+                  const runnable = Boolean(task.tests && task.tests.length > 0);
 
                   return (
                     <article key={task.id} className={`task-card${done ? ' is-done' : ''}`}>
@@ -203,19 +205,31 @@ export function TaskCollection({
                             ? t(locale, 'practice.hideSolution')
                             : t(locale, 'practice.showSolution')}
                         </button>
-                        <button
-                          type="button"
-                          className={`btn btn--ghost btn--sm task-card__done${done ? ' is-done' : ''}`}
-                          onClick={() => dispatch(toggleTaskComplete(task.id))}
-                          aria-pressed={done}
-                        >
-                          <Icon name="check" size={15} />
-                          {done ? t(locale, 'practice.solvedState') : t(locale, 'practice.markSolved')}
-                        </button>
+                        {!runnable && (
+                          <button
+                            type="button"
+                            className={`btn btn--ghost btn--sm task-card__done${done ? ' is-done' : ''}`}
+                            onClick={() => dispatch(toggleTaskComplete(task.id))}
+                            aria-pressed={done}
+                          >
+                            <Icon name="check" size={15} />
+                            {done ? t(locale, 'practice.solvedState') : t(locale, 'practice.markSolved')}
+                          </button>
+                        )}
+                        {runnable && done && (
+                          <span className="task-card__done is-done">
+                            <Icon name="check" size={15} />
+                            {t(locale, 'practice.solvedState')}
+                          </span>
+                        )}
                       </div>
 
-                      {task.tests && task.tests.length > 0 && (
-                        <CodeRunner tests={task.tests} initialCode={task.solution} />
+                      {runnable && (
+                        <CodeRunner
+                          tests={task.tests ?? []}
+                          fn={task.fn}
+                          onSolved={() => dispatch(markTaskSolved(task.id))}
+                        />
                       )}
 
                       {hintOpen && task.hint && (

@@ -82,8 +82,16 @@ export type TaskLanguage =
 
 /** One runnable case of a practice task. */
 export interface PracticeTest {
+  /** The name of the function the runner calls. */
+  fn: string;
   /** JavaScript expression the runner passes to the learner function, as in "[1, 2, 3]". */
   input: string;
+  /**
+   * The expression that reads the result of the call, for a task that returns
+   * an object instead of the answer itself. The value the function returned is
+   * bound to the name `result`.
+   */
+  expect?: string;
   /** Output the runner expects, as the solution prints it. */
   expected: string;
 }

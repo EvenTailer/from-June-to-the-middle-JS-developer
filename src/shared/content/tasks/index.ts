@@ -4,6 +4,24 @@ import { moduleTaskCounts, topicTaskCounts } from './counts';
 export { loadModuleTopicTasks, loadTopicTasks } from './topics/registry';
 export { moduleTopicTaskCounts, moduleTaskCounts, topicTaskCounts } from './counts';
 
+/**
+ * The cases of the tasks. The file is generated, and it is loaded on its own,
+ * so it does not weigh on the chunk of the content of a module.
+ */
+const testLoader = () => import('./generated/tests').then((m) => m.taskTests);
+
+/** Puts the cases of a task into the task. */
+export function withTests(
+  tasks: PracticeTask[],
+  tests: Record<string, PracticeTask['tests']>,
+): PracticeTask[] {
+  return tasks.map((task) => {
+    const cases = tests[task.id];
+    if (!cases) return task;
+    return { ...task, tests: cases, fn: task.fn ?? cases[0]?.fn };
+  });
+}
+
 const baseLoader = () => import('./base').then((m) => m.baseTasksByModule);
 
 const moduleLoaders: Record<string, () => Promise<PracticeTask[]>> = {
@@ -72,12 +90,13 @@ const moduleLoaders: Record<string, () => Promise<PracticeTask[]>> = {
  */
 export async function loadModuleTasks(moduleId: string): Promise<PracticeTask[]> {
   const loader = moduleLoaders[moduleId];
-  const [base, own] = await Promise.all([
+  const [base, own, tests] = await Promise.all([
     baseLoader(),
     loader ? loader() : Promise.resolve([]),
+    testLoader(),
   ]);
 
-  return [...(base[moduleId] ?? []), ...own];
+  return withTests([...(base[moduleId] ?? []), ...own], tests);
 }
 
 export function getModuleTaskTotal(moduleId: string): number {

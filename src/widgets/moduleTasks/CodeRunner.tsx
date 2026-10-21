@@ -23,8 +23,10 @@ type RunnerState =
 interface CodeRunnerProps {
   /** The cases of the task. */
   tests: PracticeTest[];
-  /** The code the editor starts with, the exemplar solution of the task. */
-  initialCode: string;
+  /** The name of the function the task asks for, shown above the editor. */
+  fn?: string;
+  /** Called when every case passes. */
+  onSolved?: () => void;
 }
 
 function parseJson(text: string): unknown {
@@ -74,9 +76,9 @@ function format(template: string, values: Record<string, string | number>): stri
   );
 }
 
-export function CodeRunner({ tests, initialCode }: CodeRunnerProps) {
+export function CodeRunner({ tests, fn, onSolved }: CodeRunnerProps) {
   const locale = useLocale();
-  const [code, setCode] = useState(initialCode);
+  const [code, setCode] = useState('');
   const [state, setState] = useState<RunnerState>({ kind: 'idle' });
   const [frameKey, setFrameKey] = useState(0);
   /** The key of the frame that reported itself ready. */
@@ -102,7 +104,14 @@ export function CodeRunner({ tests, initialCode }: CodeRunnerProps) {
 
       window.clearTimeout(timerRef.current);
       if (data.error === 'no-solution') {
-        setState({ kind: 'failed', message: t(locale, 'practice.runner.noSolution') });
+        setState({
+          kind: 'failed',
+          message: format(t(locale, 'practice.runner.noSolution'), {
+            fn: data.missing ?? fn ?? 'solution',
+          }),
+        });
+      } else if (data.error === 'bad-entry') {
+        setState({ kind: 'failed', message: t(locale, 'practice.runner.badEntry') });
       } else if (data.error) {
         setState({ kind: 'failed', message: data.error });
       } else {
@@ -115,7 +124,7 @@ export function CodeRunner({ tests, initialCode }: CodeRunnerProps) {
       window.removeEventListener('message', handleMessage);
       window.clearTimeout(timerRef.current);
     };
-  }, [locale]);
+  }, [locale, fn]);
 
   const ready = readyKey === frameKey;
 
@@ -155,10 +164,17 @@ export function CodeRunner({ tests, initialCode }: CodeRunnerProps) {
   const failed = cases.filter((item) => !item.passed);
   const passedCount = cases.length - failed.length;
 
+  useEffect(() => {
+    if (state.kind === 'done' && cases.length > 0 && failed.length === 0) {
+      onSolved?.();
+    }
+  }, [state, cases, failed.length, onSolved]);
+
   return (
     <div className="task-runner">
       <div className="task-runner__head">
         <span className="label">{t(locale, 'practice.runner.title')}</span>
+        {fn && <code className="task-runner__fn">{fn}</code>}
         <span className="task-runner__count">
           {tests.length}{' '}
           {plural(locale, tests.length, {
@@ -176,6 +192,7 @@ export function CodeRunner({ tests, initialCode }: CodeRunnerProps) {
         value={code}
         onChange={(event) => setCode(event.target.value)}
         spellCheck={false}
+        placeholder={fn ? `function ${fn}() { ... }` : ''}
         aria-label={t(locale, 'practice.runner.editorLabel')}
       />
 
@@ -184,7 +201,7 @@ export function CodeRunner({ tests, initialCode }: CodeRunnerProps) {
           type="button"
           className="btn btn--primary btn--sm"
           onClick={run}
-          disabled={!ready || state.kind === 'running'}
+          disabled={!ready || state.kind === 'running' || code.trim() === ''}
         >
           <Icon name="spark" size={15} />
           {state.kind === 'running'
@@ -194,7 +211,11 @@ export function CodeRunner({ tests, initialCode }: CodeRunnerProps) {
         <button
           type="button"
           className="btn btn--ghost btn--sm"
-          onClick={() => setCode(initialCode)}
+          onClick={() => {
+            setCode('');
+            setState({ kind: 'idle' });
+          }}
+          disabled={code === ''}
         >
           {t(locale, 'practice.runner.reset')}
         </button>
