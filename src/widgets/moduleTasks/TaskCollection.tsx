@@ -9,6 +9,7 @@ import { t } from '../../shared/lib/i18n';
 import { metaFor } from '../../shared/lib/moduleMeta';
 import { Icon } from '../../shared/ui/Icon';
 import { CodeBlock } from '../../shared/ui/CodeBlock';
+import { CodeRunner } from './CodeRunner';
 
 type LevelFilter = 'all' | TaskLevel;
 
@@ -212,6 +213,10 @@ export function TaskCollection({
                           {done ? t(locale, 'practice.solvedState') : t(locale, 'practice.markSolved')}
                         </button>
                       </div>
+
+                      {task.tests && task.tests.length > 0 && (
+                        <CodeRunner tests={task.tests} initialCode={task.solution} />
+                      )}
 
                       {hintOpen && task.hint && (
                         <div className="task-hint">

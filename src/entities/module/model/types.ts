@@ -61,6 +61,14 @@ export type PracticeTopicId =
   | 'tooling'
   | 'architecture';
 
+/** One runnable case of a practice task. */
+export interface PracticeTest {
+  /** JavaScript expression the runner passes to the learner function, as in "[1, 2, 3]". */
+  input: string;
+  /** Output the runner expects, as the solution prints it. */
+  expected: string;
+}
+
 export interface PracticeTask {
   id: string;
   moduleId?: string;
@@ -73,6 +81,8 @@ export interface PracticeTask {
   hint?: LocalizedText;
   solution: string;
   explanation?: LocalizedText;
+  /** Cases to run against the code of a learner. A task without them stays read-only. */
+  tests?: PracticeTest[];
 }
 
 export type CalloutTone = 'note' | 'tip' | 'warning' | 'pitfall';
