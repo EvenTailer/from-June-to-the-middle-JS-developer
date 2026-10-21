@@ -1,4 +1,4 @@
-import type { Module, QuizBlock } from '../../entities/module/model/types';
+import type { QuizBlock } from '../../entities/module/model/types';
 import { useLocale } from '../../shared/hooks/useLocale';
 import { useAppSelector } from '../../shared/hooks/useAppSelector';
 import { t } from '../../shared/lib/i18n';
@@ -6,15 +6,14 @@ import { Icon } from '../../shared/ui/Icon';
 import { ProgressBar } from '../../shared/ui/ProgressBar';
 
 interface QuizBlockListProps {
-  module: Module;
+  blocks: QuizBlock[];
   onSelect: (block: QuizBlock) => void;
 }
 
-export function QuizBlockList({ module, onSelect }: QuizBlockListProps) {
+export function QuizBlockList({ blocks, onSelect }: QuizBlockListProps) {
   const locale = useLocale();
   const quizScores = useAppSelector((s) => s.progress.quizScores);
 
-  const blocks = module.quizBlocks ?? [];
   const passedCount = blocks.filter(
     (block) => (quizScores[block.id] ?? 0) >= Math.ceil(block.questions.length * 0.6)
   ).length;

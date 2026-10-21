@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import type { QuizBlock } from '../../entities/module/model/types';
-import { getModule } from '../../shared/content';
+import { getModuleEntry, loadModule } from '../../shared/content';
 import { useLocale } from '../../shared/hooks/useLocale';
 import { usePageTitle } from '../../shared/hooks/usePageTitle';
 import { t } from '../../shared/lib/i18n';
@@ -12,20 +12,36 @@ import { QuizBlockList } from '../../widgets/moduleQuiz/QuizBlockList';
 export function QuizPage() {
   const { moduleId } = useParams();
   const locale = useLocale();
-  const mod = moduleId ? getModule(moduleId) : undefined;
+  const entry = moduleId ? getModuleEntry(moduleId) : undefined;
+  const [blocks, setBlocks] = useState<QuizBlock[] | null>(null);
   const [activeBlock, setActiveBlock] = useState<QuizBlock | null>(null);
 
   usePageTitle(
-    mod
+    entry
       ? locale === 'en'
-        ? `Quiz · ${mod.title.en}`
-        : `Тест · ${mod.title.ru}`
+        ? `Quiz · ${entry.title.en}`
+        : `Тест · ${entry.title.ru}`
       : locale === 'en'
         ? 'Quiz · JS to Middle'
         : 'Тест · От новичка до middle'
   );
 
-  if (!mod) {
+  useEffect(() => {
+    if (!entry) return;
+
+    let active = true;
+
+    loadModule(entry.id).then((loaded) => {
+      if (!active || !loaded) return;
+      setBlocks(loaded.quizBlocks ?? []);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [entry]);
+
+  if (!entry) {
     return (
       <main className="page">
         <div className="empty">
@@ -42,7 +58,7 @@ export function QuizPage() {
   return (
     <main className="page page--narrow">
       <div className="crumbs">
-        <Link to={`/module/${mod.id}`}>
+        <Link to={`/module/${entry.id}`}>
           <Icon name="arrow" size={15} className="crumbs__back" />
           {t(locale, 'quiz.backToModule')}
         </Link>
@@ -50,14 +66,20 @@ export function QuizPage() {
 
       {activeBlock ? (
         <ModuleQuiz
-          module={mod}
+          moduleId={entry.id}
+          moduleTitle={entry.title[locale]}
           questions={activeBlock.questions}
           blockId={activeBlock.id}
           blockTitle={activeBlock.title[locale]}
           onBackToBlocks={() => setActiveBlock(null)}
         />
+      ) : blocks === null ? (
+        <div className="empty">
+          <Icon name="reset" size={26} />
+          <p>{t(locale, 'module.loading')}</p>
+        </div>
       ) : (
-        <QuizBlockList module={mod} onSelect={setActiveBlock} />
+        <QuizBlockList blocks={blocks} onSelect={setActiveBlock} />
       )}
     </main>
   );

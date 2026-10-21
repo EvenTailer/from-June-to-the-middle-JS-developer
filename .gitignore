@@ -28,3 +28,6 @@ dist-ssr
 
 # temporary files written by the solution checker
 .tmp-task-solutions
+
+# temporary files written by hand while checking a sample
+.tmp-manual

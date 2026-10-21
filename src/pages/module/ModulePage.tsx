@@ -1,16 +1,18 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties, KeyboardEvent } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
-import { getModule } from '../../shared/content';
-import type { Lesson, Module } from '../../entities/module/model/types';
+import { getModuleEntry, loadModule } from '../../shared/content';
+import { lessonModuleById } from '../../shared/content/moduleIndex';
+import { quizBlockMeta } from '../../shared/content/quizBlocks';
+import type { Lesson, Module, QuizBlock } from '../../entities/module/model/types';
 import type { Locale } from '../../shared/store/uiSlice';
 import { useLocale } from '../../shared/hooks/useLocale';
 import { usePageTitle } from '../../shared/hooks/usePageTitle';
 import { useAppDispatch } from '../../shared/hooks/useAppDispatch';
 import { useAppSelector } from '../../shared/hooks/useAppSelector';
-import { getModuleTaskTotal } from '../../shared/content/tasks';
 import { taskModuleById } from '../../shared/content/tasks/taskIndex';
 import { toggleLessonComplete } from '../../shared/store/progressSlice';
+import { overallProgress } from '../../shared/lib/progress';
 import { t } from '../../shared/lib/i18n';
 import { metaFor } from '../../shared/lib/moduleMeta';
 import type { ModuleMeta } from '../../shared/lib/moduleMeta';
@@ -21,7 +23,6 @@ import { ModuleQuiz } from '../../widgets/moduleQuiz/ModuleQuiz';
 import { QuizBlockList } from '../../widgets/moduleQuiz/QuizBlockList';
 import { TasksPanel } from '../../widgets/moduleTasks/TasksPanel';
 import { ModuleTheory } from '../../widgets/moduleTheory/ModuleTheory';
-import { chapterCountByModule } from '../../shared/content/chapters';
 
 type Filter = 'all' | 'todo' | 'done';
 type ModuleTab = 'theory' | 'learn' | 'quiz' | 'tasks';
@@ -121,9 +122,9 @@ function LessonCard({
 export function ModulePage() {
   const { moduleId } = useParams();
   const locale = useLocale();
-  const mod = moduleId ? getModule(moduleId) : undefined;
+  const entry = moduleId ? getModuleEntry(moduleId) : undefined;
 
-  if (!mod) {
+  if (!entry) {
     return (
       <main className="page">
         <div className="empty">
@@ -137,13 +138,13 @@ export function ModulePage() {
     );
   }
 
-  return <ModuleView key={mod.id} module={mod} />;
+  return <ModuleView key={entry.id} entry={entry} />;
 }
 
-function ModuleView({ module: mod }: { module: Module }) {
+function ModuleView({ entry }: { entry: NonNullable<ReturnType<typeof getModuleEntry>> }) {
   const locale = useLocale();
   usePageTitle(
-    locale === 'en' ? `${mod.title.en} · JS to Middle` : `${mod.title.ru} · От новичка до middle`
+    locale === 'en' ? `${entry.title.en} · JS to Middle` : `${entry.title.ru} · От новичка до middle`
   );
   const dispatch = useAppDispatch();
   const completedLessons = useAppSelector((s) => s.progress.completedLessons);
@@ -154,7 +155,21 @@ function ModuleView({ module: mod }: { module: Module }) {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const [openIds, setOpenIds] = useState<Set<string>>(() => new Set());
+  const [content, setContent] = useState<Module | null>(null);
   const activeBlockId = searchParams.get('block');
+
+  useEffect(() => {
+    let active = true;
+
+    loadModule(entry.id).then((loaded) => {
+      if (!active || !loaded) return;
+      setContent(loaded);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [entry.id]);
 
   const tabParam = searchParams.get('tab');
   const tab: ModuleTab =
@@ -190,10 +205,12 @@ function ModuleView({ module: mod }: { module: Module }) {
     document.getElementById(`module-tab-${next}`)?.focus();
   };
 
-  const meta = metaFor(mod.id);
-  const doneCount = mod.lessons.filter((lesson) => completed.has(lesson.id)).length;
-  const quizBlocks = mod.quizBlocks ?? [];
-  const bestBlock = quizBlocks.reduce<(typeof quizBlocks)[number] | null>(
+  const meta = metaFor(entry.id);
+  const lessons = content?.lessons ?? [];
+  const doneCount = completedLessons.filter((id) => lessonModuleById[id] === entry.id).length;
+  const quizBlocks = content?.quizBlocks ?? [];
+  const quizBlockCount = quizBlockMeta(entry.id, entry.quizCount).length;
+  const bestBlock = quizBlocks.reduce<QuizBlock | null>(
     (best, block) => {
       const score = quizScores[block.id] ?? 0;
       if (!best) return score > 0 ? block : null;
@@ -202,18 +219,17 @@ function ModuleView({ module: mod }: { module: Module }) {
     null
   );
   const bestScore = bestBlock ? (quizScores[bestBlock.id] ?? 0) : 0;
-  const taskTotal = getModuleTaskTotal(mod.id);
-  const doneTasks = completedTasks.filter((id) => taskModuleById[id] === mod.id).length;
-  const theoryRatio = mod.lessons.length > 0 ? doneCount / mod.lessons.length : 0;
-  const practiceRatio = taskTotal > 0 ? doneTasks / taskTotal : 0;
-  const chapterTotal = chapterCountByModule[mod.id] ?? 0;
-  const chaptersRead = readChapters.filter((key) => key.startsWith(`${mod.id}::`)).length;
-  const textbookRatio = chapterTotal > 0 ? chaptersRead / chapterTotal : 0;
-  const moduleProgress = Math.round(
-    (theoryRatio * 0.15 + textbookRatio * 0.35 + practiceRatio * 0.5) * 100
-  );
+  const taskTotal = entry.taskCount;
+  const doneTasks = completedTasks.filter((id) => taskModuleById[id] === entry.id).length;
+  const chapterTotal = entry.chapterCount;
+  const chaptersRead = readChapters.filter((key) => key.startsWith(`${entry.id}::`)).length;
+  const moduleProgress = overallProgress({
+    questions: { done: doneCount, total: entry.lessonCount },
+    chapters: { done: chaptersRead, total: chapterTotal },
+    tasks: { done: doneTasks, total: taskTotal },
+  });
 
-  const visibleLessons = mod.lessons
+  const visibleLessons = lessons
     .map((lesson, index) => ({ lesson, index }))
     .filter(({ lesson }) => {
       const done = completed.has(lesson.id);
@@ -253,7 +269,7 @@ function ModuleView({ module: mod }: { module: Module }) {
   };
 
   const continueLearning = () => {
-    const nextLesson = mod.lessons.find((lesson) => !completed.has(lesson.id));
+    const nextLesson = lessons.find((lesson) => !completed.has(lesson.id));
     changeTab('learn');
     setQuery('');
     setFilter('all');
@@ -278,15 +294,20 @@ function ModuleView({ module: mod }: { module: Module }) {
       <section className="module-hero">
         <div className="module-hero__icon">{meta.code}</div>
         <div className="module-hero__body">
-          <h1>{mod.title[locale]}</h1>
-          <p>{mod.description[locale]}</p>
+          <h1>{entry.title[locale]}</h1>
+          <p>{entry.description[locale]}</p>
           <div className="chips">
             <span className="chip">
-              {mod.lessons.length} {t(locale, 'module.lesson')}
+              {entry.lessonCount} {t(locale, 'module.lesson')}
             </span>
             <span className="chip">
               {t(locale, 'module.done')}: {doneCount}
             </span>
+            {chapterTotal > 0 && (
+              <span className="chip">
+                {t(locale, 'module.chapters.read')}: {chaptersRead}/{chapterTotal}
+              </span>
+            )}
             {taskTotal > 0 && (
               <span className="chip">
                 {t(locale, 'module.tasks.done')}: {doneTasks}/{taskTotal}
@@ -302,7 +323,7 @@ function ModuleView({ module: mod }: { module: Module }) {
             <ProgressBar
               value={moduleProgress}
               max={100}
-              label={`${mod.title[locale]}: ${t(locale, 'progress')}`}
+              label={`${entry.title[locale]}: ${t(locale, 'progress')}`}
             />
             <span>{moduleProgress}%</span>
           </div>
@@ -327,9 +348,9 @@ function ModuleView({ module: mod }: { module: Module }) {
         onKeyDown={onTabKeyDown}
       >
         {[
-          { id: 'theory' as const, icon: 'book' as const, label: t(locale, 'module.tab.theory'), count: chapterCountByModule[mod.id] ?? 0 },
-          { id: 'learn' as const, icon: 'quiz' as const, label: t(locale, 'module.tab.learn'), count: mod.lessons.length },
-          { id: 'quiz' as const, icon: 'quiz' as const, label: t(locale, 'module.tab.quiz'), count: (mod.quizBlocks ?? []).length },
+          { id: 'theory' as const, icon: 'book' as const, label: t(locale, 'module.tab.theory'), count: entry.chapterCount },
+          { id: 'learn' as const, icon: 'quiz' as const, label: t(locale, 'module.tab.learn'), count: entry.lessonCount },
+          { id: 'quiz' as const, icon: 'quiz' as const, label: t(locale, 'module.tab.quiz'), count: quizBlockCount },
           { id: 'tasks' as const, icon: 'spark' as const, label: t(locale, 'module.tab.tasks'), count: taskTotal },
         ].map((item) => (
           <button
@@ -358,16 +379,22 @@ function ModuleView({ module: mod }: { module: Module }) {
       >
         {tab === 'quiz' && (
           (() => {
-            const blocks = mod.quizBlocks ?? [];
+            const blocks = quizBlocks;
             const activeBlock = blocks.find((block) => block.id === activeBlockId);
 
             if (!activeBlock) {
-              return <QuizBlockList module={mod} onSelect={(block) => selectBlock(block.id)} />;
+              return (
+                <QuizBlockList
+                  blocks={blocks}
+                  onSelect={(block) => selectBlock(block.id)}
+                />
+              );
             }
 
             return (
               <ModuleQuiz
-                module={mod}
+                moduleId={entry.id}
+                moduleTitle={entry.title[locale]}
                 questions={activeBlock.questions}
                 blockId={activeBlock.id}
                 blockTitle={activeBlock.title[locale]}
@@ -377,8 +404,8 @@ function ModuleView({ module: mod }: { module: Module }) {
             );
           })()
         )}
-        {tab === 'tasks' && <TasksPanel module={mod} />}
-        {tab === 'theory' && <ModuleTheory moduleId={mod.id} />}
+        {tab === 'tasks' && <TasksPanel moduleId={entry.id} taskTotal={taskTotal} />}
+        {tab === 'theory' && <ModuleTheory moduleId={entry.id} />}
         {tab === 'learn' && (
           <>
             <div className="toolbar">
@@ -421,27 +448,34 @@ function ModuleView({ module: mod }: { module: Module }) {
         </div>
       </div>
 
-      <div className="lesson-list">
-        {visibleLessons.map(({ lesson, index }, visibleIndex) => {
-          const nextLesson = visibleLessons[visibleIndex + 1]?.lesson;
-          return (
-            <LessonCard
-              key={lesson.id}
-              lesson={lesson}
-              index={index}
-              locale={locale}
-              open={openIds.has(lesson.id)}
-              done={completed.has(lesson.id)}
-              hasNext={Boolean(nextLesson)}
-              onToggle={() => toggleOpen(lesson.id)}
-              onToggleDone={() => dispatch(toggleLessonComplete(lesson.id))}
-              onNext={() => nextLesson && goNext(nextLesson.id)}
-            />
-          );
-        })}
-      </div>
+      {!content ? (
+        <div className="empty">
+          <Icon name="reset" size={26} />
+          <p>{t(locale, 'module.loading')}</p>
+        </div>
+      ) : (
+        <div className="lesson-list">
+          {visibleLessons.map(({ lesson, index }, visibleIndex) => {
+            const nextLesson = visibleLessons[visibleIndex + 1]?.lesson;
+            return (
+              <LessonCard
+                key={lesson.id}
+                lesson={lesson}
+                index={index}
+                locale={locale}
+                open={openIds.has(lesson.id)}
+                done={completed.has(lesson.id)}
+                hasNext={Boolean(nextLesson)}
+                onToggle={() => toggleOpen(lesson.id)}
+                onToggleDone={() => dispatch(toggleLessonComplete(lesson.id))}
+                onNext={() => nextLesson && goNext(nextLesson.id)}
+              />
+            );
+          })}
+        </div>
+      )}
 
-      {visibleLessons.length === 0 && (
+      {content && visibleLessons.length === 0 && (
         <div className="empty">
           <Icon name="search" size={26} />
           <p>{t(locale, 'module.empty')}</p>

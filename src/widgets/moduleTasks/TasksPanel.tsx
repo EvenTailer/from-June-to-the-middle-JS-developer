@@ -1,35 +1,37 @@
 import { useEffect, useState } from 'react';
-import type { Module, PracticeTask } from '../../entities/module/model/types';
-import { getModuleTaskTotal, loadModuleTopicTasks } from '../../shared/content/tasks';
+import type { PracticeTask } from '../../entities/module/model/types';
+import { loadModuleTasks, loadModuleTopicTasks } from '../../shared/content/tasks';
 import { useLocale } from '../../shared/hooks/useLocale';
 import { t } from '../../shared/lib/i18n';
 import { Icon } from '../../shared/ui/Icon';
 import { TaskCollection } from './TaskCollection';
 
 interface TasksPanelProps {
-  module: Module;
+  moduleId: string;
+  taskTotal: number;
 }
 
-export function TasksPanel({ module }: TasksPanelProps) {
+export function TasksPanel({ moduleId, taskTotal }: TasksPanelProps) {
   const locale = useLocale();
   const [loaded, setLoaded] = useState<{ moduleId: string; tasks: PracticeTask[] } | null>(null);
 
   useEffect(() => {
     let active = true;
 
-    loadModuleTopicTasks(module.id).then((tasks) => {
-      if (!active) return;
-      setLoaded({ moduleId: module.id, tasks });
-    });
+    Promise.all([loadModuleTasks(moduleId), loadModuleTopicTasks(moduleId)]).then(
+      ([moduleTasks, topicTasks]) => {
+        if (!active) return;
+        setLoaded({ moduleId, tasks: [...moduleTasks, ...topicTasks] });
+      }
+    );
 
     return () => {
       active = false;
     };
-  }, [module.id]);
+  }, [moduleId]);
 
-  const loading = loaded?.moduleId !== module.id;
-  const tasks = [...(module.tasks ?? []), ...(loading ? [] : (loaded?.tasks ?? []))];
-  const taskTotal = getModuleTaskTotal(module.id);
+  const loading = loaded?.moduleId !== moduleId;
+  const tasks = loading ? [] : (loaded?.tasks ?? []);
 
   return (
     <div className="practice">

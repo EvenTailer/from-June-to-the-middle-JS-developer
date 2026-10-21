@@ -3,11 +3,13 @@ import { modules } from '../../shared/content';
 import { useAppDispatch } from '../../shared/hooks/useAppDispatch';
 import { useAppSelector } from '../../shared/hooks/useAppSelector';
 import { setLanguage, toggleTheme } from '../../shared/store/uiSlice';
+import { overallProgress, totalChapterCount } from '../../shared/lib/progress';
 import { t } from '../../shared/lib/i18n';
 import { Icon } from '../../shared/ui/Icon';
 
-const totalLessons = modules.reduce((sum, module) => sum + module.lessons.length, 0);
-const totalTasks = modules.reduce((sum, module) => sum + (module.tasks?.length ?? 0), 0);
+const totalLessons = modules.reduce((sum, module) => sum + module.lessonCount, 0);
+const totalTasks = modules.reduce((sum, module) => sum + module.taskCount, 0);
+const totalChapters = totalChapterCount(modules);
 
 export function Header() {
   const dispatch = useAppDispatch();
@@ -15,11 +17,12 @@ export function Header() {
   const theme = useAppSelector((s) => s.ui.theme);
   const completedLessons = useAppSelector((s) => s.progress.completedLessons.length);
   const completedTasks = useAppSelector((s) => s.progress.completedTasks.length);
-  const overall = Math.round(
-    ((totalLessons > 0 ? completedLessons / totalLessons : 0) * 0.2 +
-      (totalTasks > 0 ? completedTasks / totalTasks : 0) * 0.8) *
-      100
-  );
+  const readChapters = useAppSelector((s) => s.progress.readChapters.length);
+  const overall = overallProgress({
+    questions: { done: completedLessons, total: totalLessons },
+    chapters: { done: readChapters, total: totalChapters },
+    tasks: { done: completedTasks, total: totalTasks },
+  });
 
   return (
     <header className="site-header">

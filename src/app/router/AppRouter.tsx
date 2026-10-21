@@ -1,8 +1,7 @@
-import { useEffect, useLayoutEffect } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Header } from '../../widgets/header/Header';
 import { HomePage } from '../../pages/home/HomePage';
-import { ModulePage } from '../../pages/module/ModulePage';
 import { QuizPage } from '../../pages/quiz/QuizPage';
 import { PracticePage } from '../../pages/practice/PracticePage';
 import { TopicPage } from '../../pages/practice/TopicPage';
@@ -10,6 +9,13 @@ import { NotFoundPage } from '../../pages/notFound/NotFoundPage';
 import { ErrorBoundary } from '../providers/ErrorBoundary';
 import { useAppSelector } from '../../shared/hooks/useAppSelector';
 import { t } from '../../shared/lib/i18n';
+import { Icon } from '../../shared/ui/Icon';
+
+// The module page pulls in the lessons, the quiz and the practice widgets of a
+// module, so it stays out of the entry chunk.
+const ModulePage = lazy(() =>
+  import('../../pages/module/ModulePage').then((m) => ({ default: m.ModulePage }))
+);
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
@@ -58,14 +64,23 @@ function AppShell() {
       <ScrollToTop />
       <div className="app-content">
         <ErrorBoundary>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/module/:moduleId" element={<ModulePage />} />
-            <Route path="/quiz/:moduleId" element={<QuizPage />} />
-            <Route path="/practice" element={<PracticePage />} />
-            <Route path="/practice/:topicId" element={<TopicPage />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
+          <Suspense
+            fallback={
+              <div className="empty">
+                <Icon name="reset" size={26} />
+                <p>{t(locale, 'module.loading')}</p>
+              </div>
+            }
+          >
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/module/:moduleId" element={<ModulePage />} />
+              <Route path="/quiz/:moduleId" element={<QuizPage />} />
+              <Route path="/practice" element={<PracticePage />} />
+              <Route path="/practice/:topicId" element={<TopicPage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </Suspense>
         </ErrorBoundary>
       </div>
       <Footer />

@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
-import type { QuizBlock } from '../../entities/module/model/types';
 import { modules } from '../../shared/content';
-import { getModuleTaskTotal, totalTaskCount } from '../../shared/content/tasks';
+import { lessonModuleById } from '../../shared/content/moduleIndex';
+import { quizBlockMeta } from '../../shared/content/quizBlocks';
+import { totalTaskCount } from '../../shared/content/tasks';
 import { taskModuleById } from '../../shared/content/tasks/taskIndex';
-import { chapterCountByModule } from '../../shared/content/chapters';
 import { practiceTopics } from '../../shared/content/tasks/topics';
 import { useLocale } from '../../shared/hooks/useLocale';
 import { usePageTitle } from '../../shared/hooks/usePageTitle';
@@ -14,6 +14,7 @@ import { useAppSelector } from '../../shared/hooks/useAppSelector';
 import { resetProgress } from '../../shared/store/progressSlice';
 import { t, plural } from '../../shared/lib/i18n';
 import { metaFor } from '../../shared/lib/moduleMeta';
+import { overallProgress, totalChapterCount } from '../../shared/lib/progress';
 import type { ModuleMeta } from '../../shared/lib/moduleMeta';
 import { Icon } from '../../shared/ui/Icon';
 import { ProgressBar } from '../../shared/ui/ProgressBar';
@@ -34,21 +35,24 @@ export function HomePage() {
   const quizScores = useAppSelector((s) => s.progress.quizScores);
   const [query, setQuery] = useState('');
 
-  const completed = useMemo(() => new Set(completedLessons), [completedLessons]);
-
   const totalLessons = useMemo(
-    () => modules.reduce((sum, module) => sum + module.lessons.length, 0),
+    () => modules.reduce((sum, module) => sum + module.lessonCount, 0),
     []
   );
 
   const doneLessons = useMemo(
-    () =>
-      modules.reduce(
-        (sum, module) => sum + module.lessons.filter((lesson) => completed.has(lesson.id)).length,
-        0
-      ),
-    [completed]
+    () => completedLessons.filter((id) => lessonModuleById[id] !== undefined).length,
+    [completedLessons]
   );
+
+  const doneLessonsOf = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const id of completedLessons) {
+      const moduleId = lessonModuleById[id];
+      if (moduleId) counts[moduleId] = (counts[moduleId] ?? 0) + 1;
+    }
+    return counts;
+  }, [completedLessons]);
 
   const totalTasks = totalTaskCount;
 
@@ -57,38 +61,38 @@ export function HomePage() {
     [completedTasks]
   );
 
-  const allQuizBlocks = useMemo(() => modules.flatMap((module) => module.quizBlocks ?? []), []);
+  const allQuizBlocks = useMemo(
+    () => modules.flatMap((module) => quizBlockMeta(module.id, module.quizCount)),
+    []
+  );
 
   const passedQuizzes = useMemo(
     () =>
       allQuizBlocks.filter(
-        (block) => (quizScores[block.id] ?? 0) >= Math.ceil(block.questions.length * 0.6)
+        (block) => (quizScores[block.id] ?? 0) >= Math.ceil(block.length * 0.6)
       ).length,
     [allQuizBlocks, quizScores]
   );
 
   const startedModule = modules.find((module) => {
-    const done = module.lessons.filter((lesson) => completed.has(lesson.id)).length;
-    const taskTotal = getModuleTaskTotal(module.id);
+    const done = doneLessonsOf[module.id] ?? 0;
+    const taskTotal = module.taskCount;
     const solved = completedTasks.filter((id) => taskModuleById[id] === module.id).length;
     return (
-      (done > 0 && done < module.lessons.length) ||
+      (done > 0 && done < module.lessonCount) ||
       (solved > 0 && solved < taskTotal)
     );
   });
 
   const nextModule =
     startedModule ??
-    modules.find((module) => module.lessons.some((lesson) => !completed.has(lesson.id))) ??
+    modules.find((module) => (doneLessonsOf[module.id] ?? 0) < module.lessonCount) ??
     modules[0];
 
   const theoryRatio = totalLessons > 0 ? doneLessons / totalLessons : 0;
   const practiceRatio = totalTasks > 0 ? doneTasks / totalTasks : 0;
 
-  const totalChapters = useMemo(
-    () => modules.reduce((sum, module) => sum + (chapterCountByModule[module.id] ?? 0), 0),
-    []
-  );
+  const totalChapters = useMemo(() => totalChapterCount(modules), []);
 
   const doneChapters = useMemo(
     () => readChapters.filter((key) => key.includes('::')).length,
@@ -99,9 +103,11 @@ export function HomePage() {
   const theoryPercent = Math.round(theoryRatio * 100);
   const textbookPercent = Math.round(textbookRatio * 100);
   const practicePercent = Math.round(practiceRatio * 100);
-  const overall = Math.round(
-    (theoryRatio * 0.15 + textbookRatio * 0.35 + practiceRatio * 0.5) * 100
-  );
+  const overall = overallProgress({
+    questions: { done: doneLessons, total: totalLessons },
+    chapters: { done: doneChapters, total: totalChapters },
+    tasks: { done: doneTasks, total: totalTasks },
+  });
 
   const filteredModules = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -260,8 +266,10 @@ export function HomePage() {
         <div className="module-grid">
           {filteredModules.map((module) => {
             const meta = metaFor(module.id);
-            const done = module.lessons.filter((lesson) => completed.has(lesson.id)).length;
-            const bestBlock = (module.quizBlocks ?? []).reduce<QuizBlock | null>(
+            const done = doneLessonsOf[module.id] ?? 0;
+            const bestBlock = quizBlockMeta(module.id, module.quizCount).reduce<
+              { id: string; length: number } | null
+            >(
               (best, block) => {
                 const score = quizScores[block.id] ?? 0;
                 if (!best) return score > 0 ? block : null;
@@ -270,14 +278,13 @@ export function HomePage() {
               null
             );
             const bestScore = bestBlock ? (quizScores[bestBlock.id] ?? 0) : 0;
-            const taskCount = getModuleTaskTotal(module.id);
+            const taskCount = module.taskCount;
             const solvedTasks = completedTasks.filter(
               (id) => taskModuleById[id] === module.id
             ).length;
-            const moduleTheory =
-              module.lessons.length > 0 ? done / module.lessons.length : 0;
+            const moduleTheory = module.lessonCount > 0 ? done / module.lessonCount : 0;
             const modulePractice = taskCount > 0 ? solvedTasks / taskCount : 0;
-            const chapterCount = chapterCountByModule[module.id] ?? 0;
+            const chapterCount = module.chapterCount;
             const readCount = readChapters.filter((key) =>
               key.startsWith(`${module.id}::`)
             ).length;
@@ -305,7 +312,7 @@ export function HomePage() {
                     {chapterCount}
                   </span>
                   <span>
-                    {module.lessons.length} {t(locale, 'module.lesson')} · {solvedTasks}/
+                    {module.lessonCount} {t(locale, 'module.lesson')} · {solvedTasks}/
                     {taskCount}{' '}
                     {plural(locale, taskCount, {
                       one: { en: 'task', ru: 'задача' },
@@ -316,7 +323,7 @@ export function HomePage() {
                   {bestScore > 0 && (
                     <span className="module-card__best">
                       <Icon name="quiz" size={14} />
-                      {bestScore}/{bestBlock?.questions.length ?? 0}
+                      {bestScore}/{bestBlock?.length ?? 0}
                     </span>
                   )}
                 </div>

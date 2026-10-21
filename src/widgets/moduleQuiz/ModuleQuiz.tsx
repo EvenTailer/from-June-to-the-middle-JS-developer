@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import type { Module, QuizQuestion } from '../../entities/module/model/types';
+import type { QuizQuestion } from '../../entities/module/model/types';
 import { useLocale } from '../../shared/hooks/useLocale';
 import { useAppDispatch } from '../../shared/hooks/useAppDispatch';
 import { useAppSelector } from '../../shared/hooks/useAppSelector';
@@ -10,7 +10,8 @@ import { Icon } from '../../shared/ui/Icon';
 import { ProgressBar } from '../../shared/ui/ProgressBar';
 
 interface ModuleQuizProps {
-  module: Module;
+  moduleId: string;
+  moduleTitle: string;
   questions: QuizQuestion[];
   blockId: string;
   blockTitle?: string;
@@ -28,7 +29,8 @@ function shuffle(length: number): number[] {
 }
 
 export function ModuleQuiz({
-  module,
+  moduleId,
+  moduleTitle,
   questions,
   blockId,
   blockTitle,
@@ -119,7 +121,7 @@ export function ModuleQuiz({
                 {t(locale, 'quiz.backToLearn')}
               </button>
             ) : (
-              <Link className="btn btn--ghost" to={`/module/${module.id}`}>
+              <Link className="btn btn--ghost" to={`/module/${moduleId}`}>
                 {t(locale, 'quiz.backToModule')}
               </Link>
             )}
@@ -192,7 +194,7 @@ export function ModuleQuiz({
       <section className="quiz-head">
         <div>
           <h2>{blockTitle ?? t(locale, 'quiz.title')}</h2>
-          <p>{module.title[locale]}</p>
+          <p>{moduleTitle}</p>
         </div>
         <div className="quiz-head__meta">
           {bestScore > 0 && (
