@@ -87,12 +87,8 @@ export default function App() {
       const response = await fetch('/api/users/' + params.id, {
         signal: request.signal,
       });
-      if (response.status === 404) {
-        throw new Response('User not found', { status: 404 });
-      }
-      if (!response.ok) {
-        throw new Response('Server error', { status: 500 });
-      }
+      if (response.status === 404) throw new Response('User not found', { status: 404 });
+      if (!response.ok) throw new Response('Server error', { status: 500 });
       return { user: await response.json() };
     },
     element: <UserPage />,
@@ -153,7 +149,6 @@ function UserPage() {
     const form = await request.formData();
     const name = String(form.get('name') ?? '').trim();
     if (!name) return { errors: { name: 'Name is required' } };
-
     const user = await api.createUser({ name });
     return redirect('/users/' + user.id);
   },
@@ -317,7 +312,7 @@ const router = createBrowserRouter([
       seeAlso: [
         L('Section 3-2: loaders and useLoaderData', 'Секция 3-2: загрузчики и useLoaderData'),
         L('Section 7-4: nested error handling', 'Секция 7-4: вложенная обработка ошибок'),
-        L('Chapter 4: redirects and route guards', 'Глава 4: перенаправления и защита маршрутов'),
+        L('Section 4-1: redirects and route guards', 'Секция 4-1: перенаправления и защита маршрутов'),
       ],
     },
     {
@@ -381,7 +376,7 @@ function Dashboard() {
       ),
       seeAlso: [
         L('Section 3-2: loaders and useLoaderData', 'Секция 3-2: загрузчики и useLoaderData'),
-        L('Chapter 5: Suspense and route level fallbacks', 'Глава 5: Suspense и заглушки на уровне маршрута'),
+        L('Section 5-2: Suspense and route-level fallbacks', 'Секция 5-2: Suspense и заглушки на уровне маршрута'),
         L('Section 6-1: the loader cache and revalidation', 'Секция 6-1: кеш загрузчиков и ревалидация'),
       ],
     },

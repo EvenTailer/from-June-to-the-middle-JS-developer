@@ -74,9 +74,11 @@ export function UsersTable() {
   function changeSort(sort: string) {
     // a new sort starts from the first page and replaces the history entry
     setParams((current) => {
-      current.set('sort', sort);
-      current.set('page', '1');
-      return current;
+      // the router wants a new object, the received one is never mutated
+      const next = new URLSearchParams(current);
+      next.set('sort', sort);
+      next.set('page', '1');
+      return next;
     }, { replace: true });
   }
   return <button onClick={() => changeSort('name')}>{filters.sort}</button>;
@@ -145,6 +147,25 @@ function ErrorPage() {
     ),
     solution: `import { createBrowserRouter } from 'react-router-dom';
 
+type Session = { user: { id: string; permissions: string[] } };
+
+// The session travels in the cookie of the request
+async function readSession(cookie: string | null): Promise<Session | null> {
+  if (!cookie) return null;
+  const userId = cookie.split('=')[1];
+  if (!userId) return null;
+  return { user: { id: userId, permissions: ['billing:read'] } };
+}
+
+// The private data is only read after the check passed
+async function listInvoices(userId: string): Promise<{ id: string; total: number }[]> {
+  return [{ id: 'inv-1', total: 100 }];
+}
+
+function Billing() {
+  return <h1>Invoices</h1>;
+}
+
 async function requireUser(request: Request) {
   const user = await readSession(request.headers.get('Cookie'));
   if (!user) throw new Response('Unauthorized', { status: 401 });
@@ -157,10 +178,10 @@ export const router = createBrowserRouter([
     loader: async ({ request }) => {
       // the rule is enforced here, before the private data is read
       const user = await requireUser(request);
-      if (!user.permissions.includes('billing:read')) {
+      if (!user.user.permissions.includes('billing:read')) {
         throw new Response('Forbidden', { status: 403 });
       }
-      return { invoices: await listInvoices(user.id) };
+      return { invoices: await listInvoices(user.user.id) };
     },
     element: <Billing />,
   },
@@ -185,8 +206,8 @@ export const router = createBrowserRouter([
       'The lazy function may return loader, Component and ErrorBoundary. React.lazy inside an element always needs a Suspense boundary around it, and the boundary belongs as low as possible.',
       'Функция lazy может вернуть loader, Component и ErrorBoundary. React.lazy внутри элемента всегда требует границы Suspense вокруг себя, и граница должна быть как можно ниже.'
     ),
-    solution: `import { lazy } from 'react';
-import { createBrowserRouter, Suspense } from 'react-router-dom';
+    solution: `import { lazy, Suspense } from 'react';
+import { createBrowserRouter } from 'react-router-dom';
 
 export const router = createBrowserRouter([
   {
@@ -206,6 +227,20 @@ function ReportsPage() {
       <Charts />
     </Suspense>
   );
+}
+
+// file: routes/reports.tsx
+export async function loader() {
+  return { total: 42 };
+}
+
+export function Component() {
+  return <h1>Reports</h1>;
+}
+
+// file: routes/charts.tsx
+export default function Charts() {
+  return <p>Charts</p>;
 }`,
     explanation: L(
       'The router splits the route implementation while the path stays in the first bundle, so the matching stays synchronous. The Suspense boundary sits around the lazy component only, so the shell of the page does not blink.',
@@ -220,17 +255,24 @@ function ReportsPage() {
     level: 'intermediate',
     title: L('Deciding when the loaders revalidate', 'Решение о том, когда перезагружать данные'),
     brief: L(
-      'Add a shouldRevalidate to the stats route: a write must refresh the data, any other navigation must keep the default behaviour. The page reads its data with useLoaderData and offers a refresh button that calls useRevalidator without navigating.',
-      'Добавьте shouldRevalidate к маршруту stats: запись должна обновлять данные, любая другая навигация сохраняет поведение по умолчанию. Страница читает данные через useLoaderData и предлагает кнопку обновления, которая вызывает useRevalidator без навигации.'
+      'Add a shouldRevalidate to the stats route: a write must refresh the data, any other navigation must keep the default behaviour. The route reads its range from the path, the page reads its data with useLoaderData and offers a refresh button that calls useRevalidator without navigating.',
+      'Добавьте shouldRevalidate к маршруту stats: запись должна обновлять данные, любая другая навигация сохраняет поведение по умолчанию. Маршрут берёт диапазон из пути, страница читает данные через useLoaderData и предлагает кнопку обновления, которая вызывает useRevalidator без навигации.'
     ),
     hint: L(
       'shouldRevalidate receives the URLs, the form method, the action result and the default decision. useRevalidator returns a state and a revalidate function.',
       'shouldRevalidate получает URL, метод формы, результат действия и решение по умолчанию. useRevalidator возвращает состояние и функцию revalidate.'
     ),
     solution: `import { createBrowserRouter, useLoaderData, useRevalidator } from 'react-router-dom';
+
+// The route owns the data, so the loader fetches it for the range of the path
+async function loadStats(range: string | undefined): Promise<{ total: number }> {
+  const response = await fetch('/api/stats?range=' + (range ?? 'all'));
+  return (await response.json()) as { total: number };
+}
+
 export const router = createBrowserRouter([
   {
-    path: '/stats',
+    path: '/stats/:range',
     loader: ({ params }) => loadStats(params.range),
     shouldRevalidate: ({ formMethod, defaultShouldRevalidate }) => {
       // a write refreshes the data, a plain navigation keeps the default
@@ -241,7 +283,7 @@ export const router = createBrowserRouter([
   },
 ]);
 function StatsPage() {
-  const stats = useLoaderData();
+  const stats = useLoaderData() as { total: number };
   const revalidator = useRevalidator();
   return (
     <button type="button" onClick={() => revalidator.revalidate()} disabled={revalidator.state !== 'idle'}>
@@ -269,23 +311,29 @@ function StatsPage() {
       'createMemoryRouter takes the routes and the initialEntries. The router keeps the loaded data per route id in router.state.loaderData.',
       'createMemoryRouter принимает маршруты и initialEntries. Роутер хранит загруженные данные по id маршрута в router.state.loaderData.'
     ),
-    solution: `import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+    solution: `import { createMemoryRouter, RouterProvider, useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 import { render, waitFor } from '@testing-library/react';
 
 const calls: string[] = [];
-const loader = ({ params }: { params: { id: string } }) => {
-  calls.push(params.id);
+const loader = ({ params }: LoaderFunctionArgs) => {
+  calls.push(params.id ?? '');
   return { id: params.id };
 };
+
+function EventPage() {
+  const data = useLoaderData() as { id?: string };
+  return <h1>Event {data.id}</h1>;
+}
+
 const routes = [{ id: 'event', path: '/events/:id', loader, element: <EventPage /> }];
 
-export async function checkLoader() {
+test('loads the event of the url exactly once', async () => {
   const router = createMemoryRouter(routes, { initialEntries: ['/events/7'] });
   render(<RouterProvider router={router} />);
   await waitFor(() => expect(calls).toHaveLength(1));
   expect(calls[0]).toBe('7');
   expect(router.state.loaderData.event).toEqual({ id: '7' });
-}`,
+});`,
     explanation: L(
       'A memory router keeps the history in memory, so the test controls where it starts and never touches the browser. Asserting on the number of calls and on the loaded data proves the wiring of the route, not only the logic of the loader.',
       'Memory router держит историю в памяти, поэтому тест сам задаёт стартовую точку и не трогает браузер. Проверка числа вызовов и загруженных данных доказывает связность маршрута, а не только логику загрузчика.'

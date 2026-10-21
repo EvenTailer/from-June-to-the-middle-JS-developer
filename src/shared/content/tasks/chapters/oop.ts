@@ -21,29 +21,29 @@ export const oopChapterTasks: PracticeTask[] = [
     solution: `class Money {
   #cents: number;
 
-  constructor(cents: number) {
+  // A private constructor and a static factory control how an instance is built
+  private constructor(cents: number) {
     if (!Number.isInteger(cents)) throw new Error('cents must be an integer');
     this.#cents = cents;
   }
 
+  static of(cents: number): Money {
+    return new Money(cents);
+  }
+
   plus(other: Money): Money {
-    return new Money(this.#cents + other.#cents);
+    return Money.of(this.#cents + other.#cents);
   }
 
   equals(other: Money): boolean {
     return this.#cents === other.#cents;
   }
-
-  toString(): string {
-    return (this.#cents / 100).toFixed(2);
-  }
 }
 
-const wallet = new Money(500);
-const price = new Money(500);
+const wallet = Money.of(500);
+const price = Money.of(500);
 console.log(wallet === price);       // false - different objects
-console.log(wallet.equals(price));  // true  - same value
-console.log(wallet.plus(price).toString()); // '10.00'`,
+console.log(wallet.equals(price));  // true  - same value`,
     explanation: L(
       'The private field keeps the cents out of reach, so nothing outside the class can break the rule that the amount is an integer. Equality is written into the type instead of the call site, which is what makes a Money safe to compare anywhere.',
       'Приватное поле прячет центы, и ничто снаружи класса не может нарушить правило целого числа. Равенство записано в тип, а не в место вызова, и благодаря этому Money можно безопасно сравнивать где угодно.'
@@ -67,33 +67,26 @@ console.log(wallet.plus(price).toString()); // '10.00'`,
     solution: `const DEFAULT_CURRENCY = 'EUR';
 
 class Money {
-  readonly cents: number;
+  // The representation is private, no caller can reach the cents
+  #cents: number;
 
   private constructor(cents: number) {
-    this.cents = cents;
+    this.#cents = cents;
   }
 
   static of(amount: number): Money {
     return new Money(Math.round(amount * 100));
   }
 
-  plus(other: Money): Money {
-    return new Money(this.cents + other.cents);
-  }
-
   format(): string {
-    return (this.cents / 100).toFixed(2) + ' ' + DEFAULT_CURRENCY;
+    return (this.#cents / 100).toFixed(2) + ' ' + DEFAULT_CURRENCY;
   }
 }
 
 // only these two names are part of the contract
-export function parsePrice(raw: string): Money {
-  return Money.of(Number(raw.replace(',', '.')));
-}
-
-export function formatPrice(price: Money): string {
-  return price.format();
-}`,
+export const parsePrice = (raw: string): Money =>
+  Money.of(Number(raw.replace(',', '.')));
+export const formatPrice = (price: Money): string => price.format();`,
     explanation: L(
       'Every export is a promise, and the two functions are the smallest surface that still serves the caller. The rounding rule and the currency live inside the module, so changing them later cannot break a single call site.',
       'Каждый экспорт — это обещание, а две функции образуют минимальную поверхность, которая ещё работает для вызывающего кода. Правило округления и валюта живут внутри модуля, поэтому их изменение не сломает ни одного места вызова.'
@@ -114,9 +107,7 @@ export function formatPrice(price: Money): string {
       'TypeScript interfaces are structural, so a matching shape satisfies them without importing anything. Composition turns is-a into has-a: pass the channel into the constructor instead of inheriting from it.',
       'Интерфейсы TypeScript структурные, поэтому подходящая по форме структура удовлетворяет им без импорта. Композиция превращает is-a в has-a: передайте канал в конструктор, а не наследуйтесь от него.'
     ),
-    solution: `interface Channel {
-  send(to: string, message: string): void;
-}
+    solution: `interface Channel { send(to: string, message: string): void }
 
 class EmailChannel implements Channel {
   send(to: string, message: string): void {
@@ -124,25 +115,20 @@ class EmailChannel implements Channel {
   }
 }
 
-class SmsChannel implements Channel {
-  send(to: string, message: string): void {
-    console.log('sms to ' + to + ': ' + message);
-  }
-}
+const sms: Channel = { send: (to, msg) => console.log('sms to ' + to + ': ' + msg) };
 
 class Notifier {
   readonly channel: Channel;
-
   constructor(channel: Channel) {
     this.channel = channel;
   }
-
   notify(to: string, message: string): void {
     this.channel.send(to, message);
   }
 }
 
-new Notifier(new EmailChannel()).notify('ada@example.com', 'Report ready');`,
+new Notifier(new EmailChannel()).notify('ada@example.com', 'Report ready');
+new Notifier(sms).notify('+79991234567', 'Report ready');`,
     explanation: L(
       'The call site depends on the contract, so the runtime value decides which implementation runs. A base class would have forced the notifier to know about every channel, and composition keeps that decision in one place: the constructor.',
       'Место вызова зависит от контракта, поэтому конкретную реализацию выбирает значение во время выполнения. Базовый класс заставил бы уведомитель знать обо всех каналах, а композиция оставляет это решение в одном месте: в конструкторе.'
@@ -167,7 +153,6 @@ new Notifier(new EmailChannel()).notify('ada@example.com', 'Report ready');`,
   format(value: number): string;
 }
 
-// new formats arrive as new entries, the dispatch never changes
 const formatters: Record<string, Formatter> = {
   plain: { format: (value) => String(value) },
   money: { format: (value) => '$' + value.toFixed(2) },
@@ -180,11 +165,9 @@ function formatWith(name: string, value: number): string {
   return formatter.format(value);
 }
 
-// the consumer declares only what it uses
 interface ReportWriter {
   write(line: string): void;
 }
-
 function render(writer: ReportWriter, name: string, value: number): void {
   writer.write(formatWith(name, value));
 }`,
@@ -208,43 +191,62 @@ function render(writer: ReportWriter, name: string, value: number): void {
       'The repository speaks the domain language, and the unit of work groups the writes into one transaction. The proof that the pattern works is an in-memory implementation, where the test needs no database at all.',
       'Репозиторий говорит на языке предметной области, а единица работы группирует записи в одну транзакцию. Доказательство, что паттерн работает, — реализация в памяти, для которой тесту вообще не нужна база данных.'
     ),
-    solution: `interface Order {
-  id: string;
-  status: 'draft' | 'placed';
-}
+    solution: `interface Order { id: string; status: 'draft' | 'placed' }
 
-interface OrderRepository {
-  save(order: Order): void;
-}
+// The repository writes the whole batch in one call, so it owns the transaction
+interface OrderRepository { saveAll(orders: Order[]): void }
 
 class InMemoryOrders implements OrderRepository {
-  readonly rows = new Map<string, Order>();
+  #rows = new Map<string, Order>();
 
-  save(order: Order): void {
-    this.rows.set(order.id, order);
+  get size(): number { return this.#rows.size; }
+
+  // The batch is staged first and swapped in afterwards, so a failure in the
+  // middle leaves the stored rows untouched.
+  saveAll(orders: Order[]): void {
+    const next = new Map(this.#rows);
+    for (const order of orders) {
+      if (!order.id) throw new Error('an order needs an id');
+      next.set(order.id, order);
+    }
+    this.#rows = next;
   }
 }
 
 class UnitOfWork {
   #pending = new Map<string, Order>();
   #repo: OrderRepository;
-
-  constructor(repo: OrderRepository) {
-    this.#repo = repo;
-  }
-
+  constructor(repo: OrderRepository) { this.#repo = repo; }
   track(order: Order): void {
     this.#pending.set(order.id, order);
   }
-
+  // One call, one transaction: either every record is stored or none of them.
   commit(): void {
-    for (const order of this.#pending.values()) this.#repo.save(order);
+    this.#repo.saveAll([...this.#pending.values()]);
     this.#pending.clear();
   }
+}
+
+const repo = new InMemoryOrders();
+const uow = new UnitOfWork(repo);
+uow.track({ id: 'o1', status: 'placed' });
+uow.track({ id: 'o2', status: 'placed' });
+uow.commit();
+console.log(repo.size); // 2
+
+// The proof: a rejected record leaves the stored rows exactly as they were
+const broken = new InMemoryOrders();
+const brokenUow = new UnitOfWork(broken);
+brokenUow.track({ id: 'o1', status: 'placed' });
+brokenUow.track({ id: '', status: 'placed' });
+try {
+  brokenUow.commit();
+} catch (error) {
+  console.log('nothing was stored:', broken.size === 0);
 }`,
     explanation: L(
       'The unit of work owns the pending changes, so nothing reaches storage before the commit. The repository keeps its own vocabulary and the in-memory implementation shows that the pattern does not need a database to be tested.',
-      'Единица работы владеет отложенными изменениями, поэтому до коммита в хранилище не попадает ничего. Репозиторий сохраняет собственную лексику, а реализация в памяти показывает, что для тестирования паттерна база данных не нужна.'
+      'Единица работы владеет отложенными изменениями, поэтому до коммита в хранилище не попадает ничего. Репозиторий сохраняет собственный язык, а реализация в памяти показывает, что для тестирования паттерна база данных не нужна.'
     ),
   },
   {
@@ -253,52 +255,51 @@ class UnitOfWork {
     topic: 'oop',
     chapterId: 'oop-ch6',
     level: 'intermediate',
-    title: L('Protect the order with an invariant and an event', 'Защитить заказ инвариантом и событием'),
+    title: L('Protect the order with an invariant and an event', 'Защитить заказ инвариантом и доменным событием'),
     brief: L(
       'Turn an order into an aggregate root that refuses to exist in an invalid state, and let it report what happened. An order that is placed for a total of zero must not be constructible, and after placing the order the aggregate must publish a domain event named in the past tense.',
       'Превратите заказ в корень агрегата, который не может существовать в невалидном состоянии, и позвольте ему сообщать о происходящем. Заказ, размещённый на нулевую сумму, не должен быть создаваем, а после размещения агрегат должен опубликовать доменное событие, названное в прошедшем времени.'
     ),
     hint: L(
-      'An invariant is enforced, not documented, so the constructor and the method that breaks it must throw. A domain event names a fact in the past tense and is published after the change, and the aggregate pulls the events out so a caller can read them once.',
-      'Инвариант соблюдается, а не документируется, поэтому конструктор и метод, который его нарушает, должны бросать исключение. Доменное событие называет факт в прошедшем времени и публикуется после изменения, а агрегат отдаёт события наружу, чтобы вызывающий код прочитал их один раз.'
+      'An invariant is enforced, not documented, so the constructor and the method that breaks it must throw. A domain event names a fact in the past tense and is published after the change, and the aggregate hands the events out as a copy so a caller can read them once.',
+      'Инвариант соблюдается, а не документируется, поэтому конструктор и метод, который его нарушает, должны бросать исключение. Доменное событие называет факт в прошедшем времени и публикуется после изменения, а агрегат отдаёт события копией, чтобы вызывающий код прочитал их один раз и не смог изменить буфер.'
     ),
-    solution: `type DomainEvent = { type: 'OrderPlaced'; orderId: string; total: number };
+    solution: `type Line = { price: number; qty: number };
+type OrderPlaced = { type: 'OrderPlaced'; orderId: string; total: number };
 
 class Order {
   readonly id: string;
-  #lines: { price: number; qty: number }[] = [];
-  #status: 'draft' | 'placed' = 'draft';
-  #events: DomainEvent[] = [];
+  #total: number;
+  #events: OrderPlaced[] = [];
 
-  constructor(id: string) {
+  // The invariant is enforced here, an order with a zero total is never created
+  constructor(id: string, lines: Line[] = []) {
+    const total = lines.reduce((sum, line) => sum + line.price * line.qty, 0);
+    if (total <= 0) throw new Error('an order must have a positive total');
     this.id = id;
+    this.#total = total;
   }
 
   addLine(price: number, qty: number): void {
     if (price <= 0 || qty <= 0) throw new Error('invalid line');
-    this.#lines.push({ price, qty });
+    this.#total += price * qty;
   }
 
-  get total(): number {
-    return this.#lines.reduce((sum, line) => sum + line.price * line.qty, 0);
-  }
-
+  // The event is published after the change
   place(): void {
-    if (this.#status !== 'draft') throw new Error('order is not a draft');
-    if (this.total === 0) throw new Error('an empty order cannot be placed');
-    this.#status = 'placed';
-    this.#events.push({ type: 'OrderPlaced', orderId: this.id, total: this.total });
+    this.#events.push({ type: 'OrderPlaced', orderId: this.id, total: this.#total });
   }
 
-  pullEvents(): DomainEvent[] {
-    const events = this.#events;
-    this.#events = [];
+  pullEvents(): OrderPlaced[] {
+    // The caller gets a copy, the buffer stays under the control of the aggregate
+    const events = this.#events.slice();
+    this.#events.length = 0;
     return events;
   }
 }`,
     explanation: L(
-      'Only the aggregate root decides whether a change is legal, so an empty order can never reach the placed state. The event is published after the change and carries the smallest payload that answers the question, and pulling the events empties the buffer.',
-      'Только корень агрегата решает, законно ли изменение, поэтому пустой заказ не может перейти в размещённое состояние. Событие публикуется после изменения и несёт минимальную полезную нагрузку, а извлечение событий опустошает буфер.'
+      'Only the aggregate root decides whether a change is legal, so an order with a zero total is never created at all. The event is published after the change and carries the smallest payload that answers the question, and pulling the events empties the buffer while the caller only gets a copy.',
+      'Только корень агрегата решает, законно ли изменение, поэтому заказ с нулевой суммой вообще не создаётся. Событие публикуется после изменения и несёт минимальную полезную нагрузку, а извлечение событий опустошает буфер, при этом вызывающий получает только копию.'
     ),
   },
   {
@@ -316,10 +317,7 @@ class Order {
       'Compose functions that take one argument and return one value, and put the data argument last so the steps chain. Freeze at the boundary where the data enters, and replace the state instead of editing it.',
       'Композируйте функции, которые принимают один аргумент и возвращают одно значение, и ставьте аргумент с данными последним, чтобы шаги сцеплялись. Замораживайте на границе, где данные входят, и заменяйте состояние вместо его правки.'
     ),
-    solution: `type State = {
-  items: readonly string[];
-  filter: string;
-};
+    solution: `type State = { items: readonly string[]; filter: string };
 
 const trim = (text: string): string => text.trim();
 const lower = (text: string): string => text.toLowerCase();
@@ -361,7 +359,6 @@ const withFilter = (state: State, filter: string): State => ({
       'Тип результата заставляет вызывающий код обработать случай, а исключение невидимо в типе. Повторяйте только идемпотентные операции, отступайте экспоненциально и останавливайтесь после нескольких попыток вместо зависания.'
     ),
     solution: `type Result<T, E> = { ok: true; value: T } | { ok: false; error: E };
-
 type Failure = { code: string; message: string };
 
 function withdraw(balance: number, amount: number): Result<number, Failure> {
@@ -372,7 +369,6 @@ function withdraw(balance: number, amount: number): Result<number, Failure> {
 
 async function withRetry<T>(task: () => Promise<T>, attempts = 3): Promise<T> {
   let lastError: unknown = new Error('no attempts left');
-
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     try {
       return await task();
@@ -381,7 +377,6 @@ async function withRetry<T>(task: () => Promise<T>, attempts = 3): Promise<T> {
       await new Promise((resolve) => setTimeout(resolve, 2 ** attempt * 100));
     }
   }
-
   throw lastError;
 }`,
     explanation: L(

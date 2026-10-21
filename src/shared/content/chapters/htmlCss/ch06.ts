@@ -330,7 +330,7 @@ export const htmlCssCh06: Chapter = {
           [L('Grid', 'Грид'), L('Between rows', 'Между строками'), L('Between columns', 'Между колонками')],
           [L('Flex, row direction', 'Флекс, направление row'), L('Between flex lines', 'Между строками флекса'), L('Between items in a line', 'Между элементами строки')],
           [L('Flex, column direction', 'Флекс, направление column'), L('Between items in a line', 'Между элементами строки'), L('Between flex lines', 'Между строками флекса')],
-          [L('Multi-column', 'Многоколоночная'), L('Between columns of text', 'Между колонками текста'), L('Between rows of columns', 'Между рядами колонок')],
+          [L('Multi-column', 'Многоколоночная'), L('Between rows of text', 'Между строками текста'), L('Between columns', 'Между колонками')],
         ],
       },
       callouts: [

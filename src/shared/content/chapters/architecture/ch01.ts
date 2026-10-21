@@ -144,10 +144,7 @@ export const architectureCh01: Chapter = {
       code: `export interface Order { id: string; total: number }
 
 // The core declares the port it needs, not the database it talks to.
-export interface OrderRepository {
-  findById(id: string): Promise<Order | null>;
-  save(order: Order): Promise<void>;
-}
+export interface OrderRepository { findById(id: string): Promise<Order | null>; save(order: Order): Promise<void> }
 
 // The use case depends on the port only.
 export async function placeOrder(id: string, orders: OrderRepository): Promise<void> {
@@ -159,12 +156,8 @@ export async function placeOrder(id: string, orders: OrderRepository): Promise<v
 // The adapter implements the port and knows about the storage.
 export class InMemoryOrders implements OrderRepository {
   private readonly rows = new Map<string, Order>();
-  async findById(id: string): Promise<Order | null> {
-    return this.rows.get(id) ?? null;
-  }
-  async save(order: Order): Promise<void> {
-    this.rows.set(order.id, order);
-  }
+  async findById(id: string): Promise<Order | null> { return this.rows.get(id) ?? null; }
+  async save(order: Order): Promise<void> { this.rows.set(order.id, order); }
 }`,
       table: {
         caption: L('Where each kind of check belongs', 'Где живёт какая проверка'),
@@ -220,11 +213,7 @@ export interface OrderRepository { findById(id: string): Promise<Order | null>; 
 export interface EventPublisher { publish(event: { type: string; orderId: string }): Promise<void> }
 
 // application: orchestration, no transport and no SQL
-export async function placeOrder(
-  id: string,
-  orders: OrderRepository,
-  events: EventPublisher
-): Promise<void> {
+export async function placeOrder(id: string, orders: OrderRepository, events: EventPublisher): Promise<void> {
   const order = await orders.findById(id);
   if (!order) throw new Error('order not found');
   await orders.save({ ...order, total: order.total + 100 });
@@ -232,10 +221,7 @@ export async function placeOrder(
 }
 
 // presentation: translation only
-export async function postOrder(
-  body: unknown,
-  deps: { orders: OrderRepository; events: EventPublisher }
-): Promise<{ status: number; json: unknown }> {
+export async function postOrder(body: unknown, deps: { orders: OrderRepository; events: EventPublisher }): Promise<{ status: number; json: unknown }> {
   const { id } = body as { id: string };
   await placeOrder(id, deps.orders, deps.events);
   return { status: 201, json: { id } };
@@ -285,15 +271,10 @@ export async function postOrder(
 
 // Each layer may import only the layers listed here.
 const ALLOWED: Record<string, string[]> = {
-  domain: [],
-  application: ['domain'],
-  presentation: ['application', 'domain'],
-  data: ['application', 'domain'],
+  domain: [], application: ['domain'],
+  presentation: ['application', 'domain'], data: ['application', 'domain'],
 };
-
-function layerOf(path: string): string | null {
-  return LAYERS.find((layer) => path.includes('/' + layer + '/')) ?? null;
-}
+function layerOf(path: string): string | null { return LAYERS.find((l) => path.includes('/' + l + '/')) ?? null; }
 
 // The import graph is the architecture, so check the graph.
 export function findViolations(files: Record<string, string>): string[] {
@@ -341,7 +322,7 @@ export function findViolations(files: Record<string, string>): string[] {
       seeAlso: [
         L('Section 1-3: why dependencies point inward', 'Секция 1-3: почему зависимости смотрят внутрь'),
         L('Section 3-4: cycles and enforced boundaries', 'Секция 3-4: циклы и контролируемые границы'),
-        L('Chapter 5: testing the architecture with dependency rules', 'Глава 5: тестирование архитектуры правилами зависимостей'),
+        L('Section 5-6: testing the architecture with dependency rules', 'Секция 5-6: тестирование архитектуры правилами зависимостей'),
       ],
     },
   ],

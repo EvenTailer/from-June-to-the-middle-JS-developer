@@ -105,9 +105,7 @@ export const postsApiMiddleware = postsApi.middleware;`,
         L('invalidatesTags can be a function of the result, the error and the arguments.', 'invalidatesTags может быть функцией от результата, ошибки и аргументов.'),
       ],
       code: `import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-
 interface Post { id: string; title: string }
-
 export const postsApi = createApi({
   reducerPath: 'postsApi',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
@@ -116,10 +114,10 @@ export const postsApi = createApi({
     getPosts: builder.query<Post[], void>({
       query: () => '/posts',
       // A general tag for the list and one specific tag per post.
-      providesTags: (result) =>
-        result
-          ? [{ type: 'Post', id: 'LIST' }, ...result.map((post) => ({ type: 'Post' as const, id: post.id }))]
-          : [],
+      providesTags: (result) => [
+        { type: 'Post', id: 'LIST' },
+        ...(result ?? []).map((post) => ({ type: 'Post' as const, id: post.id })),
+      ],
     }),
     deletePost: builder.mutation<{ id: string }, string>({
       query: (id) => ({ url: '/posts/' + id, method: 'DELETE' }),
@@ -174,7 +172,7 @@ export const postsApi = createApi({
       seeAlso: [
         L('Section 5-4: mutations and invalidation strategies', 'Секция 5-4: мутации и стратегии инвалидации'),
         L('Section 5-1: endpoints and the cache', 'Секция 5-1: эндпоинты и кэш'),
-        L('Chapter 7: listener middleware and side effects', 'Глава 7: middleware с листенерами и побочные эффекты'),
+        L('Section 7-1: listener middleware', 'Секция 7-1: middleware с листенерами'),
       ],
     },
     {
@@ -278,31 +276,22 @@ export const postsApi = createApi({
         L('Prefer correctness first and latency second.', 'Сначала корректность, потом задержка.'),
       ],
       code: `import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-
 interface Post { id: string; title: string }
-
 export const postsApi = createApi({
-  reducerPath: 'postsApi',
-  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Post'] as const,
+  baseQuery: fetchBaseQuery({ baseUrl: '/api' }), tagTypes: ['Post'] as const,
   endpoints: (builder) => ({
-    getPosts: builder.query<Post[], void>({
-      query: () => '/posts',
-      providesTags: ['Post'],
-    }),
-    // The simplest strategy: the server decides, the cache refetches.
+    getPosts: builder.query<Post[], void>({ query: () => '/posts', providesTags: ['Post'] }),
+    // Strategy one: the server decides, the cache refetches the list.
     addPost: builder.mutation<Post, { title: string }>({
-      query: (body) => ({ url: '/posts', method: 'POST', body }),
-      invalidatesTags: ['Post'],
+      query: (body) => ({ url: '/posts', method: 'POST', body }), invalidatesTags: ['Post'],
     }),
-    // The precise strategy: the answer of the server goes into the cache.
+    // Strategy two: the answer of the server goes into the cache.
     renamePost: builder.mutation<Post, { id: string; title: string }>({
       query: (body) => ({ url: '/posts/' + body.id, method: 'PUT', body }),
-      onQueryStarted: async (body, { dispatch, queryFulfilled }) => {
-        const result = await queryFulfilled;
+      async onQueryStarted(body, { dispatch, queryFulfilled }) {
+        const { data } = await queryFulfilled;
         dispatch(postsApi.util.updateQueryData('getPosts', undefined, (draft) => {
-          const post = draft.find((item) => item.id === body.id);
-          if (post) post.title = result.data.title;
+          draft.forEach((post) => { if (post.id === body.id) post.title = data.title; });
         }));
       },
     }),

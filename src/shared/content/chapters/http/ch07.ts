@@ -187,14 +187,14 @@ function resolveVersion(accept = '') {
       title: L('Pagination: offset, cursor and keyset', 'Постраничная навигация: offset, курсор и keyset'),
       body: L(
         'Pagination exists because a collection is usually larger than one response may carry, and because loading everything at once makes the first byte arrive late. The mechanism has two halves: the client asks for a slice, and the server answers with the slice plus whatever the client needs to ask for the next one. Both halves matter, because a response with the data but no way to continue forces the client to guess.\n\nOffset pagination numbers pages from the start: LIMIT 20 OFFSET 40. It is the easiest to implement and the easiest to get wrong, because the database still has to produce and throw away the forty skipped rows, and that cost grows with the offset. Worse, the result set shifts while the client is paging: a row inserted before the current position moves everything by one, so an item is shown twice or not at all. Offset pagination is only reliable over a collection that does not change.\n\nCursor pagination encodes the position of the last seen item instead of counting skipped rows. The client receives an opaque token carrying the sort key of that item and sends it back to continue. The database seeks straight to the position with an index, so the cost of a page does not grow with depth, and rows inserted earlier cannot shift the window. The price is that a cursor has a meaning the client must not interpret, and that jumping to an arbitrary page is no longer possible.\n\nKeyset pagination is cursor pagination where the position is the sort key itself: WHERE created_at < :last_created_at ORDER BY created_at DESC LIMIT 20. The sort key has to be unique or paired with a tiebreaker, otherwise rows with equal timestamps get skipped or repeated. Keyset works best for infinite feeds, where pages are consumed once and never revisited.',
-        'Постраничная навигация существует потому, что коллекция обычно больше, чем можно унести в одном ответе, и потому, что загрузка всего сразу задерживает первый байт. Механизм состоит из двух половин: клиент просит срез, а сервер отвечает срезом и всем, что нужно клиенту, чтобы запросить следующий. Обе половины важны: ответ с данными, но без возможности продолжить, заставляет клиента угадывать.\n\nOffset-навигация нумерует страницы от начала: LIMIT 20 OFFSET 40. Её проще всего реализовать и проще всего сделать неправильно, потому что база всё равно должна создать и выбросить сорок пропущенных строк, и эта цена растёт с ростом смещения. Хуже того, набор данных сдвигается, пока клиент листает: вставленная раньше позиции строка сдвигает всё на одну, и элемент показывается дважды или не показывается вовсе. Offset-навигация надёжна только по неизменяемой коллекции.\n\nКурсорная навигация кодирует позицию последнего увиденного элемента вместо подсчёта пропущенных строк. Клиент получает непрозрачный токен с ключом сортировки этого элемента и отправляет его обратно, чтобы продолжить. База сразу прыгает на нужную позицию по индексу, поэтому цена страницы не растёт с глубиной, а вставленные раньше строки не сдвигают окно. Цена — у токена есть смысл, который клиенту не следует интерпретировать, и прыгнуть на произвольную страницу больше нельзя.\n\nKeyset-навигация — это курсорная навигация, где позицией является сам ключ сортировки: WHERE created_at < :last_created_at ORDER BY created_at DESC LIMIT 20. Ключ сортировки должен быть уникальным либо дополнен разделителем, иначе строки с одинаковой меткой времени будут пропущены или повторены. Keyset лучше всего работает для бесконечных лент, где страницы потребляются один раз и не пересматриваются.'
+        'Постраничная навигация существует потому, что коллекция обычно больше, чем можно унести в одном ответе, и потому, что загрузка всего сразу задерживает первый байт. Механизм состоит из двух половин: клиент просит срез, а сервер отвечает срезом и всем, что нужно клиенту, чтобы запросить следующий. Обе половины важны: ответ с данными, но без возможности продолжить, заставляет клиента угадывать.\n\nOffset-навигация нумерует страницы от начала: LIMIT 20 OFFSET 40. Её проще всего реализовать и проще всего сделать неправильно, потому что база всё равно должна создать и выбросить сорок пропущенных строк, и эта цена растёт с ростом смещения. Хуже того, набор данных сдвигается, пока клиент листает: вставленная раньше позиции строка сдвигает всё на одну, и элемент показывается дважды или не показывается вовсе. Offset-навигация надёжна только по неизменяемой коллекции.\n\nКурсорная навигация кодирует позицию последнего увиденного элемента вместо подсчёта пропущенных строк. Клиент получает непрозрачный токен с ключом сортировки этого элемента и отправляет его обратно, чтобы продолжить. База сразу прыгает на нужную позицию по индексу, поэтому цена страницы не растёт с глубиной, а вставленные раньше строки не сдвигают окно. Цена — у токена есть смысл, который клиенту не следует интерпретировать, и прыгнуть на произвольную страницу больше нельзя.\n\nKeyset-навигация — это курсорная навигация, где позицией является сам ключ сортировки: WHERE created_at < :last_created_at ORDER BY created_at DESC LIMIT 20. Ключ сортировки должен быть уникальным либо дополнен вторичным ключом, иначе строки с одинаковой меткой времени будут пропущены или повторены. Keyset лучше всего работает для бесконечных лент, где страницы потребляются один раз и не пересматриваются.'
       ),
       bullets: [
         L('A response without a way to ask for the next page is half an answer.', 'Ответ без возможности запросить следующую страницу — это наполовину ответ.'),
         L('Offset makes the database produce and discard the skipped rows.', 'Offset заставляет базу создавать и отбрасывать пропущенные строки.'),
         L('Rows inserted during offset paging duplicate or hide items.', 'Вставленные строки при offset-навигации дублируют или прячут элементы.'),
         L('Cursor and keyset seek by index, so the cost of a page stays constant.', 'Курсор и keyset ищут по индексу, поэтому цена страницы постоянна.'),
-        L('A non-unique sort key needs a tiebreaker or rows get lost.', 'Неуникальному ключу сортировки нужен разделитель, иначе строки теряются.'),
+        L('A non-unique sort key needs a tiebreaker or rows get lost.', 'Неуникальному ключу сортировки нужен вторичный ключ, иначе строки теряются.'),
       ],
       code: `// Offset: simple, but the database still walks and discards the skipped rows
 const page1 = await db.query(
@@ -246,7 +246,7 @@ const page3 = await db.query(
       seeAlso: [
         L('Section 7-1: resources, URIs and methods', 'Секция 7-1: ресурсы, URI и методы'),
         L('Section 8-4: filtering, sorting and search parameters', 'Секция 8-4: параметры фильтрации, сортировки и поиска'),
-        L('Section 3-5: cache invalidation strategies', 'Секция 3-5: стратегии сброса кэша'),
+        L('Section 3-6: cache invalidation strategies', 'Секция 3-6: стратегии сброса кэша'),
       ],
     },
     {
@@ -276,12 +276,18 @@ async function createOrder(payload) {
 
 // Server: claim the key before the side effect, then store the answer
 async function handleCreateOrder(req, res) {
-  const claimed = await idempotency.claim(req.headers['idempotency-key'], req.body);
-  if (!claimed) return respond(409, { error: 'key_reused_with_different_body' });
+  const key = req.headers['idempotency-key'];
+  const claim = await idempotency.claim(key, req.body);
+
+  // the same key with the same body: replay the stored answer
+  if (claim.replayed) return respond(claim.status, claim.body);
+
+  // the same key with a different body: a client bug
+  if (claim.conflict) return respond(409, { error: 'key_reused_with_different_body' });
 
   const order = await orders.create(req.body);
   const body = { id: order.id, status: order.status };
-  await idempotency.save(req.headers['idempotency-key'], { status: 201, body });
+  await idempotency.save(key, { status: 201, body });
   return respond(201, body);
 }`,
       callouts: [

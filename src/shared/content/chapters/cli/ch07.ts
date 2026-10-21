@@ -28,9 +28,9 @@ export const cliCh07: Chapter = {
       code: `# A plain request with the headers visible
 curl -i https://example.com/api/health
 
-# Send JSON and read the answer
+# Send JSON and read the answer; double quotes let the shell expand the token
 curl -fsS https://api.example.com/items \\
-  -H 'Authorization: Bearer $API_TOKEN' \\
+  -H "Authorization: Bearer $API_TOKEN" \\
   -H 'Content-Type: application/json' \\
   -d '{"name":"demo"}'
 

@@ -24,15 +24,8 @@ export const reduxCh06: Chapter = {
         L('Updating one entity keeps the identity of all the others.', 'Обновление одной сущности сохраняет идентичность остальных.'),
         L('The same entity in two places is a guaranteed stale copy.', 'Одна и та же сущность в двух местах — это гарантированно устаревшая копия.'),
       ],
-      code: `interface Post {
-  id: string;
-  title: string;
-}
-
-interface PostsState {
-  ids: string[];
-  entities: Record<string, Post>;
-}
+      code: `interface Post { id: string; title: string }
+interface PostsState { ids: string[]; entities: Record<string, Post> }
 
 const posts: PostsState = {
   ids: ['a', 'b'],
@@ -50,7 +43,6 @@ const updated: PostsState = {
   ...posts,
   entities: { ...posts.entities, a: { ...posts.entities.a, title: 'Renamed' } },
 };
-
 updated.entities.b === posts.entities.b; // true`,
       table: {
         caption: L('The same operations in two shapes', 'Одни и те же операции в двух видах'),
@@ -294,12 +286,7 @@ const selectRecentPosts = createSelector(
       code: `import { type EntityState } from '@reduxjs/toolkit';
 import { postsAdapter, type Post } from './postsSlice';
 
-interface Page {
-  ids: string[];
-  nextCursor: string | null;
-  status: 'idle' | 'loading' | 'loaded';
-}
-
+interface Page { ids: string[]; nextCursor: string | null; status: 'idle' | 'loading' | 'loaded' }
 type PagesState = Record<string, Page>;
 
 // A page holds ids and a cursor, the adapter holds the entities.

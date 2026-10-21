@@ -14,8 +14,8 @@ export const htmlCssCh08: Chapter = {
       id: 'htmlcss-ch8-s1',
       title: L('Media queries and container queries', 'Медиазапросы и контейнерные запросы'),
       body: L(
-        'A media query tests the environment of the device and applies a block of CSS when the test passes. The width test is the most common: @media (width >= 48rem) means the viewport is at least 48 rem wide. The other media features cover the height, the orientation, the pointer type, the hover capability and the user preferences such as prefers-reduced-motion and prefers-color-scheme.\n\nA container query tests the size of an element instead of the size of the screen. The element has to be a query container, which means container-type: inline-size on the wrapper, and then the children ask about it with @container (width > 30rem) or name it with container-name. That difference matters: the same card can be narrow in a sidebar and wide in a main column, and only a container query can react to it.\n\nContainer queries make components portable. Without them a card has to know where it lives, and the same component has to be written twice for the sidebar and for the grid. The price is that the container must have a size that can be measured, and inline-size leaves the block direction free, which is what you want for a card in a horizontal list.',
-        'Медиазапрос проверяет условия окружения устройства и применяет блок CSS, когда проверка проходит. Проверка ширины самая частая: @media (width >= 48rem) означает, что вьюпорт не уже 48 rem. Другие медиа-функции описывают высоту, ориентацию, тип указателя, наличие наведения и предпочтения пользователя, например prefers-reduced-motion и prefers-color-scheme.\n\nКонтейнерный запрос проверяет размер элемента, а не размер экрана. Элемент должен быть контейнером запроса, то есть на обёртке стоит container-type: inline-size, а дети спрашивают про него через @container (width > 30rem) или называют его через container-name. Разница существенна: одна и та же карточка может быть узкой в боковой колонке и широкой в основной, и отреагировать на это может только контейнерный запрос.\n\nКонтейнерные запросы делают компоненты переносимыми. Без них карточка должна знать, где она живёт, и один и тот же компонент приходится писать дважды: для боковой колонки и для сетки. Цена в том, что у контейнера должен быть измеримый размер, а inline-size оставляет блочное направление свободным, и это как раз то, что нужно карточке в горизонтальном списке.'
+        'A media query tests the environment of the device and applies a block of CSS when the test passes. The width test is the most common: @media (width >= 48rem) means the viewport is at least 48 rem wide. The other media features cover the height, the orientation, the pointer type, the hover capability and the user preferences such as prefers-reduced-motion and prefers-color-scheme.\n\nA container query tests the size of an element instead of the size of the screen. The element has to be a query container, which means container-type: inline-size on the wrapper, and then the children ask about it with @container (width > 24rem) or name it with container-name. That difference matters: the same card can be narrow in a sidebar and wide in a main column, and only a container query can react to it.\n\nContainer queries make components portable. Without them a card has to know where it lives, and the same component has to be written twice for the sidebar and for the grid. The price is that the container must have a size that can be measured, and inline-size leaves the block direction free, which is what you want for a card in a horizontal list.',
+        'Медиазапрос проверяет условия окружения устройства и применяет блок CSS, когда проверка проходит. Проверка ширины самая частая: @media (width >= 48rem) означает, что вьюпорт не уже 48 rem. Другие медиа-функции описывают высоту, ориентацию, тип указателя, наличие наведения и предпочтения пользователя, например prefers-reduced-motion и prefers-color-scheme.\n\nКонтейнерный запрос проверяет размер элемента, а не размер экрана. Элемент должен быть контейнером запроса, то есть на обёртке стоит container-type: inline-size, а дети спрашивают про него через @container (width > 24rem) или называют его через container-name. Разница существенна: одна и та же карточка может быть узкой в боковой колонке и широкой в основной, и отреагировать на это может только контейнерный запрос.\n\nКонтейнерные запросы делают компоненты переносимыми. Без них карточка должна знать, где она живёт, и один и тот же компонент приходится писать дважды: для боковой колонки и для сетки. Цена в том, что у контейнера должен быть измеримый размер, а inline-size оставляет блочное направление свободным, и это как раз то, что нужно карточке в горизонтальном списке.'
       ),
       bullets: [
         L('Media queries test the viewport, container queries test an element.', 'Медиазапросы проверяют вьюпорт, контейнерные — элемент.'),
@@ -103,19 +103,13 @@ body {
   line-height: 1.5;
 }
 
-h1 {
-  font-size: var(--step-2);
-}
+h1 { font-size: var(--step-2); }
 
 /* never wider than the column */
-.embed {
-  width: min(100%, 40rem);
-}
+.embed { width: min(100%, 40rem); }
 
 /* never narrower than the padding */
-.panel {
-  padding: max(1rem, 3vw);
-}`,
+.panel { padding: max(1rem, 3vw); }`,
       table: {
         caption: L('The sizing functions of CSS', 'Функции размеров в CSS'),
         headers: [L('Function', 'Функция'), L('Result', 'Результат'), L('Example', 'Пример')],
@@ -257,10 +251,7 @@ h1 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card {
-    transition: none;
-    animation: none;
-  }
+  .card { transition: none; animation: none; }
 }`,
       table: {
         caption: L('Transition against keyframes', 'Переход против ключевых кадров'),

@@ -177,7 +177,7 @@ function settle(account: Account, amount: number): void {
 }
 
 settle(new Account(), 200); // throws, exactly as the contract promises
-settle(new OverdraftAccount(), 200); // succeeds - the caller cannot tell`,
+settle(new OverdraftAccount(), 200); // succeeds - the caller can tell, and that is the violation`,
       table: {
         caption: L('Valid substitution and violations', 'Допустимая подстановка и нарушения'),
         headers: [L('Contract', 'Контракт'), L('Valid subclass', 'Допустимый наследник'), L('Violation', 'Нарушение')],

@@ -26,28 +26,21 @@ export const architectureCh02: Chapter = {
       ],
       code: `// domain/money.ts - a value object: no identity, compared by value
 export interface Money { readonly amount: number; readonly currency: string }
-
-export function moneyEquals(a: Money, b: Money): boolean {
-  return a.amount === b.amount && a.currency === b.currency;
-}
-
+export function moneyEquals(a: Money, b: Money): boolean { return a.amount === b.amount && a.currency === b.currency; }
 // domain/order.ts - an entity: identity plus an invariant
 export class Order {
   readonly id: string;
   readonly total: Money;
   private status: 'draft' | 'shipped';
-
   private constructor(id: string, total: Money) {
     this.id = id;
     this.total = total;
     this.status = 'draft';
   }
-
   static create(id: string, total: Money): Order {
     if (total.amount < 0) throw new Error('total cannot be negative');
     return new Order(id, total);
   }
-
   ship(): void {
     if (this.status === 'shipped') throw new Error('order is already shipped');
     this.status = 'shipped';
@@ -70,7 +63,7 @@ export class Order {
       seeAlso: [
         L('Section 1-1: what a layer is', 'Секция 1-1: что такое слой'),
         L('Section 2-6: when clean architecture is overkill', 'Секция 2-6: когда чистая архитектура избыточна'),
-        L('Chapter 4: monolith and modular monolith', 'Глава 4: монолит и модульный монолит'),
+        L('Section 4-1: monolith and modular monolith', 'Секция 4-1: монолит и модульный монолит'),
       ],
     },
     {
@@ -159,23 +152,15 @@ export async function placeOrder(
       ],
       code: `// application/ports.ts - the core declares its ports
 export interface Order { id: string; total: number }
-export interface OrderRepository {
-  findById(id: string): Promise<Order | null>;
-  save(order: Order): Promise<void>;
-}
+export interface OrderRepository { findById(id: string): Promise<Order | null>; save(order: Order): Promise<void> }
 export interface Clock { now(): Date }
 
 // data/in-memory-orders.ts - an adapter implements a port
 export class InMemoryOrders implements OrderRepository {
   private readonly rows = new Map<string, Order>();
-  async findById(id: string): Promise<Order | null> {
-    return this.rows.get(id) ?? null;
-  }
-  async save(order: Order): Promise<void> {
-    this.rows.set(order.id, order);
-  }
+  async findById(id: string): Promise<Order | null> { return this.rows.get(id) ?? null; }
+  async save(order: Order): Promise<void> { this.rows.set(order.id, order); }
 }
-
 // app/composition-root.ts - the only place that knows the adapters
 export function buildApp(orders: OrderRepository, clock: Clock) {
   return {
@@ -252,9 +237,7 @@ export interface PricesPort { priceOf(sku: string): Promise<number> }
 // The adapter is the only place where fetch, the URL and the timeout live.
 export class FetchPrices implements PricesPort {
   private readonly baseUrl: string;
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl;
-  }
+  constructor(baseUrl: string) { this.baseUrl = baseUrl; }
   async priceOf(sku: string): Promise<number> {
     const response = await fetch(this.baseUrl + '/prices/' + sku);
     if (!response.ok) throw new Error('price service failed');
@@ -298,7 +281,6 @@ export class Order {
   readonly id: string;
   readonly totalCents: number;
   readonly paid: boolean;
-
   constructor(id: string, totalCents: number, paid: boolean) {
     this.id = id;
     this.totalCents = totalCents;
@@ -308,14 +290,11 @@ export class Order {
 
 // data/order-mapper.ts - a row becomes an entity
 export interface OrderRow { id: string; total_cents: number; paid_at: string | null }
-
 export function toEntity(row: OrderRow): Order {
   return new Order(row.id, row.total_cents, row.paid_at !== null);
 }
-
 // api/order-dto.ts - an entity becomes the public contract
 export interface OrderDto { id: string; amountCents: number; state: 'unpaid' | 'paid' }
-
 export function toDto(order: Order): OrderDto {
   return { id: order.id, amountCents: order.totalCents, state: order.paid ? 'paid' : 'unpaid' };
 }`,

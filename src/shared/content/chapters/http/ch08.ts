@@ -79,7 +79,7 @@ const createdAt = '2024-05-01T10:00:00Z';
 const total = { amount: 1999, currency: 'EUR' };
 
 // Enums are lowercase, closed and documented
-const status = 'awaiting_payment'; // created | paid | cancelled | shipped
+const status = 'awaiting_payment'; // awaiting_payment | created | paid | cancelled | shipped
 
 // Absent means absent, null means explicitly empty
 const patch = { cancelledAt: null, trackingNumber: undefined };
@@ -107,7 +107,7 @@ const order = { id: 'ord_1042', createdAt, total, status };`,
           ],
           [
             L('Empty value', 'Пустое значение'),
-            L('"" or 0', '"" или 0'),
+            L('"" or undefined', '"" или undefined'),
             L('null', 'null'),
           ],
           [
@@ -124,7 +124,7 @@ const order = { id: 'ord_1042', createdAt, total, status };`,
       seeAlso: [
         L('Section 8-1: request and response envelopes', 'Секция 8-1: конверты запроса и ответа'),
         L('Section 7-3: versioning strategies and their trade-offs', 'Секция 7-3: стратегии версионирования и их компромиссы'),
-        L('Section 7-3: versioning strategies, where a renamed field breaks clients', 'Секция 7-3: стратегии версионирования, где переименование поля ломает клиентов'),
+        L('Section 7-1: resources, URIs and methods', 'Секция 7-1: ресурсы, URI и методы'),
       ],
     },
     {
@@ -178,22 +178,30 @@ res.end(JSON.stringify(problem));`,
       id: 'http-ch8-s4',
       title: L('Filtering, sorting and search', 'Фильтрация, сортировка и поиск'),
       body: L(
-        'A read endpoint that can only return everything is an endpoint nobody uses, so filters, sorting and search have to live somewhere in the request. The query string is the place, because it is visible, bookmarkable, cacheable, and needs no body on a GET. The rules are simple: every parameter has a documented name, every value is validated against an allowlist, and every unknown parameter is either rejected on purpose or ignored on purpose.\n\nSorting is where validation matters most, because the sort field usually ends up in an ORDER BY clause. Accept only the columns from a fixed list, never the raw parameter value. The same applies to the direction, which has to be one of two known values, and to the limit, which needs a maximum: an unbounded limit is a denial of service with a nice URL.\n\nSearch is the expensive one. A naive substring match over a large table cannot use an index and holds locks for as long as it runs. Full-text search belongs in the search engine of the database or in a separate index, the query language of that engine is not the query language of the API, and the response should say how the results were produced so the client can label them as approximate.\n\nFilter combinations multiply quickly. A general filter syntax with nested conditions is convenient to expose and easy to turn into a query the database cannot plan. The pragmatic rule is a small fixed set of filters that compose with AND, pagination on top of them, and a log of the filter combinations that turn out to be expensive, so the next one can be optimised instead of guessed at.',
-        'Эндпоинт чтения, умеющий только вернуть всё, никто не использует, поэтому фильтры, сортировка и поиск должны где-то жить в запросе. Место для них — query-строка, потому что она видна, попадает в закладки, кэшируется и не требует тела у GET. Правила простые: у каждого параметра есть задокументированное имя, каждое значение проверяется по белому списку, а каждый неизвестный параметр либо отклоняется намеренно, либо игнорируется намеренно.\n\nСортировка — место, где проверка важнее всего, потому что поле сортировки обычно попадает в ORDER BY. Принимайте только колонки из фиксированного списка и никогда сырое значение параметра. То же касается направления: оно должно быть одним из двух известных значений, и предела: без него это отказ в обслуживании с красивым URL.\n\nПоиск — самая дорогая часть. Наивный поиск подстроки по большой таблице не пользуется индексом и держит блокировки всё время выполнения. Полнотекстовый поиск живёт в поисковом движке базы или в отдельном индексе, язык запросов этого движка не равен языку запросов API, а ответ должен сообщать, как получен результат, чтобы клиент мог пометить его как приблизительный.\n\nКомбинации фильтров растут быстро. Общий синтаксис фильтров с вложенными условиями удобно отдавать и очень легко превратить в запрос, который база не может спланировать. Практичное правило: небольшой фиксированный набор фильтров, которые комбинируются через AND, поверх них постраничная навигация и лог дорогих комбинаций, чтобы следующий случай оптимизировали, а не угадывали.'
+        'A read endpoint that can only return everything is an endpoint nobody uses, so filters, sorting and search have to live somewhere in the request. The query string is the place, because it is visible, bookmarkable, cacheable, and needs no body on a GET. The rules are simple: every parameter has a documented name, every value is validated against an allowlist, and every unknown parameter is either rejected on purpose or ignored on purpose.\n\nSorting is where validation matters most, because the sort field usually ends up in an ORDER BY clause. Accept only the columns from a fixed list, never the raw parameter value. The same applies to the direction, which has to be one of two known values, and to the limit, which needs a maximum and a check for a positive integer: an unbounded limit is a denial of service with a nice URL, and a value that is not a number at all has to fall back to the default instead of reaching the query.\n\nSearch is the expensive one. A naive substring match over a large table cannot use an index and holds locks for as long as it runs. Full-text search belongs in the search engine of the database or in a separate index, the query language of that engine is not the query language of the API, and the response should say how the results were produced so the client can label them as approximate.\n\nFilter combinations multiply quickly. A general filter syntax with nested conditions is convenient to expose and easy to turn into a query the database cannot plan. The pragmatic rule is a small fixed set of filters that compose with AND, pagination on top of them, and a log of the filter combinations that turn out to be expensive, so the next one can be optimised instead of guessed at.',
+        'Эндпоинт чтения, умеющий только вернуть всё, никто не использует, поэтому фильтры, сортировка и поиск должны где-то жить в запросе. Место для них — query-строка, потому что она видна, попадает в закладки, кэшируется и не требует тела у GET. Правила простые: у каждого параметра есть задокументированное имя, каждое значение проверяется по белому списку, а каждый неизвестный параметр либо отклоняется намеренно, либо игнорируется намеренно.\n\nСортировка — место, где проверка важнее всего, потому что поле сортировки обычно попадает в ORDER BY. Принимайте только колонки из фиксированного списка и никогда сырое значение параметра. То же касается направления: оно должно быть одним из двух известных значений, и предела: у limit есть максимум и проверка на положительное целое число, потому что без максимума это отказ в обслуживании с красивым URL, а значение, которое вообще не число, должно заменяться значением по умолчанию, а не доходить до запроса.\n\nПоиск — самая дорогая часть. Наивный поиск подстроки по большой таблице не пользуется индексом и держит блокировки всё время выполнения. Полнотекстовый поиск живёт в поисковом движке базы или в отдельном индексе, язык запросов этого движка не равен языку запросов API, а ответ должен сообщать, как получен результат, чтобы клиент мог пометить его как приблизительный.\n\nКомбинации фильтров растут быстро. Общий синтаксис фильтров с вложенными условиями удобно отдавать и очень легко превратить в запрос, который база не может спланировать. Практичное правило: небольшой фиксированный набор фильтров, которые комбинируются через AND, поверх них постраничная навигация и лог дорогих комбинаций, чтобы следующий случай оптимизировали, а не угадывали.'
       ),
       bullets: [
         L('Filters, sorting and search live in the query string.', 'Фильтры, сортировка и поиск живут в query-строке.'),
-        L('Sort fields come from an allowlist, never from the raw parameter.', 'Поля сортировки берутся из белого списка, а не из сырого параметра.'),
+        L('Sort fields and status values come from an allowlist, never from the raw parameter.', 'Поля сортировки и значения статуса берутся из белого списка, а не из сырого параметра.'),
         L('Limit always has a maximum, otherwise a URL is a denial of service.', 'У limit всегда есть максимум, иначе URL становится отказом в обслуживании.'),
         L('Search belongs in a full-text index, not in a scan over the table.', 'Поиск живёт в полнотекстовом индексе, а не в просмотре таблицы.'),
         L('A small set of composable filters beats a general query language.', 'Небольшой набор composable-фильтров лучше общего языка запросов.'),
       ],
       code: `const ALLOWED_SORTS = new Set(['created_at', 'total', 'status']);
+const ALLOWED_STATUSES = new Set(['created', 'awaiting_payment', 'paid', 'cancelled']);
 
 const query = new URLSearchParams(location.search);
-const status = query.get('status') ?? 'created';
-const sort = ALLOWED_SORTS.has(query.get('sort')) ? query.get('sort') : 'created_at';
-const limit = Math.min(Number(query.get('limit') ?? 20), 100);
+const requestedStatus = query.get('status') ?? 'created';
+const status = ALLOWED_STATUSES.has(requestedStatus) ? requestedStatus : 'created';
+const requestedSort = query.get('sort');
+const sort = ALLOWED_SORTS.has(requestedSort) ? requestedSort : 'created_at';
+
+// a limit that is not a positive integer never reaches the query
+const requestedLimit = Number(query.get('limit') ?? 20);
+const limit = Number.isInteger(requestedLimit) && requestedLimit > 0
+  ? Math.min(requestedLimit, 100)
+  : 20;
 const q = query.get('q')?.trim() ?? '';
 
 // The sort field comes from the allowlist and is never interpolated raw
@@ -245,8 +253,12 @@ if (job.status === 'succeeded') console.log(job.result);
 
 // The server signs the callback so the receiver can verify it
 const signature = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
-// The receiver recomputes it and compares in constant time
-const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');`,
+
+// The receiver recomputes the HMAC once and compares in constant time
+const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
+const given = Buffer.from(signatureHeader ?? '', 'utf8');
+const check = Buffer.from(expected, 'utf8');
+const valid = given.length === check.length && crypto.timingSafeEqual(given, check);`,
       callouts: [
         {
           tone: 'note',

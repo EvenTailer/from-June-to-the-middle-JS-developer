@@ -144,7 +144,7 @@ off();`,
         'Используйте наблюдателя для фактов, на которые реагируют несколько независимых частей, и вызывайте напрямую, когда важен порядок или результат.'
       ),
       seeAlso: [
-        L('Chapter 6: domain events as the domain version of the observer', 'Глава 6: доменные события как доменная версия наблюдателя'),
+        L('Section 6-3: domain events as the domain version of the observer', 'Секция 6-3: доменные события как доменная версия наблюдателя'),
         L('Section 8-2: error boundaries and recovery', 'Секция 8-2: границы ошибок и восстановление'),
       ],
     },
@@ -272,7 +272,7 @@ class CachingRepo implements UserRepository {
       ),
       seeAlso: [
         L('Section 6-2: value objects as an alternative to wrappers', 'Секция 6-2: объекты-значения как альтернатива обёрткам'),
-        L('Chapter 1: encapsulation and private fields', 'Глава 1: инкапсуляция и приватные поля'),
+        L('Section 1-3: encapsulation and private fields', 'Секция 1-3: инкапсуляция и приватные поля'),
       ],
     },
     {
@@ -402,7 +402,7 @@ render('ru', 1999); // '1999.00 RUB'`,
         'Оставляйте паттерн, когда он называет решение, которое вы действительно принимаете, и избавляйтесь от него там, где решение уже принято за вас фреймворком.'
       ),
       seeAlso: [
-        L('Chapter 3: composition over inheritance', 'Глава 3: композиция вместо наследования'),
+        L('Section 3-4: composition over inheritance', 'Секция 3-4: композиция вместо наследования'),
         L('Section 7-2: function composition and pipes', 'Секция 7-2: композиция функций и конвейеры'),
       ],
     },

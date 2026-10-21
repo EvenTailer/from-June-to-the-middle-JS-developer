@@ -221,7 +221,7 @@ grant_type=authorization_code
         caption: L('The three tokens of OAuth 2 and OpenID Connect', 'Три токена OAuth 2 и OpenID Connect'),
         headers: [L('Token', 'Токен'), L('Audience', 'Аудитория'), L('Contains', 'Содержит'), L('Used for', 'Используется для')],
         rows: [
-          [L('Access token', 'Access token'), L('The resource server', 'Сервер ресурсов'), L('Scopes and permissions', 'Scope и права'), L('Calling the API', 'Вызовов API')],
+          [L('Access token', 'Access token'), L('The resource server', 'Сервер ресурсов'), L('Scopes and permissions', 'Scope и права'), L('Calling the API', 'Вызова API')],
           [L('ID token', 'ID token'), L('The client', 'Клиент'), L('Identity claims', 'Утверждения о личности'), L('Knowing who signed in', 'Понимания, кто вошёл')],
           [L('Refresh token', 'Refresh token'), L('The authorisation server', 'Сервер авторизации'), L('A grant reference', 'Ссылка на разрешение'), L('Getting new access tokens', 'Получения новых access-токенов')],
         ],

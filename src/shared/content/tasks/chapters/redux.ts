@@ -15,20 +15,34 @@ export const reduxChapterTasks: PracticeTask[] = [
       'Напишите редьюдер счётчика, который обрабатывает increment, decrement и reset. Редьюсер должен быть чистым: возвращает новый объект состояния, не мутирует полученное состояние и возвращает то же состояние для неизвестного действия.'
     ),
     hint: L(
-      'Type the action as a union of literals and switch on action.type. A new state comes from spreading the old one, and the default branch returns the state untouched.',
-      'Типизируйте действие как union литералов и сделайте switch по action.type. Новое состояние получается spread-ом старого, а ветка default возвращает состояние без изменений.'
+      'Type the actions the reducer knows as a union of literals and switch on action.type. The store may hand over any action, so a type guard tells the known ones apart from the rest, and a new state comes from spreading the old one.',
+      'Типизируйте известные редьюсеру действия как union литералов и сделайте switch по action.type. Хранилище может передать любое действие, поэтому type guard отделяет известные от остальных, а новое состояние получается spread-ом старого.'
     ),
     solution: `type CounterAction =
   | { type: 'counter/increment'; by: number }
   | { type: 'counter/decrement' }
   | { type: 'counter/reset' };
+
+// The store may hand over any action, so the reducer has to recognise its own.
+type AnyAction = { type: string };
+
+function isCounterAction(action: AnyAction): action is CounterAction {
+  return (
+    action.type === 'counter/increment' ||
+    action.type === 'counter/decrement' ||
+    action.type === 'counter/reset'
+  );
+}
+
 interface CounterState { value: number }
 const initialState: CounterState = { value: 0 };
 // (state, action) => state: the same input always gives the same output.
 export function counterReducer(
   state: CounterState = initialState,
-  action: CounterAction,
+  action: AnyAction,
 ): CounterState {
+  // an unknown action leaves the state untouched
+  if (!isCounterAction(action)) return state;
   switch (action.type) {
     case 'counter/increment':
       return { ...state, value: state.value + action.by };
@@ -36,13 +50,11 @@ export function counterReducer(
       return { ...state, value: state.value - 1 };
     case 'counter/reset':
       return initialState;
-    default:
-      return state;
   }
 }`,
     explanation: L(
-      'The reducer is a pure function of state and action, so the same action always produces the same tree and an unknown action leaves the state untouched. The task checks the contract that every later chapter of the module builds on.',
-      'Редьюсер — чистая функция состояния и действия, поэтому одно и то же действие всегда даёт одно и то же дерево, а неизвестное действие не меняет состояние. Задача проверяет контракт, на который опираются все следующие главы модуля.'
+      'The reducer is a pure function of state and action, so the same action always produces the same tree. The guard tells the actions the reducer knows from the ones that arrive from the outside, and an unknown action leaves the state untouched. The task checks the contract that every later chapter of the module builds on.',
+      'Редьюсер — чистая функция состояния и действия, поэтому одно и то же действие всегда даёт одно и то же дерево, Guard отделяет известные редьюсеру действия от тех, что приходят снаружи, а неизвестное действие не меняет состояние. Задача проверяет контракт, на который опираются все следующие главы модуля.'
     ),
   },
   {
@@ -140,14 +152,25 @@ export const selectTodoById = (id: string) => (state: RootState) =>
     ),
     solution: `import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-export const fetchUser = createAsyncThunk<{ id: string }, string>(
+type User = { id: string };
+// The status is a union of literals, so a wrong value does not compile
+type Status = 'idle' | 'loading' | 'succeeded' | 'failed';
+type UsersState = { status: Status; user: User | null; error: string | null };
+
+export const fetchUser = createAsyncThunk<User, string>(
   'users/fetchUser',
-  async (id) => (await fetch('/api/users/' + id)).json() as { id: string },
+  async (id) => {
+    const response = await fetch('/api/users/' + id);
+    // the cast is on the parsed body, not on the promise
+    return (await response.json()) as User;
+  },
 );
+
+const initialState: UsersState = { status: 'idle', user: null, error: null };
 
 const usersSlice = createSlice({
   name: 'users',
-  initialState: { status: 'idle', user: null, error: null },
+  initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
@@ -232,7 +255,9 @@ const postsSlice = createSlice({
       postsAdapter.updateOne(state, action.payload),
   },
 });
-const postsSelectors = postsAdapter.getSelectors((state: { posts: typeof postsSlice.initialState }) => state.posts);
+const postsSelectors = postsAdapter.getSelectors(
+  (state: { posts: ReturnType<typeof postsAdapter.getInitialState> }) => state.posts,
+);
 export const selectActivePosts = createSelector([postsSelectors.selectAll], (posts) => posts.filter((p) => !p.archived));`,
     explanation: L(
       'The adapter keeps one entry per id, so the same post sent twice updates one record instead of creating a copy. A memoised selector on top of selectAll keeps the filtered list stable between the changes of the collection.',
@@ -270,7 +295,24 @@ listenerMiddleware.startListening({
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: STATE_VERSION, posts }));
     console.log('tracked post', action.payload.id);
   },
-});`,
+});
+
+// file: postsSlice.ts
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+
+export interface Post { id: string; title: string }
+
+export const postsSlice = createSlice({
+  name: 'posts',
+  initialState: { items: [] as Post[] },
+  reducers: {
+    postAdded: (state, action: PayloadAction<Post>) => {
+      state.items.push(action.payload);
+    },
+  },
+});
+
+export const { postAdded } = postsSlice.actions;`,
     explanation: L(
       'A listener runs after the reducers, so the state it writes is already up to date. The version number next to the payload lets the application drop the stored state when the shape of the tree changes.',
       'Листенер выполняется после редьюсеров, поэтому записываемое состояние уже актуально. Номер версии рядом с payload позволяет выбросить сохранённое состояние, когда форма дерева изменится.'

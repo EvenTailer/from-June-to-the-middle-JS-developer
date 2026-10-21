@@ -105,7 +105,7 @@ export function formatPrice(cents: number): string {
 }
 
 // Only these two names are part of the contract
-console.log(formatPrice(parsePrice('19,99'))); // '20.00 EUR'`,
+console.log(formatPrice(parsePrice('19,99'))); // '19.99 EUR'`,
       callouts: [
         {
           tone: 'warning',

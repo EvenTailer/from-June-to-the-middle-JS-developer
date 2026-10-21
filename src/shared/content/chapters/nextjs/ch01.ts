@@ -169,10 +169,10 @@ export default function AboutPage() {
       callouts: [
         {
           tone: 'pitfall',
-          title: L('Moving a page into a group changes its URL', 'Перенос страницы в группу меняет URL'),
+          title: L('A group adds no segment, a folder does', 'Группа не добавляет сегмент, а папка добавляет'),
           text: L(
-            'The group name never reaches the URL, but the folders around it still do. Moving app/about into app/(marketing)/about keeps the address /about only if nothing else in the new path adds a segment, and a nested group such as (shop)/(marketing) does add one.',
-            'Имя группы в URL не попадает, а вот соседние папки — попадают. Перенос app/about в app/(marketing)/about сохраняет адрес /about, только если вокруг не появилось лишнего сегмента, а вложенная группа вида (shop)/(marketing) добавляет его.'
+            'The group name never reaches the URL, and a group nested in another group adds nothing either: app/(shop)/(marketing)/about still serves /about. Only the folders that are not groups count, so moving app/about into app/(marketing)/about keeps the address /about, while a dynamic segment or a catch-all folder placed next to the group would add a segment.',
+            'Имя группы в URL не попадает, и группа, вложенная в другую группу, тоже ничего не добавляет: app/(shop)/(marketing)/about всё равно отдаёт /about. В счёт идут только те папки, которые не группами, поэтому перенос app/about в app/(marketing)/about сохраняет адрес /about, а динамический сегмент или catch-all рядом с группой добавил бы сегмент.'
           ),
         },
         {

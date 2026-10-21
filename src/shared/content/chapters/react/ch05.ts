@@ -95,18 +95,18 @@ export const reactCh05: Chapter = {
         L('A function declared in the component body is a new dependency on every render.', 'Функция, объявленная в теле компонента, — новая зависимость при каждом рендере.'),
       ],
       code: `function Search({ query, onSearch }) {
-  // The effect reads query, so query belongs in the list
-  useEffect(() => {
-    const id = setTimeout(() => onSearch(query), 300);
-    return () => clearTimeout(id);
-  }, [query, onSearch]);
-
   // A function declared in the body is a new value on every render,
-  // so an effect that depends on it would rerun on every render
+  // so an effect that depends on it would rerun on every render.
+  // useCallback keeps the identity stable while the values stay the same.
   const handle = useCallback(() => onSearch(query), [onSearch, query]);
 
+  // The effect reads handle, so handle belongs in the list, and query
+  // belongs in the list of useCallback above. The request is debounced:
+  // a new keystroke cancels the pending one, so onSearch never fires
+  // twice in a row.
   useEffect(() => {
-    handle();
+    const id = setTimeout(handle, 300);
+    return () => clearTimeout(id);
   }, [handle]);
 
   return null;
@@ -175,7 +175,11 @@ export const reactCh05: Chapter = {
 
 function useEvent(name, handler) {
   const handlerRef = useRef(handler);
-  handlerRef.current = handler; // always the latest handler
+
+  // The ref is updated in an effect, never during the render
+  useEffect(() => {
+    handlerRef.current = handler;
+  }, [handler]);
 
   useEffect(() => {
     const listener = (event) => handlerRef.current(event);

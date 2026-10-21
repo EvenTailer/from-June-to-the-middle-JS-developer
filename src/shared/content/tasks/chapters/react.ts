@@ -18,7 +18,11 @@ export const reactChapterTasks: PracticeTask[] = [
       'Key the rows by the item id, not by the index. A logical AND renders its left side when that side is falsy, so compare the count explicitly.',
       'Ключуйте строки по id элемента, а не по индексу. Логическое И выводит левую часть, когда она ложная, поэтому сравнивайте счёт явно.'
     ),
-    solution: `function Panel({ title, children }) {
+    solution: `import { type ReactNode } from 'react';
+
+type Item = { id: string; title: string };
+
+function Panel({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section>
       <h2>{title}</h2>
@@ -27,7 +31,7 @@ export const reactChapterTasks: PracticeTask[] = [
   );
 }
 
-export function ItemList({ items, count }) {
+export function ItemList({ items, count }: { items: Item[]; count: number }) {
   return (
     <Panel title="Items">
       {items.length === 0 ? (
@@ -56,39 +60,60 @@ export function ItemList({ items, count }) {
     topic: 'react',
     chapterId: 'react-ch2',
     level: 'basic',
-    title: L('Find out what re-renders', 'Понять, что перерисовывается'),
+    title: L('The rendering model in three properties', 'Модель рендера в трёх свойствах'),
     brief: L(
-      'Build a parent with two pieces of state and a memoized child that logs every render. Changing the parent state must not re-render the memoized child, while changing the prop the child receives must.',
-      'Соберите родителя с двумя состояниями и мемоизированного ребёнка, который логирует каждый рендер. Изменение состояния родителя не должно перерисовывать мемоизированного ребёнка, а изменение его пропа — должно.'
+      'Build a tree of three components where the root renders a layout and the layout renders a list of rows. Show three properties of the rendering model: a component element is a description with a type and props rather than a node of the tree, two state updates issued in one event handler are batched into a single re-render, and StrictMode calls the component function twice in development to expose impure code.',
+      'Соберите дерево из трёх компонентов, где корень рендерит layout, а layout — список строк. Покажите три свойства модели рендера: элемент компонента — это описание с типом и пропсами, а не узел дерева; два обновления состояния, вызванные в одном обработчике, батчатся в один перерендер; а StrictMode в режиме разработки вызывает функцию компонента дважды, чтобы найти нечистый код.'
     ),
     hint: L(
-      'React.memo skips the render when the props are the same. The child re-renders only when the prop it actually reads changes.',
-      'React.memo пропускает рендер, если пропсы те же. Ребёнок перерисовывается только тогда, когда меняется проп, который он реально читает.'
+      'The element JSX produces can be inspected before it is ever rendered: it carries the component function and its props. An event handler that changes the state twice leads to one re-render, not two. StrictMode is a wrapper around the tree, and the second call is a development-only probe.',
+      'Элемент, который даёт JSX, можно осмотреть до того, как он отрисуется: в нём лежит функция компонента и её пропсы. Обработчик, меняющий состояние дважды, приводит к одному перерендеру, а не к двум. StrictMode — это обёртка над деревом, а второй вызов — это проверка только в режиме разработки.'
     ),
-    solution: `import { memo, useState } from 'react';
+    solution: `import { StrictMode, useState } from 'react';
 
-const Child = memo(function Child({ label }) {
-  console.log('Child rendered with', label);
-  return <span>{label}</span>;
-});
+// The walk: App calls Layout, Layout calls Article.
+function Article({ title }: { title: string }) {
+  return <li>{title}</li>;
+}
 
-export function Panel() {
+function Layout({ titles }: { titles: string[] }) {
+  return (
+    <section>
+      <h2>Latest</h2>
+      <ul>{titles.map((title) => <Article key={title} title={title} />)}</ul>
+    </section>
+  );
+}
+
+export function App() {
   const [count, setCount] = useState(0);
-  const [label, setLabel] = useState('first');
-
   return (
     <div>
-      {/* count changes: the parent re-renders, the memoized child does not */}
-      <button onClick={() => setCount((c) => c + 1)}>count: {count}</button>
-      {/* label changes: the child re-renders with the new prop */}
-      <button onClick={() => setLabel('second')}>change label</button>
-      <Child label={label} />
+      {/* Two updates in one handler are batched into a single re-render */}
+      <button onClick={() => { setCount((c) => c + 1); setCount((c) => c + 1); }}>
+        count: {count}
+      </button>
+      <Layout titles={['first', 'second']} />
     </div>
+  );
+}
+
+// A component element is a description: the type and the props, not a node.
+const element = <Article title="Hello" />;
+console.log(element.type === Article); // true
+console.log(element.props.title);      // 'Hello'
+
+// StrictMode calls the component twice in development to expose impure code.
+export function StrictTree() {
+  return (
+    <StrictMode>
+      <App />
+    </StrictMode>
   );
 }`,
     explanation: L(
-      'React re-renders the parent whenever its own state changes, but a memoized child with unchanged props is skipped. The two buttons show both paths: the count changes only the parent, the label reaches the child.',
-      'React перерисовывает родителя при изменении его состояния, но мемоизированного ребёнка с теми же пропсами пропускает. Две кнопки показывают оба пути: счёт меняет только родителя, а метка доходит до ребёнка.'
+      'Rendering is a pure walk of the tree, so the element React receives is a description it may throw away and compute again. Batching means the two updates issued in one handler lead to a single re-render, and StrictMode repeats the render in development, where a component that mutates something outside itself shows its impurity.',
+      'Рендер — чистый обход дерева, поэтому элемент, который получает React, — это описание, которое можно выбросить и посчитать заново. Батчинг означает, что два обновления из одного обработчика дают один перерендер, а StrictMode повторяет рендер в разработке, где компонент, меняющий что-то снаружи себя, показывает свою нечистоту.'
     ),
   },
   {
@@ -162,7 +187,7 @@ export function Counter() {
 }
 
 // The total is derived during render, there is no state to keep in sync
-export function Cart({ items }) {
+export function Cart({ items }: { items: { price: number }[] }) {
   const total = items.reduce((sum, item) => sum + item.price, 0);
   return <p>Total: {total}</p>;
 }`,
@@ -179,29 +204,27 @@ export function Cart({ items }) {
     level: 'intermediate',
     title: L('A subscription and a title that restores itself', 'Подписка и заголовок, который восстанавливается'),
     brief: L(
-      'Implement a hook that subscribes to an event and removes the listener on cleanup, and a hook that keeps the document title in sync and restores the previous title when it is torn down. The listener must always call the newest handler.',
-      'Реализуйте хук, который подписывается на событие и снимает слушатель при очистке, и хук, который держит заголовок документа в синхроне и возвращает прежний заголовок при размонтировании. Слушатель должен всегда вызывать самый свежий обработчик.'
+      'Implement a hook that subscribes to an event and removes the listener on cleanup, and a hook that keeps the document title in sync and restores the previous title when it is torn down. The listener must always call the newest handler, so the subscription has to be set up again whenever the handler changes.',
+      'Реализуйте хук, который подписывается на событие и снимает слушатель при очистке, и хук, который держит заголовок документа в синхроне и возвращает прежний заголовок при размонтировании. Слушатель должен всегда вызывать самый свежий обработчик, поэтому подписку приходится настраивать заново при каждой смене обработчика.'
     ),
     hint: L(
-      'Store the handler in a ref and read it from the listener, so the subscription does not have to be recreated. The cleanup of a title effect restores the old value.',
-      'Храните обработчик в ref и читайте его из слушателя, чтобы подписку не приходилось пересоздавать. Очистка эффекта заголовка возвращает старое значение.'
+      'The dependency array decides when the effect runs again: a handler that is missing from it leaves the listener calling the version from the first render. The cleanup of a title effect restores the old value.',
+      'Массив зависимостей решает, когда эффект выполнится заново: обработчик, которого в нём нет, оставляет слушателю версию из первого рендера. Очистка эффекта заголовка возвращает старое значение.'
     ),
-    solution: `import { useEffect, useRef } from 'react';
+    solution: `import { useEffect } from 'react';
 
-// The listener always calls the newest handler, without resubscribing
-export function useEvent(name, handler) {
-  const handlerRef = useRef(handler);
-  handlerRef.current = handler;
-
+// The effect is set up again when the handler changes, so the listener
+// always calls the newest one.
+export function useEvent(name: string, handler: (event: Event) => void) {
   useEffect(() => {
-    const listener = (event) => handlerRef.current(event);
+    const listener = (event: Event) => handler(event);
     window.addEventListener(name, listener);
     return () => window.removeEventListener(name, listener);
-  }, [name]);
+  }, [name, handler]);
 }
 
 // The title is restored when the effect is cleaned up
-export function useDocumentTitle(title) {
+export function useDocumentTitle(title: string) {
   useEffect(() => {
     const previous = document.title;
     document.title = title;
@@ -209,8 +232,8 @@ export function useDocumentTitle(title) {
   }, [title]);
 }`,
     explanation: L(
-      'The ref holds the newest handler while the effect keeps the same subscription, so the callback never goes stale. The title effect saves the previous value and puts it back, which keeps two mounted components from fighting over the document.',
-      'Ref хранит самый свежий обработчик, а эффект держит ту же подписку, поэтому колбэк не устаревает. Эффект заголовка сохраняет прежнее значение и возвращает его, чтобы два смонтированных компонента не дрались за документ.'
+      'The dependency array decides when the effect is set up again, so putting the handler into it resubscribes on every change and the callback never goes stale. The title effect saves the previous value and puts it back, which keeps two mounted components from fighting over the document.',
+      'Массив зависимостей решает, когда эффект настраивается заново, поэтому обработчик в нём переподписывает слушатель при каждой смене, и колбэк не устаревает. Эффект заголовка сохраняет прежнее значение и возвращает его, чтобы два смонтированных компонента не дрались за документ.'
     ),
   },
   {
@@ -230,13 +253,15 @@ export function useDocumentTitle(title) {
     ),
     solution: `import { type Ref, useImperativeHandle, useRef } from 'react';
 
+type TextFieldHandle = { focus: () => void; clear: () => void };
+
 type TextFieldProps = {
   label: string;
-  ref?: Ref<{ focus: () => void; clear: () => void }>;
+  ref?: Ref<TextFieldHandle>;
 };
 
 export function TextField({ label, ref }: TextFieldProps) {
-  const inputRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   useImperativeHandle(ref, () => ({
     focus: () => inputRef.current?.focus(),
     clear: () => { if (inputRef.current) inputRef.current.value = ''; },
@@ -261,12 +286,12 @@ export function TextField({ label, ref }: TextFieldProps) {
     level: 'intermediate',
     title: L('Split a context by update frequency', 'Разделить контекст по частоте обновлений'),
     brief: L(
-      'Create two contexts: one for a value that changes rarely and one for a value that changes on every pointer move. The provider value must be memoised, and a consumer of the slow context must not re-render when the fast value changes.',
-      'Создайте два контекста: для значения, которое меняется редко, и для значения, которое меняется при каждом движении указателя. Значение провайдера должно быть мемоизировано, а потребитель медленного контекста не должен перерисовываться, когда меняется быстрое значение.'
+      'Create two contexts: one for a value that changes rarely and one for a value that changes on every pointer move. The provider value must be memoised, the fast provider must sit deep around the only consumer that needs it, and a consumer of the slow context must not re-render when the fast value changes.',
+      'Создайте два контекста: для значения, которое меняется редко, и для значения, которое меняется при каждом движении указателя. Значение провайдера должно быть мемоизировано, быстрый провайдер должен стоять глубоко, вокруг единственного потребителя, которому он нужен, а потребитель медленного контекста не должен перерисовываться, когда меняется быстрое значение.'
     ),
     hint: L(
-      'A new object on every render changes the identity of the provider value and re-renders every consumer. useMemo keeps the identity stable.',
-      'Новый объект при каждом рендере меняет идентичность значения провайдера и перерисовывает всех потребителей. useMemo удерживает идентичность.'
+      'A new object on every render changes the identity of the provider value and re-renders every consumer. useMemo keeps the identity stable, and a provider placed deep wraps only the small part of the tree that reads it.',
+      'Новый объект при каждом рендере меняет идентичность значения провайдера и перерисовывает всех потребителей. useMemo удерживает идентичность, а провайдер, поставленный глубоко, оборачивает только ту маленькую часть дерева, которая его читает.'
     ),
     solution: `import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 
@@ -282,11 +307,20 @@ export function AppProvider({ position, children }: ProviderProps) {
   const value = useMemo(() => ({ theme }), [theme]);
   return (
     <ThemeContext.Provider value={value}>
+      {/* the slow consumers live outside the fast provider */}
+      {children}
+      {/* the fast provider sits deep, around the only subscriber */}
       <PositionContext.Provider value={position}>
-        {children}
+        <Cursor />
       </PositionContext.Provider>
     </ThemeContext.Provider>
   );
+}
+
+// The toolbar reads the slow context, it is not a subscriber to the fast value
+export function Toolbar() {
+  const { theme } = useContext(ThemeContext)!;
+  return <nav data-theme={theme}>Menu</nav>;
 }
 
 // Only the cursor subscribes to the fast value, the toolbar stays untouched
@@ -295,8 +329,8 @@ export function Cursor() {
   return <span>{x}, {y}</span>;
 }`,
     explanation: L(
-      'The two contexts split the update frequency: only the cursor subscribes to the fast value, so the toolbar stays untouched while the pointer moves. The memoised provider value is what keeps the slow consumers from re-rendering for no reason.',
-      'Два контекста разделяют частоту обновлений: быстрое значение читает только курсор, поэтому панель не трогается при движении указателя. Мемоизированное значение провайдера не даёт медленным потребителям перерисовываться без причины.'
+      'The two contexts split the update frequency: only the cursor subscribes to the fast value, so the toolbar stays untouched while the pointer moves. The memoised provider value is what keeps the slow consumers from re-rendering for no reason, and the deep fast provider makes sure the re-render stops at the small subtree.',
+      'Два контекста разделяют частоту обновлений: быстрое значение читает только курсор, поэтому панель не трогается при движении указателя. Мемоизированное значение провайдера не даёт медленным потребителям перерисовываться без причины, а глубоко поставленный быстрый провайдер останавливает перерендер на маленьком поддереве.'
     ),
   },
   {
@@ -324,7 +358,7 @@ export function useToggle(initial = false) {
 }
 
 // The value only changes after the user stopped typing
-export function useDebouncedValue(value, delay = 300) {
+export function useDebouncedValue(value: string, delay = 300) {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
     const timer = setTimeout(() => setDebounced(value), delay);
@@ -334,7 +368,7 @@ export function useDebouncedValue(value, delay = 300) {
 }`,
     explanation: L(
       'A hook is not a component: it shares logic, not markup, and several components may use it at once. The stable callback keeps memoized children from re-rendering, and the cleanup cancels the pending timer on every change.',
-      'Хук — не компонент: он делится логикой, а не разметкой, и его могут использовать несколько компонентов сразу. Стабильный колбэк не даёт мемоизированным детям перерисовываться, а очистка отменяет висящий таймер при каждом изменении.'
+      'Хук — не компонент: он делится логикой, а не разметкой, и его могут использовать несколько компонентов сразу. Стабильный колбэк не даёт мемоизированным дочерним компонентам перерисовываться, а очистка отменяет висящий таймер при каждом изменении.'
     ),
   },
   {
@@ -397,42 +431,54 @@ export function SignupForm() {
     level: 'advanced',
     title: L('Memoised rows and a measured list', 'Мемоизированные строки и измеренный список'),
     brief: L(
-      'Measure the renders with the Profiler, memoise a row component with React.memo and a stable callback, and render only a window of a long list instead of every row.',
-      'Измерьте рендеры через Profiler, мемоизируйте компонент строки через React.memo и стабильный колбэк и отрисуйте только окно длинного списка вместо всех строк.'
+      'Measure the renders with the Profiler, memoise a row component with React.memo and a stable callback, and render only a window of a long list: the rows outside of the window must stay unreachable in the DOM while the list is scrolled.',
+      'Измерьте рендеры через Profiler, мемоизируйте компонент строки через React.memo и стабильный колбэк и отрисуйте только окно длинного списка: строки за пределами окна не должны попадать в DOM, пока список прокручивается.'
     ),
     hint: L(
-      'React.memo compares the props, so the callback has to keep its identity. useMemo keeps the computed slice stable while the items do not change.',
-      'React.memo сравнивает пропсы, поэтому колбэк должен сохранять идентичность. useMemo удерживает вычисленный срез, пока элементы не меняются.'
+      'React.memo compares the props, so the callback has to keep its identity. A window is a slice that follows the scroll position, and the rows before and after it are never rendered.',
+      'React.memo сравнивает пропсы, поэтому колбэк должен сохранять идентичность. Окно — это срез, который следует за позицией прокрутки, а строки до и после него не рендерятся вовсе.'
     ),
-    solution: `import { Profiler, memo, useCallback, useMemo, useState } from 'react';
+    solution: `import { Profiler, memo, useCallback, useMemo, useState, type UIEvent } from 'react';
 
+const ROW_HEIGHT = 32;
 const WINDOW = 50;
 
-const Row = memo(function Row({ title, onPick }) {
+type Item = { id: string; title: string };
+
+const Row = memo(function Row({ title, onPick }: { title: string; onPick: (id: string) => void }) {
   return <li><button onClick={() => onPick(title)}>{title}</button></li>;
 });
 
-export function Results({ items }) {
-  const [picked, setPicked] = useState(null);
+export function Results({ items }: { items: Item[] }) {
+  const [picked, setPicked] = useState<string | null>(null);
+  const [start, setStart] = useState(0);
   // A stable callback keeps React.memo effective
-  const handlePick = useCallback((id) => setPicked(id), []);
-  // Only the visible slice of a long list is rendered
-  const visible = useMemo(() => items.slice(0, WINDOW), [items]);
+  const handlePick = useCallback((id: string) => setPicked(id), []);
+  // Only the visible window of a long list is rendered
+  const visible = useMemo(() => items.slice(start, start + WINDOW), [items, start]);
+  const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
+    setStart(Math.floor(event.currentTarget.scrollTop / ROW_HEIGHT));
+  }, []);
 
   return (
     <Profiler id="Results" onRender={(id, phase) => console.log(id, phase)}>
-      <ul>
-        {visible.map((item) => (
-          <Row key={item.id} title={item.title} onPick={handlePick} />
-        ))}
-      </ul>
+      <div style={{ height: ROW_HEIGHT * WINDOW, overflow: 'auto' }} onScroll={handleScroll}>
+        {/* the full height keeps the scrollbar honest */}
+        <div style={{ height: items.length * ROW_HEIGHT, position: 'relative' }}>
+          <ul style={{ position: 'absolute', top: start * ROW_HEIGHT, left: 0, right: 0 }}>
+            {visible.map((item) => (
+              <Row key={item.id} title={item.title} onPick={handlePick} />
+            ))}
+          </ul>
+        </div>
+      </div>
       <p>picked: {picked}</p>
     </Profiler>
   );
 }`,
     explanation: L(
-      'Memoisation only pays off when the props are stable, otherwise the comparison costs more than the render it saves. The Profiler tells you which part of the tree actually costs time, and the window keeps the DOM small.',
-      'Мемоизация окупается только при стабильных пропсах, иначе сравнение стоит дороже сэкономленного рендера. Profiler показывает, какая часть дерева реально стоит времени, а окно держит DOM маленьким.'
+      'Memoisation only pays off when the props are stable, otherwise the comparison costs more than the render it saves. The Profiler tells you which part of the tree actually costs time, and the window follows the scroll position, so the DOM holds the visible rows instead of the whole list.',
+      'Мемоизация окупается только при стабильных пропсах, иначе сравнение стоит дороже сэкономленного рендера. Profiler показывает, какая часть дерева реально стоит времени, а окно следует за позицией прокрутки, поэтому в DOM живут только видимые строки, а не весь список.'
     ),
   },
   {
@@ -443,7 +489,7 @@ export function Results({ items }) {
     level: 'advanced',
     title: L('Test a form across the client boundary', 'Протестировать форму через клиентскую границу'),
     brief: L(
-      'Write a test for a component that receives a plain order object from a server component: render it inside a Suspense boundary, type into the field, click the button and assert what the user sees. Only serialisable data may cross the boundary.',
+      'Write a test for a component that receives a plain order object from a server component: render it inside a Suspense boundary, type a value into the field, click the button and assert what the user sees. Only serialisable data may cross the boundary.',
       'Напишите тест для компонента, который получает обычный объект заказа от серверного компонента: отрендерите его внутри Suspense, введите значение в поле, нажмите кнопку и проверьте, что видит пользователь. Через границу могут проходить только сериализуемые данные.'
     ),
     hint: L(
@@ -467,9 +513,34 @@ test('shows the order total and marks it as paid', async () => {
 
   expect(screen.getByText(/42 EUR/)).toBeInTheDocument();
 
+  // The field is filled in by the user, the summary follows the input
+  await user.type(screen.getByLabelText('Amount'), '7');
+  expect(screen.getByText(/7 EUR/)).toBeInTheDocument();
+
   await user.click(screen.getByRole('button', { name: 'Pay' }));
   expect(screen.getByRole('button', { name: 'Paid' })).toBeInTheDocument();
-});`,
+});
+
+// file: OrderSummary.tsx
+import { useState } from 'react';
+
+type Order = { id: string; total: number };
+
+export default function OrderSummary({ order }: { order: Order }) {
+  const [amount, setAmount] = useState('');
+  const [paid, setPaid] = useState(false);
+  const shown = amount === '' ? String(order.total) : amount;
+  return (
+    <section>
+      <label htmlFor="amount">Amount</label>
+      <input id="amount" value={amount} onChange={(event) => setAmount(event.target.value)} />
+      <p>Total: {shown} EUR</p>
+      <button type="button" onClick={() => setPaid(true)} disabled={paid}>
+        {paid ? 'Paid' : 'Pay'}
+      </button>
+    </section>
+  );
+}`,
     explanation: L(
       'The test drives the component the way a user does, so it survives a refactoring of the internals. Serialisable props are the rule that keeps the server and the client in sync, and a function passed across the boundary would fail at render time.',
       'Тест управляет компонентом так же, как пользователь, поэтому переживает рефакторинг внутренностей. Сериализуемые пропсы — правило, которое держит сервер и клиент согласованными, а функция через границу упала бы во время рендера.'

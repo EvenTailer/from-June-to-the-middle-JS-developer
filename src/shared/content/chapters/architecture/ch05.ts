@@ -89,7 +89,7 @@ export function isEnabled(flag: keyof Flags): boolean {
         'Проверяйте конфигурацию один раз на старте и указывайте для каждого флага функций владельца и срок жизни.'
       ),
       seeAlso: [
-        L('Chapter 1: why dependencies point inward', 'Глава 1: почему зависимости смотрят внутрь'),
+        L('Section 1-3: why dependencies point inward', 'Секция 1-3: почему зависимости смотрят внутрь'),
         L('Section 3-2: the public API of a module', 'Секция 3-2: публичный API модуля'),
         L('Section 5-6: testing the architecture', 'Секция 5-6: тестирование архитектуры'),
       ],

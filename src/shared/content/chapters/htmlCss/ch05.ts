@@ -25,23 +25,20 @@ export const htmlCssCh05: Chapter = {
         L('Running animations and transitions override normal declarations.', 'Идущие анимации и переходы перекрывают обычные объявления.'),
       ],
       code: `/* origin: user-agent, the browser's own defaults - lowest priority */
+input[type="text"] {
+  padding: 1px 2px;
+}
+
+/* origin: author, your stylesheet - beats the user-agent rules */
 p {
   margin: 1em 0;
 }
 
-/* origin: author, your stylesheet - beats the user-agent rules */
-.card {
-  margin: 0;
-  padding: 16px;
-}
-
 /* inline style: author origin, strongest among normal author rules */
-.card--tight {
-  padding: 8px;
-}
+<p class="paragraph--flush" style="margin: 20px">The inline style wins here</p>
 
 /* important flips the origin order and beats the inline style */
-.card--flush {
+.paragraph--flush {
   margin: 0 !important;
 }`,
       table: {
@@ -107,30 +104,20 @@ p {
         L('Equal specificity is broken by source order, the later rule wins.', 'Равную специфичность разрешает порядок в исходнике, побеждает поздний.'),
         L('The order of classes inside a selector never changes the tuple.', 'Порядок классов внутри селектора никогда не меняет тройку.'),
       ],
-      code: `/* specificity (1, 0, 0) */
-#site-header {
-  color: black;
-}
+      code: `/* specificity (1, 0, 0): wins over every class and type rule */
+#site-header { color: crimson; }
 
-/* specificity (0, 1, 0) */
-.header__title {
-  color: black;
-}
+/* specificity (0, 1, 0): beats any type selector */
+.header__title { color: teal; }
 
-/* specificity (0, 0, 1) */
-h1 {
-  color: black;
-}
+/* specificity (0, 0, 1): loses to any class rule */
+h1 { color: olive; }
 
 /* :where() contributes nothing, so any rule can override it */
-:where(.theme) h1 {
-  color: black;
-}
+:where(.theme) h1 { color: gray; }
 
 /* :is() takes the strongest argument, here an id */
-:is(.card, #card) {
-  color: black;
-}`,
+:is(.card, #card) { color: navy; }`,
       table: {
         caption: L('The same target matched by rules of different weight', 'Одна цель и правила разного веса'),
         headers: [L('Selector', 'Селектор'), L('Specificity', 'Специфичность'), L('Beats', 'Побеждает')],
@@ -203,9 +190,7 @@ body {
 }
 
 /* roll the property back to the browser defaults */
-.link {
-  all: revert;
-}`,
+.link { all: revert; }`,
       table: {
         caption: L('A quick reference of what flows down the tree', 'Быстрая шпаргалка: что передаётся вниз по дереву'),
         headers: [L('Inherited by default', 'Наследуется по умолчанию'), L('Not inherited', 'Не наследуется')],

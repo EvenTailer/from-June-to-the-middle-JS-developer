@@ -91,8 +91,9 @@ function pipe<A, B>(steps: Array<(value: A) => A>): (value: A) => A {
 const trim = (text: string): string => text.trim();
 const upper = (text: string): string => text.toUpperCase();
 
-const slugify = compose(upper, trim);
-slugify('  hello world  '); // 'HELLO WORLD'
+const slug = (text: string): string => text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+const slugify = compose(slug, trim);
+slugify('  Hello World  '); // 'hello-world'
 
 pipe([trim, upper])('  hello  '); // 'HELLO'`,
       table: {

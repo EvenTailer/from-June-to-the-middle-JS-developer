@@ -251,10 +251,10 @@ git bisect good v1.3.0
 
 # let the test command answer
 git bisect run npm test
-# -> <sha> is the first bad commit
+# -> a1b2c3d is the first bad commit
 
 # record the context that the commit message has no room for
-git notes add <sha> -m "Ticket JIRA-1421: the retry lost its idempotency key"
+git notes add a1b2c3d -m "Ticket JIRA-1421: the retry lost its idempotency key"
 
 # return to the branch you started on
 git bisect reset

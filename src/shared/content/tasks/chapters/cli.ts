@@ -64,7 +64,10 @@ grep -rnF 'user_id' src/
 rg -F 'user_id'
 
 # paths with spaces survive the pipe
-find src -type f -name '*.ts' -print0 | xargs -0 -r wc -l`,
+find src -type f -name '*.ts' -print0 | xargs -0 -r wc -l
+
+# the matching paths are passed to another command, still null separated
+grep -rlZ --include='*.ts' -F 'user_id' src/ | xargs -0 -r wc -l`,
     explanation: L(
       'find applies its predicates as a conjunction, and the quoted pattern reaches find unchanged instead of being expanded by the shell. The null separated output from -print0 is the only safe way to hand paths to xargs when a name may contain a space or a newline.',
       'find соединяет свои предикаты по И, а процитированный образец доходит до find без изменений, вместо того чтобы быть развёрнутым оболочкой. Только null-разделённый вывод -print0 безопасно передаёт пути в xargs, если в имени есть пробел или перевод строки.'
@@ -85,18 +88,17 @@ find src -type f -name '*.ts' -print0 | xargs -0 -r wc -l`,
       'uniq collapses only adjacent duplicates, so sort first and then count with uniq -c. cut splits on a delimiter and ignores quoting. jq -r prints a string without quotes, and set -o pipefail makes a broken stage fail the whole pipeline.',
       'uniq схлопывает только соседние повторы, поэтому сначала отсортируйте, а затем посчитайте через uniq -c. cut делит по разделителю и игнорирует кавычки. jq -r печатает строку без кавычек, а set -o pipefail заставляет падать весь конвейер при сбое любого этапа.'
     ),
-    solution: `# the most frequent paths in the log
+    solution: `# the pipefail flag has to be set before the first pipeline
+set -o pipefail
+
+# the most frequent paths in the log
 awk '{ print $7 }' access.log | sort | uniq -c | sort -rn | head -5
 
 # the fifth column of a comma separated file
 cut -d, -f5 data.csv
 
 # one URL out of a JSON answer
-jq -r '.items[0].url' orders.json
-
-# any failing stage fails the pipeline
-set -o pipefail
-awk '{ print $7 }' access.log | sort | uniq -c | sort -rn | head -5`,
+jq -r '.items[0].url' orders.json`,
     explanation: L(
       'The pipeline becomes a frequency report because sort puts the equal lines next to each other and uniq -c counts each run. Without pipefail the pipeline reports the status of head alone, so a failure in awk or sort would pass unnoticed.',
       'Конвейер превращается в отчёт по частотам, потому что sort ставит одинаковые строки рядом, а uniq -c считает каждую серию. Без pipefail конвейер сообщает только код head, и сбой в awk или sort прошёл бы незамеченным.'
@@ -108,7 +110,7 @@ awk '{ print $7 }' access.log | sort | uniq -c | sort -rn | head -5`,
     topic: 'cli',
     chapterId: 'cli-ch4',
     level: 'intermediate',
-    title: L('Run a long job that survives the shell', 'Запустить долгую задачу, переживающую оболочку'),
+    title: L('Run a long job that survives the shell', 'Фоновая задача, переживающая оболочку'),
     brief: L(
       'Start a long running build in the background with its output in a log file, detach it so it keeps running after the terminal closes, and clean up its temporary directory when the script exits or fails. The cleanup must run exactly once and must not change the exit code.',
       'Запустите долгую сборку в фоне с выводом в лог-файл, отвяжите её так, чтобы она работала после закрытия терминала, и очищайте временный каталог при выходе или сбое скрипта. Очистка должна выполниться ровно один раз и не должна менять код возврата.'
@@ -131,9 +133,10 @@ trap cleanup EXIT
 
 # detached from the terminal, output in a file
 nohup ./build.sh > build.log 2>&1 < /dev/null &
-disown
+build_pid=$!
 
-wait
+# wait for that job, so the build has really finished
+wait "$build_pid"
 echo "build finished"`,
     explanation: L(
       'A background job that still owns the terminal keeps the streams attached, so the redirections detach it completely and setsid would go one step further. The trap on EXIT runs for a normal exit, a failure and an explicit exit, and the saved status keeps the original result intact.',
@@ -206,13 +209,11 @@ count_lines() {
   wc -l < "$file"
 }
 
+# the first argument is the directory, the rest are the files
+shift
 for file in "$@"; do
-  if ! count_lines "$file"; then
-    echo "skipped: $file" >&2
-    continue
-  fi
+  count_lines "$file" || echo "skipped: $file" >&2
 done
-
 echo "done"`,
     explanation: L(
       'The strict flags turn a silent failure into a loud one, but errexit never fires inside a condition or after ||, so the skipped file is handled explicitly. Quoting "$@" keeps the arguments one word each even when they contain spaces, and the parameter expansion aborts the script before any work starts.',
@@ -225,7 +226,7 @@ echo "done"`,
     topic: 'cli',
     chapterId: 'cli-ch7',
     level: 'intermediate',
-    title: L('Call an API and sync it to the server', 'Обратиться к API и синхронизировать на сервер'),
+    title: L('Call an API and sync it to the server', 'Обратиться к API и синхронизировать'),
     brief: L(
       'Fetch a JSON document from an API with a bearer token, fail loudly on an HTTP error and print only the status code and the total time. Then copy the built site to a remote host with rsync, preview the plan with a dry run first and keep the trailing slash on the source.',
       'Заберите JSON-документ у API с bearer-токеном, громко падайте при HTTP-ошибке и выведите только код ответа и общее время. Затем скопируйте собранный сайт на удалённый хост через rsync, сначала посмотрев план пробным запуском и сохранив слеш в конце пути-источника.'
@@ -267,15 +268,12 @@ rsync -av --delete --exclude 'node_modules' ./site/ deploy@prod:/var/www/`,
       'npm ci installs exactly what the lockfile records and fails when it disagrees with the manifest. A type checker produces no code, a transpiler rewrites the syntax and a bundler resolves the imports, so the order is check, then transpile, then bundle.',
       'npm ci ставит ровно то, что записано в lock-файле, и падает, если тот расходится с манифестом. Проверка типов не порождает код, транспайлер переписывает синтаксис, а бандлер разрешает импорты, поэтому порядок — проверка, потом транспляция, потом бандлинг.'
     ),
-    solution: `{
-  "scripts": {
-    "typecheck": "tsc --noEmit -p tsconfig.app.json",
-    "transpile": "tsc -p tsconfig.build.json",
-    "bundle": "esbuild src/main.ts --bundle --minify --outfile=dist/app.js",
-    "check": "npm run lint && npm run typecheck && npm run test",
-    "build": "npm run typecheck && npm run transpile && npm run bundle"
-  }
-}
+    solution: `# declare every task as one npm script
+npm pkg set scripts.typecheck="tsc --noEmit -p tsconfig.app.json" \\
+            scripts.transpile="tsc -p tsconfig.build.json" \\
+            scripts.bundle="esbuild src/main.ts --bundle --minify --outfile=dist/app.js" \\
+            scripts.check="npm run lint && npm run typecheck && npm run test" \\
+            scripts.build="npm run typecheck && npm run transpile && npm run bundle"
 
 # the pipeline calls the scripts, the scripts call the tools
 npm ci

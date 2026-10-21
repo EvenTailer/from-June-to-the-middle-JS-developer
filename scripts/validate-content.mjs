@@ -448,6 +448,17 @@ for (const file of taskFiles) {
     if (task.chapterId && !/^[a-z0-9-]+-ch\d+$/.test(task.chapterId)) {
       report(target, 'error', `chapterId "${task.chapterId}" is not a chapter id`);
     }
+    if (task.tests !== undefined) {
+      if (!Array.isArray(task.tests) || task.tests.length === 0) {
+        report(target, 'error', 'tests must be a non-empty array');
+      } else {
+        task.tests.forEach((test, index) => {
+          if (!test || typeof test.input !== 'string' || typeof test.expected !== 'string') {
+            report(target, 'error', `test ${index + 1} needs an input and an expected string`);
+          }
+        });
+      }
+    }
     const brief = String(task.brief?.en ?? '');
     if (brief && brief.length < 40) {
       report(target, 'warning', 'brief is shorter than 40 characters');

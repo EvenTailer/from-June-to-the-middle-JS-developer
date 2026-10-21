@@ -34,15 +34,22 @@ console.log(describeValue(NaN));    // 'nan'
 console.log(describeValue(-0));     // 'negative-zero'
 console.log(describeValue('text')); // 'string'
 
-// The two equality operators agree only on the same type
+// The two equality operators agree when no conversion happens
+console.log(5 == '5');   // false
+console.log(5 === '5');  // false
+console.log(NaN == NaN);  // false
+console.log(NaN === NaN); // false
+// and they disagree as soon as one value is converted
 console.log('' == 0);    // true
 console.log('' === 0);   // false
 console.log(null == undefined);  // true
 console.log(null === undefined); // false
-console.log(Object.is(0, -0));   // false`,
+// Object.is tells 0 and -0 apart and says that NaN equals itself
+console.log(Object.is(0, -0));    // false
+console.log(Object.is(NaN, NaN)); // true`,
     explanation: L(
-      'The function closes the holes of typeof, so a caller never has to special-case null or an array. The comparisons show that === treats 0 and -0 as the same value, while Object.is tells them apart and agrees with === on NaN.',
-      'Функция закрывает дыры typeof, поэтому вызывающему не нужно отдельно обрабатывать null и массив. Сравнения показывают, что === считает 0 и -0 одним значением, а Object.is их различает и, в отличие от ===, считает NaN равным самому себе.'
+      'The function closes the holes of typeof, so a caller never has to special-case null or an array. The comparisons show that the two operators agree as long as no conversion happens, while === treats 0 and -0 as the same value, Object.is tells them apart and, unlike ===, considers NaN equal to itself.',
+      'Функция закрывает дыры typeof, поэтому вызывающему не нужно отдельно обрабатывать null и массив. Сравнения показывают, что оба оператора совпадают, пока не включается приведение типов, а === считает 0 и -0 одним значением, Object.is их различает и, в отличие от ===, считает NaN равным самому себе.'
     ),
   },
   {
@@ -57,8 +64,8 @@ console.log(Object.is(0, -0));   // false`,
       'Реализуйте sum(a, b), чтобы она складывала два значения, которые могут прийти строками, и describeUser(user), которая возвращает метку роли, не падает без профиля и сохраняет настоящий ноль в счёте. Используйте операторы, которые отличают «нет значения» от «ложного значения».'
     ),
     hint: L(
-      'Convert both operands explicitly before adding. Use && to guard the profile access and ?? for the score, because || would replace a zero.',
-      'Явно приведите оба операнда к числу перед сложением. Для доступа к профилю используйте &&, а для счёта ??, потому что || заменит и ноль.'
+      'Convert both operands explicitly before adding. Guard the access to the profile so that a missing one never throws, and pick the operator that keeps a real zero instead of replacing it.',
+      'Явно приведите оба операнда к числу перед сложением. Оградите доступ к профилю так, чтобы его отсутствие не бросало исключение, и выберите оператор, который сохраняет настоящий ноль, а не заменяет его.'
     ),
     solution: `function sum(a, b) {
   // Explicit conversion: the plus operator would concatenate strings
@@ -223,12 +230,12 @@ console.log(Object.hasOwn(user, 'greet')); // false, the method is inherited`,
     level: 'intermediate',
     title: L('A temperature class with a private field', 'Класс температуры с приватным полем'),
     brief: L(
-      'Implement a Temperature class with a private Celsius field, a static factory that builds an instance from Fahrenheit, and a method that returns a frozen snapshot. The private value must stay invisible to JSON and to the outside code.',
-      'Реализуйте класс Temperature с приватным полем в градусах Цельсия, статической фабрикой из градусов Фаренгейта и методом, который возвращает замороженный снимок. Приватное значение должно остаться невидимым для JSON и для внешнего кода.'
+      'Implement a Temperature class with a private Celsius field, a static factory that builds an instance from Fahrenheit, and a method that returns a frozen snapshot. The private field itself must stay invisible: JSON.stringify must not leak it, and the outside code can only use the methods of the class.',
+      'Реализуйте класс Temperature с приватным полем в градусах Цельсия, статической фабрикой из градусов Фаренгейта и методом, который возвращает замороженный снимок. Само приватное поле должно остаться невидимым: JSON.stringify не должен его выдавать, а внешний код может пользоваться только методами класса.'
     ),
     hint: L(
-      'A private field starts with a hash. Object.freeze makes the returned snapshot immutable, and a toJSON method controls what JSON.stringify sees.',
-      'Приватное поле начинается с решётки. Object.freeze делает снимок неизменяемым, а метод toJSON управляет тем, что видит JSON.stringify.'
+      'A private field starts with a hash. Object.freeze makes the returned snapshot immutable, and JSON.stringify only reads the own enumerable properties, which a private field never is.',
+      'Приватное поле начинается с решётки. Object.freeze делает снимок неизменяемым, а JSON.stringify читает только собственные перечисляемые свойства, которых у приватного поля не бывает.'
     ),
     solution: `class Temperature {
   // The private field is invisible to reflection and to JSON
@@ -242,22 +249,20 @@ console.log(Object.hasOwn(user, 'greet')); // false, the method is inherited`,
     return new Temperature((fahrenheit - 32) * (5 / 9));
   }
 
-  get celsius() { return this.#celsius; }
-
   // A frozen snapshot: the value object cannot be changed afterwards
-  toJSON() {
+  snapshot() {
     return Object.freeze({ celsius: this.#celsius });
   }
 }
 
 const t = Temperature.fromFahrenheit(212);
-console.log(t.celsius);                    // 100
-console.log(t._celsius);                   // undefined
-console.log(JSON.stringify(t));            // '{"celsius":100}'
-console.log(Object.isFrozen(t.toJSON())); // true`,
+console.log(t.snapshot().celsius);        // 100
+console.log(t._celsius);                  // undefined
+console.log(JSON.stringify(t));           // '{}', the private field is not a property
+console.log(Object.isFrozen(t.snapshot())); // true`,
     explanation: L(
-      'The hash field cannot be read or written from outside the class, not even through reflection, so the internal state stays under control. The frozen snapshot gives the caller a value it cannot modify by accident.',
-      'Поле с решёткой не читается и не пишется извне класса, даже через рефлексию, поэтому внутреннее состояние остаётся под контролем. Замороженный снимок даёт вызывающему значение, которое нельзя случайно изменить.'
+      'The hash field cannot be read or written from outside the class, not even through reflection, so the internal state stays under control. There is no toJSON method, so JSON.stringify sees an empty object, and the frozen snapshot gives the caller a value it cannot modify by accident.',
+      'Поле с решёткой не читается и не пишется извне класса, даже через рефлексию, поэтому внутреннее состояние остаётся под контролем. Метода toJSON у класса нет, поэтому JSON.stringify видит пустой объект, а замороженный снимок даёт вызывающему значение, которое нельзя случайно изменить.'
     ),
   },
   {
@@ -400,7 +405,7 @@ function formatPrice(cents, locale = 'en-US', currency = 'USD') {
 }
 
 console.log(formatPrice(1999));               // '$19.99'
-console.log(formatPrice(1999, 'de-DE', 'EUR')); // '19,99 €'
+console.log(formatPrice(1999, 'de-DE', 'EUR')); // '19,99 €'
 
 // Date arithmetic in UTC, a daylight saving change cannot move the day
 function addDays(isoDate, days) {

@@ -73,7 +73,7 @@ order.total; // 500`,
       seeAlso: [
         L('Section 6-2: value objects in detail', 'Секция 6-2: объекты-значения подробно'),
         L('Section 5-3: repository and unit of work', 'Секция 5-3: репозиторий и единица работы'),
-        L('Chapter 3: composition over inheritance', 'Глава 3: композиция вместо наследования'),
+        L('Section 3-4: composition over inheritance', 'Секция 3-4: композиция вместо наследования'),
       ],
     },
     {
@@ -267,7 +267,7 @@ class PlaceOrder {
       seeAlso: [
         L('Section 5-3: repository and unit of work', 'Секция 5-3: репозиторий и единица работы'),
         L('Section 6-5: anemic versus rich domain models', 'Секция 6-5: анемичные и богатые доменные модели'),
-        L('Chapter 4: dependency inversion at the API boundary', 'Глава 4: инверсия зависимостей на границе API'),
+        L('Section 4-5: dependency inversion at the API boundary', 'Секция 4-5: инверсия зависимостей на границе API'),
       ],
     },
     {
@@ -332,7 +332,7 @@ class Cart {
       ),
       seeAlso: [
         L('Section 7-1: pure functions and referential transparency', 'Секция 7-1: чистые функции и прозрачность по подстановке'),
-        L('Chapter 2: when a class is the wrong tool', 'Глава 2: когда класс — не тот инструмент'),
+        L('Section 2-5: when a class is the wrong tool', 'Секция 2-5: когда класс — не тот инструмент'),
       ],
     },
   ],

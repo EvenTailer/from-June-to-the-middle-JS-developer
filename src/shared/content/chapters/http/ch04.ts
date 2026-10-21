@@ -30,7 +30,7 @@ const agent = new http.Agent({
   keepAlive: true,     // reuse sockets between requests
   maxSockets: 64,      // cap on concurrent sockets
   maxFreeSockets: 16,  // sockets kept open for reuse
-  timeout: 5000,       // destroy sockets that stayed idle for 5s
+  timeout: 5000,       // socket inactivity timeout, the request still emits 'timeout'
 });
 
 const body = await new Promise((resolve, reject) => {
@@ -52,7 +52,7 @@ console.log(body);`,
           [L('keepAlive', 'keepAlive'), L('false', 'false'), L('Reuse sockets between requests', 'Переиспользовать сокеты между запросами')],
           [L('maxSockets', 'maxSockets'), L('Infinity', 'Infinity'), L('Cap on concurrent sockets', 'Предел одновременных сокетов')],
           [L('maxFreeSockets', 'maxFreeSockets'), L('256', '256'), L('Sockets kept warm for reuse', 'Сокеты, оставленные тёплыми')],
-          [L('timeout', 'timeout'), L('No timeout', 'Без таймаута'), L('Destroy idle sockets', 'Уничтожать простаивающие сокеты')],
+          [L('timeout', 'timeout'), L('No timeout', 'Без таймаута'), L('Socket inactivity timeout', 'Таймаут неактивности сокета')],
           [L('agent: false', 'agent: false'), L('Pooling on', 'Пул включён'), L('Disable pooling entirely', 'Отключить пул совсем')],
         ],
       },
@@ -93,6 +93,8 @@ console.log(body);`,
     https://api.example.com/orders/42
 2 0.031
 
+import https from 'node:https';
+
 // six requests that used to need six connections
 const started = performance.now();
 
@@ -100,8 +102,19 @@ const responses = await Promise.all(
   Array.from({ length: 6 }, (_, i) => fetch('/api/orders/' + (i + 1)))
 );
 
-console.log('version:', responses[0].httpVersion); // '2'
-console.log('elapsed:', Math.round(performance.now() - started), 'ms');`,
+console.log('elapsed:', Math.round(performance.now() - started), 'ms');
+
+// the negotiated version lives on the Node request, not on the fetch Response
+const { httpVersion } = await new Promise((resolve, reject) => {
+  const req = https.request('https://api.example.com/orders/42', (res) => {
+    res.resume();
+    resolve(res);
+  });
+  req.on('error', reject);
+  req.end();
+});
+
+console.log('version:', httpVersion); // '2'`,
       table: {
         caption: L('HTTP/1.1 against HTTP/2', 'HTTP/1.1 против HTTP/2'),
         headers: [L('Feature', 'Свойство'), L('HTTP/1.1', 'HTTP/1.1'), L('HTTP/2', 'HTTP/2')],
@@ -136,8 +149,8 @@ console.log('elapsed:', Math.round(performance.now() - started), 'ms');`,
       id: 'http-ch4-s3',
       title: L('HTTP/3 and QUIC', 'HTTP/3 и QUIC'),
       body: L(
-        'HTTP/3 runs over QUIC, a transport protocol built on UDP, and the move is not only about the version number. QUIC integrates the TLS 1.3 handshake into the transport, so one round trip establishes a secure connection and the certificate chain is validated the way it always was. Because UDP carries no connection state, there is no TCP handshake to wait for and no congestion window to climb from scratch.\n\nThe main gain is loss isolation. In TCP a lost packet stalls every stream on the connection until it is retransmitted, and that is the head-of-line blocking HTTP/2 could not remove. In QUIC each stream is independent, so a lost packet delays one request while the others continue. On lossy mobile networks, where a large share of the traffic comes from, this is the difference between a stalled page and a usable one.\n\nEarly data, usually called 0-RTT, lets the client send application data in the first flight of the handshake. It removes a round trip for the first request and it comes with a replay risk: the data may be delivered more than once. That is why early data is only safe for idempotent requests, and why it is used for resumable downloads and static content rather than for a payment.\n\nQUIC also supports connection migration: a client that changes networks keeps the same logical connection and only its identifier changes. That matters on phones moving between Wi-Fi and cellular. The practical advice is unchanged: you do not choose the version, the client and the server negotiate it, and what remains worth tuning are timeouts, concurrency and payload size.',
-        'HTTP/3 работает поверх QUIC — транспортного протокола, построенного на UDP, и переход этот не только про номер версии. QUIC встраивает рукопожатие TLS 1.3 в транспорт, поэтому один круг устанавливает защищённое соединение, а цепочка сертификатов проверяется как обычно. Поскольку UDP не несёт состояния соединения, не нужно ждать рукопожатия TCP и не нужно поднимать окно перегрузки с нуля.\n\nГлавный выигрыш — изоляция потерь. В TCP потерянный пакет останавливает все потоки соединения до повторной передачи, и это тот самый head-of-line blocking, который HTTP/2 убрать не смог. В QUIC потоки независимы, поэтому потерянный пакет задерживает один запрос, а остальные идут дальше. На сетях с потерями, а оттуда приходит заметная доля трафика, это разница между зависшей страницей и рабочей.\n\nРанние данные, обычно их называют 0-RTT, позволяют клиенту отправить данные приложения уже в первом полёте рукопожатия. Это убирает круг для первого запроса и несёт риск повтора: данные могут быть доставлены дважды. Поэтому ранние данные безопасны только для идемпотентных запросов, и потому применяются для возобновляемых загрузок и статики, а не для платежа.\n\nQUIC поддерживает и миграцию соединения: клиент, сменивший сеть, сохраняет то же логическое соединение, меняется только его идентификатор. Это важно для телефонов, переходящих между Wi-Fi и мобильной сетью. Практический совет прежний: версию вы не выбираете, её согласуют клиент и сервер, а настраивать стоит таймауты, конкурентность и размер ответа.'
+        'HTTP/3 runs over QUIC, a transport protocol built on UDP, and the move is not only about the version number. QUIC integrates the TLS 1.3 handshake into the transport, so one round trip establishes a secure connection and the certificate chain is validated the way it always was. Because UDP carries no connection state, there is no TCP handshake to wait for, and QUIC runs a connection state and a congestion controller of its own, which starts from a slow start of its own.\n\nThe main gain is loss isolation. In TCP a lost packet stalls every stream on the connection until it is retransmitted, and that is the head-of-line blocking HTTP/2 could not remove. In QUIC each stream is independent, so a lost packet delays one request while the others continue. On lossy mobile networks, where a large share of the traffic comes from, this is the difference between a stalled page and a usable one.\n\nEarly data, usually called 0-RTT, lets the client send application data in the first flight of the handshake. It removes a round trip for the first request and it comes with a replay risk: the data may be delivered more than once. That is why early data is only safe for idempotent requests, and why it is used for resumable downloads and static content rather than for a payment.\n\nQUIC also supports connection migration: a client that changes networks keeps the same logical connection and only its identifier changes. That matters on phones moving between Wi-Fi and cellular. The practical advice is unchanged: you do not choose the version, the client and the server negotiate it, and what remains worth tuning are timeouts, concurrency and payload size.',
+        'HTTP/3 работает поверх QUIC — транспортного протокола, построенного на UDP, и переход этот не только про номер версии. QUIC встраивает рукопожатие TLS 1.3 в транспорт, поэтому один круг устанавливает защищённое соединение, а цепочка сертификатов проверяется как обычно. Поскольку UDP не несёт состояния соединения, не нужно ждать рукопожатия TCP, а у QUIC есть своё состояние соединения и свой контроллер перегрузки, который начинает со своего медленного старта.\n\nГлавный выигрыш — изоляция потерь. В TCP потерянный пакет останавливает все потоки соединения до повторной передачи, и это тот самый head-of-line blocking, который HTTP/2 убрать не смог. В QUIC потоки независимы, поэтому потерянный пакет задерживает один запрос, а остальные идут дальше. На сетях с потерями, а оттуда приходит заметная доля трафика, это разница между зависшей страницей и рабочей.\n\nРанние данные, обычно их называют 0-RTT, позволяют клиенту отправить данные приложения уже в первом полёте рукопожатия. Это убирает круг для первого запроса и несёт риск повтора: данные могут быть доставлены дважды. Поэтому ранние данные безопасны только для идемпотентных запросов, и потому применяются для возобновляемых загрузок и статики, а не для платежа.\n\nQUIC поддерживает и миграцию соединения: клиент, сменивший сеть, сохраняет то же логическое соединение, меняется только его идентификатор. Это важно для телефонов, переходящих между Wi-Fi и мобильной сетью. Практический совет прежний: версию вы не выбираете, её согласуют клиент и сервер, а настраивать стоит таймауты, конкурентность и размер ответа.'
       ),
       bullets: [
         L('QUIC runs over UDP and integrates the TLS 1.3 handshake into the transport.', 'QUIC работает поверх UDP и встраивает рукопожатие TLS 1.3 в транспорт.'),
@@ -151,9 +164,19 @@ console.log('elapsed:', Math.round(performance.now() - started), 'ms');`,
     https://api.example.com/orders/42
 3 0.018 0.041
 
+import https from 'node:https';
+
 // the client negotiates the version, the code does not choose it
-const response = await fetch('https://api.example.com/orders/42');
-console.log(response.httpVersion); // '2', '3' or '1.1' depending on the path
+const { httpVersion } = await new Promise((resolve, reject) => {
+  const req = https.request('https://api.example.com/orders/42', (res) => {
+    res.resume();
+    resolve(res);
+  });
+  req.on('error', reject);
+  req.end();
+});
+
+console.log(httpVersion); // '2', '3' or '1.1' depending on the path
 
 // 0-RTT is only safe for idempotent requests
 await fetch('https://api.example.com/assets/app.9f3a.js', {
@@ -193,13 +216,13 @@ await fetch('https://api.example.com/assets/app.9f3a.js', {
       id: 'http-ch4-s4',
       title: L('Compression: gzip and brotli', 'Сжатие: gzip и brotli'),
       body: L(
-        'Compression is the cheapest bandwidth win available and the easiest thing to get wrong. The server compresses the body, declares the algorithm in Content-Encoding, and the client decompresses before reading it. A text response often shrinks by 70 to 90 percent, which on a slow mobile link is the difference between a page that appears and a page that spins.\n\nNot everything should be compressed. Images in JPEG or PNG, video, archives and fonts are already compressed, so a second pass costs CPU and gains almost nothing. Text formats compress extremely well because they repeat words, markup and whitespace. The rule is simple: compress what is text, skip what is already compressed and measure the ratio instead of assuming it.\n\ngzip is the safe default, because every client has supported it for two decades. Brotli, published by Google and standardised as RFC 7932, achieves a better ratio at the cost of more CPU, and it offers a compression level that can be tuned per response: a static asset can be compressed hard once and served forever, while a dynamic response should be compressed cheaply. Servers often use gzip for dynamic responses and brotli for pre-compressed static files.\n\nCompression is negotiated, so it happens only if the client asks for it. The client sends Accept-Encoding: br, gzip, the server picks one and answers with the matching Content-Encoding, and the response must include Vary: Accept-Encoding so that a shared cache stores the compressed and the uncompressed variant separately. Compressing without the header produces a body the client cannot read, and forgetting Vary produces a cache that serves gzip to a client that never asked for it.',
-        'Сжатие — самая дешёвая победа по трафику и одновременно самое простое место для ошибки. Сервер сжимает тело, объявляет алгоритм в Content-Encoding, а клиент распаковывает перед чтением. Текстовый ответ часто теряет от 70 до 90 процентов, и на медленной мобильной сети это разница между появившейся страницей и крутящимся спиннером.\n\nСжимать нужно не всё. Картинки в JPEG или PNG, видео, архивы и шрифты уже сжаты, поэтому второй проход стоит процессорного времени и почти ничего не даёт. Текстовые форматы сжимаются отлично, потому что повторяют слова, разметку и пробелы. Правило простое: сжимайте текст, пропускайте уже сжатое и измеряйте коэффициент, а не выдумывайте его.\n\ngzip — безопасный выбор по умолчанию, потому что его поддерживает любой клиент вот уже два десятилетия. Brotli, опубликованный Google и стандартизованный как RFC 7932, даёт лучший коэффициент ценой большего расхода CPU и позволяет настраивать уровень сжатия под ответ: статику можно сжать сильно один раз и отдавать вечно, а динамический ответ лучше сжимать дёшево. Серверы часто используют gzip для динамики и brotli для заранее сжатых статических файлов.\n\nСжатие согласовано, поэтому происходит только если клиент его запросил. Клиент шлёт Accept-Encoding: br, gzip, сервер выбирает один и отвечает соответствующим Content-Encoding, а ответ обязан содержать Vary: Accept-Encoding, чтобы общий кэш хранил сжатый и несжатый варианты отдельно. Сжатие без заголовка даёт тело, которое клиент не прочитает, а забытый Vary даёт кэш, который отдаёт gzip тому, кто его не просил.'
+        'Compression is the cheapest bandwidth win available and the easiest thing to get wrong. The server compresses the body, declares the algorithm in Content-Encoding, and the client decompresses before reading it. A text response often shrinks by 70 to 90 percent, which on a slow mobile link is the difference between a page that appears and a page that spins.\n\nNot everything should be compressed. Images in JPEG or PNG, video, archives and fonts are already compressed, so a second pass costs CPU and gains almost nothing. Text formats compress extremely well because they repeat words, markup and whitespace. The rule is simple: compress what is text, skip what is already compressed and measure the ratio instead of assuming it.\n\ngzip is the safe default, because every client has supported it for two decades. Brotli, published by Google and standardised as RFC 7932, achieves a better ratio at the cost of more CPU, and it offers a compression level that can be tuned per response: a static asset can be compressed hard once and served forever, while a dynamic response should be compressed cheaply. Servers often use gzip for dynamic responses and brotli for pre-compressed static files.\n\nCompression is negotiated, and the client normally says what it is able to decode. The client sends Accept-Encoding: br, gzip, the server picks one and answers with the matching Content-Encoding, and the response must include Vary: Accept-Encoding so that a shared cache stores the compressed and the uncompressed variant separately. A client that sends no Accept-Encoding has expressed no preference, and the server may still compress the body; what it must not do is compress without saying so in a header, because then the client receives bytes it cannot read. Forgetting Vary produces a cache that serves gzip to a client that never asked for it.',
+        'Сжатие — самая дешёвая победа по трафику и одновременно самое простое место для ошибки. Сервер сжимает тело, объявляет алгоритм в Content-Encoding, а клиент распаковывает перед чтением. Текстовый ответ часто теряет от 70 до 90 процентов, и на медленной мобильной сети это разница между появившейся страницей и крутящимся спиннером.\n\nСжимать нужно не всё. Картинки в JPEG или PNG, видео, архивы и шрифты уже сжаты, поэтому второй проход стоит процессорного времени и почти ничего не даёт. Текстовые форматы сжимаются отлично, потому что повторяют слова, разметку и пробелы. Правило простое: сжимайте текст, пропускайте уже сжатое и измеряйте коэффициент, а не выдумывайте его.\n\ngzip — безопасный выбор по умолчанию, потому что его поддерживает любой клиент вот уже два десятилетия. Brotli, опубликованный Google и стандартизованный как RFC 7932, даёт лучший коэффициент ценой большего расхода CPU и позволяет настраивать уровень сжатия под ответ: статику можно сжать сильно один раз и отдавать вечно, а динамический ответ лучше сжимать дёшево. Серверы часто используют gzip для динамики и brotli для заранее сжатых статических файлов.\n\nСжатие согласовано, и клиент обычно говорит, что он способен распаковать. Клиент шлёт Accept-Encoding: br, gzip, сервер выбирает один и отвечает соответствующим Content-Encoding, а ответ обязан содержать Vary: Accept-Encoding, чтобы общий кэш хранил сжатый и несжатый варианты отдельно. Клиент, не приславший Accept-Encoding, не высказал никаких предпочтений, и сервер всё равно вправе сжать тело; он не должен лишь сжать без заголовка, иначе клиент получит байты, которые не прочитает. Забытый Vary даёт кэш, который отдаёт gzip тому, кто его не просил.'
       ),
       bullets: [
         L('Text shrinks by 70 to 90 percent, images and video by almost nothing.', 'Текст сжимается на 70–90 процентов, картинки и видео — почти никак.'),
         L('gzip is universally supported, brotli compresses better and costs more CPU.', 'gzip поддержан всеми, brotli жмёт лучше и стоит больше CPU.'),
-        L('Compression happens only when the client sends Accept-Encoding.', 'Сжатие происходит только когда клиент прислал Accept-Encoding.'),
+        L('Compression is negotiated, but a client that sends no Accept-Encoding does not forbid it.', 'Сжатие согласовано, но клиент без Accept-Encoding его не запрещает.'),
         L('Content-Encoding must name the algorithm, and Vary must name the request header.', 'Content-Encoding называет алгоритм, а Vary — заголовок запроса.'),
         L('Compress once, because a proxy that compresses again breaks the body.', 'Сжимайте один раз: прокси, сжавший повторно, ломает тело.'),
       ],
@@ -232,10 +255,10 @@ console.log('ratio  ', Math.round((1 - brotlied.length / body.length) * 100) + '
       callouts: [
         {
           tone: 'pitfall',
-          title: L('Compressed twice is corrupt', 'Двойное сжатие ломает тело'),
+          title: L('Only one layer may compress', 'Сжимать должен только один слой'),
           text: L(
-            'If a proxy compresses a body that already carries Content-Encoding: gzip, the client decompresses only once and the payload stays garbled. Compress at exactly one layer and let the others pass the header through unchanged.',
-            'Если прокси сожмёт тело, уже несущее Content-Encoding: gzip, клиент распакует его только один раз и получит мусор. Сжимайте ровно на одном слое, а остальные пропускайте вместе с заголовком без изменений.'
+            'The application and the CDN are two separate layers, and each of them may compress the body it forwards. If both do, the client decompresses only once and the payload stays garbled. Decide who compresses, and let the other layer pass Content-Encoding through unchanged.',
+            'Приложение и CDN — это два разных слоя, и каждый из них может сжать тело, которое передаёт дальше. Если сжмут оба, клиент распакует его только один раз и получит мусор. Решите, кто сжимает, а другой слой пусть пропускает Content-Encoding без изменений.'
           ),
         },
       ],

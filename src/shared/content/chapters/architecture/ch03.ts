@@ -264,7 +264,7 @@ export function findCycles(graph: Record<string, string[]>): string[][] {
       seeAlso: [
         L('Section 3-3: barrels and their downsides', 'Секция 3-3: баррели и их подвох'),
         L('Section 1-5: layer violations and how to spot them', 'Секция 1-5: нарушения слоёв и как их замечать'),
-        L('Chapter 5: testing the architecture with dependency rules', 'Глава 5: тестирование архитектуры правилами зависимостей'),
+        L('Section 5-6: testing the architecture with dependency rules', 'Секция 5-6: тестирование архитектуры правилами зависимостей'),
       ],
     },
     {

@@ -6,8 +6,8 @@ export const htmlCssCh04: Chapter = {
   id: 'htmlcss-ch4',
   title: L('The box model and layout fundamentals', 'Бокс-модель и основы раскладки'),
   summary: L(
-    'How content-box and border-box change every size you write, what the containing block decides about percentages and heights, why margins collapse and how to stop it, the six positioning schemes and their containing blocks, and what overflow and stacking contexts really do.',
-    'Как content-box и border-box меняют любой размер, который вы пишете, что содержащий блок решает про проценты и высоты, почему схлопываются отступы и как это остановить, шесть схем позиционирования и их содержащие блоки и что на самом деле делают overflow и контексты наложения.'
+    'How content-box and border-box change every size you write, what the containing block decides about percentages and heights, why margins collapse and how to stop it, the five positioning schemes and their containing blocks, and what overflow and stacking contexts really do.',
+    'Как content-box и border-box меняют любой размер, который вы пишете, что содержащий блок решает про проценты и высоты, почему схлопываются отступы и как это остановить, пять схем позиционирования и их содержащие блоки и что на самом деле делают overflow и контексты наложения.'
   ),
   sections: [
     {
@@ -131,11 +131,11 @@ export const htmlCssCh04: Chapter = {
 
 /* adjacent margins collapse: 24px wins over 16px */
 .title {
-  margin-block: 24px 0;
+  margin-block: 0 24px;      /* the bottom margin of the title */
 }
 
 .paragraph {
-  margin-block: 0 16px;
+  margin-block: 16px 0;      /* the top margin of the paragraph */
 }
 
 /* display: flow-root stops the parent-child collapse */
@@ -176,8 +176,8 @@ export const htmlCssCh04: Chapter = {
       id: 'htmlcss-ch4-s4',
       title: L('Positioning schemes', 'Схемы позиционирования'),
       body: L(
-        'The position property chooses one of six schemes. static is the default: the element stays in the flow and the offsets top, left, right and bottom do nothing at all. relative keeps the element in the flow and shifts it away from its normal place, which moves the painted box without moving the space it occupies, so the neighbours stay exactly where they were.\n\nabsolute removes the element from the flow and positions it against the containing block, which is the padding box of the nearest positioned ancestor. fixed removes it from the flow and positions it against the viewport, which is what a fixed header uses. A fixed element becomes relative to a transformed ancestor instead, because a transform creates a containing block for fixed descendants, and that is a classic source of a header that scrolls away unexpectedly.\n\nsticky is a hybrid: the element stays in the flow until its threshold is reached, and then it behaves like fixed inside the bounds of its nearest scrolling ancestor. It is the right tool for a table header that stops at the end of the table, and it needs a scroll container to stick to, otherwise it only works against the viewport.\n\nThe z-index property only applies to positioned elements and to flex and grid items, and it only orders elements inside the same stacking context. Raising the z-index of a tooltip to 9999 does nothing if the tooltip sits inside a container that creates its own stacking context, because that whole container is painted as one unit and the tooltip can never rise above it.',
-        'Свойство position выбирает одну из шести схем. static — значение по умолчанию: элемент остаётся в потоке, а смещения top, left, right и bottom не делают ровно ничего. relative оставляет элемент в потоке и сдвигает его от обычного места, то есть двигает нарисованный бокс, не двигая место, которое он занимает, поэтому соседи остаются ровно на месте.\n\nabsolute убирает элемент из потока и позиционирует его по содержащему блоку, то есть по боксу padding ближайшего позиционированного предка. fixed убирает его из потока и позиционирует по вьюпорту, и именно это использует фиксированная шапка. Но фиксированный элемент становится относительным трансформированного предка, потому что transform создаёт содержащий блок для fixed-потомков, и это классический источник шапки, которая неожиданно уезжает при прокрутке.\n\nsticky — это гибрид: элемент остаётся в потоке, пока не достигнут его порог, а затем ведёт себя как fixed в границах ближайшего прокручиваемого предка. Это правильный инструмент для заголовка таблицы, который останавливается у конца таблицы, и ему нужен прокручиваемый контейнер, иначе он работает только относительно вьюпорта.\n\nСвойство z-index работает только у позиционированных элементов и у элементов flex и grid и только упорядочивает их внутри одного контекста наложения. Поднять z-index подсказки до 9999 бесполезно, если подсказка лежит внутри контейнера, создающего собственный контекст наложения: весь контейринг рисуется как единое целое, и подсказка не сможет подняться над ним.'
+        'The position property chooses one of five schemes. static is the default: the element stays in the flow and the offsets top, left, right and bottom do nothing at all. relative keeps the element in the flow and shifts it away from its normal place, which moves the painted box without moving the space it occupies, so the neighbours stay exactly where they were.\n\nabsolute removes the element from the flow and positions it against the containing block, which is the padding box of the nearest positioned ancestor. fixed removes it from the flow and positions it against the viewport, which is what a fixed header uses. A fixed element becomes relative to a transformed ancestor instead, because a transform creates a containing block for fixed descendants, and that is a classic source of a header that scrolls away unexpectedly.\n\nsticky is a hybrid: the element stays in the flow until its threshold is reached, and then it behaves like fixed inside the bounds of its nearest scrolling ancestor. It is the right tool for a table header that stops at the end of the table, and it needs a scroll container to stick to, otherwise it only works against the viewport.\n\nThe z-index property only applies to positioned elements and to flex and grid items, and it only orders elements inside the same stacking context. Raising the z-index of a tooltip to 9999 does nothing if the tooltip sits inside a container that creates its own stacking context, because that whole container is painted as one unit and the tooltip can never rise above it.',
+        'Свойство position выбирает одну из пяти схем. static — значение по умолчанию: элемент остаётся в потоке, а смещения top, left, right и bottom не делают ровно ничего. relative оставляет элемент в потоке и сдвигает его от обычного места, то есть двигает нарисованный бокс, не двигая место, которое он занимает, поэтому соседи остаются ровно на месте.\n\nabsolute убирает элемент из потока и позиционирует его по содержащему блоку, то есть по боксу padding ближайшего позиционированного предка. fixed убирает его из потока и позиционирует по вьюпорту, и именно это использует фиксированная шапка. Но фиксированный элемент становится относительным трансформированного предка, потому что transform создаёт содержащий блок для fixed-потомков, и это классический источник шапки, которая неожиданно уезжает при прокрутке.\n\nsticky — это гибрид: элемент остаётся в потоке, пока не достигнут его порог, а затем ведёт себя как fixed в границах ближайшего прокручиваемого предка. Это правильный инструмент для заголовка таблицы, который останавливается у конца таблицы, и ему нужен прокручиваемый контейнер, иначе он работает только относительно вьюпорта.\n\nСвойство z-index работает только у позиционированных элементов и у элементов flex и grid и только упорядочивает их внутри одного контекста наложения. Поднять z-index подсказки до 9999 бесполезно, если подсказка лежит внутри контейнера, создающего собственный контекст наложения: весь контейринг рисуется как единое целое, и подсказка не сможет подняться над ним.'
       ),
       bullets: [
         L('static ignores the offsets, relative shifts the box without moving the space.', 'static игнорирует смещения, relative сдвигает бокс, не двигая место.'),
@@ -208,7 +208,7 @@ export const htmlCssCh04: Chapter = {
   top: -4px;   /* the box shifts, the space in the flow stays */
 }`,
       table: {
-        caption: L('The six positioning schemes', 'Шесть схем позиционирования'),
+        caption: L('The five positioning schemes', 'Пять схем позиционирования'),
         headers: [L('Value', 'Значение'), L('In the flow', 'В потоке'), L('Positioned against', 'Позиционируется относительно')],
         rows: [
           [L('static', 'static'), L('yes', 'да'), L('Nothing, the offsets are ignored', 'Ничего, смещения игнорируются')],

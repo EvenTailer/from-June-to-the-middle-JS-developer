@@ -11,8 +11,8 @@ export const typescriptChapterTasks: PracticeTask[] = [
     level: 'basic',
     title: L('Narrow unknown at the boundary', 'Сужение unknown на границе'),
     brief: L(
-      'Write parseProfile, which takes an unknown payload and returns a Profile with a string id and a string name, and describe, which turns any unknown value into a readable string. The payload must be narrowed with typeof and in checks instead of a cast, and the code must compile under strict.',
-      'Напишите parseProfile, который принимает значение типа unknown и возвращает Profile со строковыми id и name, и describe, который превращает любое значение типа unknown в читаемую строку. Данные нужно сузить проверками typeof и in, а не приведением типа, и код должен собираться в строгом режиме.'
+      'Write parseProfile, which takes an unknown payload and returns a Profile with a string id and a string name, and describe, which turns any unknown value into a readable string. The payload must be narrowed with typeof and in checks instead of a cast, and a helper that always throws must carry the return type never, so that the code compiles under strict.',
+      'Напишите parseProfile, который принимает значение типа unknown и возвращает Profile со строковыми id и name, и describe, который превращает любое значение типа unknown в читаемую строку. Данные нужно сузить проверками typeof и in, а не приведением типа, а хелпер, который всегда бросает исключение, должен иметь тип возврата never, чтобы код собирался в строгом режиме.'
     ),
     hint: L(
       'unknown accepts every value and cannot be used until it is narrowed: check typeof first, then check the property with the in operator. A function that always throws has the return type never.',
@@ -20,13 +20,18 @@ export const typescriptChapterTasks: PracticeTask[] = [
     ),
     solution: `interface Profile { id: string; name: string; }
 
+// A function that always throws has the return type never.
+function fail(message: string): never {
+  throw new Error(message);
+}
+
 // External data arrives as unknown, so it is narrowed and never cast.
 export function parseProfile(raw: unknown): Profile {
-  if (typeof raw !== 'object' || raw === null) throw new Error('not an object');
+  if (typeof raw !== 'object' || raw === null) fail('not an object');
   const id = 'id' in raw ? raw.id : undefined;
   const name = 'name' in raw ? raw.name : undefined;
-  if (typeof id !== 'string') throw new Error('bad id');
-  if (typeof name !== 'string') throw new Error('bad name');
+  if (typeof id !== 'string') fail('bad id');
+  if (typeof name !== 'string') fail('bad name');
   return { id, name };
 }
 
@@ -36,9 +41,8 @@ export function describe(value: unknown): string {
   if (typeof value === 'number') return value.toFixed(2);
   if (typeof value === 'boolean') return value ? 'yes' : 'no';
   if (value === null) return 'null';
-  throw new Error('unsupported value');
+  return fail('unsupported value');
 }
-
 console.log(parseProfile(JSON.parse('{"id":"u1","name":"Ada"}')));
 console.log(describe(42));`,
     explanation: L(
@@ -99,8 +103,8 @@ console.log(describeOrder({ kind: 'paid', orderId: 'o-1', amount: 100 }));`,
       'Опишите интерфейс Entity со строковым id, напишите обобщённый findById, который возвращает найденный элемент или undefined и принимает только элементы с id, и добавьте тип Record с литеральными ключами и индексную сигнатуру для динамического словаря. Поиск должен сохранять конкретный тип переданного массива.'
     ),
     hint: L(
-      'Constrain the type parameter with extends Entity when the body needs the id member, and let inference pick the type argument at the call site. Record with literal keys keeps every key required, an index signature is for genuinely dynamic keys.',
-      'Ограничьте параметр типа через extends Entity, когда телу нужен член id, и позвольте выводу подобрать аргумент типа в месте вызова. Record с литеральными ключами делает каждый ключ обязательным, а индексная сигнатура нужна для действительно динамических ключей.'
+      'Constrain the type parameter with extends Entity when the body needs the id member, and let inference pick the type argument at the call site. Record with literal keys keeps every key required, and an index signature adds the genuinely dynamic keys next to them.',
+      'Ограничьте параметр типа через extends Entity, когда телу нужен член id, и позвольте выводу подобрать аргумент типа в месте вызова. Record с литеральными ключами делает каждый ключ обязательным, а индексная сигнатура добавляет рядом с ними действительно динамические ключи.'
     ),
     solution: `interface Entity {
   id: string;
@@ -114,17 +118,17 @@ function findById<T extends Entity>(items: T[], id: string): T | undefined {
 // Record with literal keys keeps every key required.
 type Levels = Record<'debug' | 'info', number>;
 
-// An index signature is for genuinely dynamic keys.
-type Scores = { [name: string]: number };
+// The same dictionary also takes dynamic keys, so the index signature is added on top.
+type Scores = Levels & { [name: string]: number };
 
 const levels: Levels = { debug: 1, info: 2 };
-const scores: Scores = { alice: 10 };
+const scores: Scores = { debug: 1, info: 2, alice: 10 };
 
 const users: Entity[] = [{ id: 'u1' }, { id: 'u2' }];
 console.log(findById(users, 'u2'), levels.debug, scores.alice);`,
     explanation: L(
-      'The extends constraint tells the compiler that every item has an id, so the body of findById may compare it, while the return type keeps the concrete type T of the array that was passed in. Record and the index signature cover the two ends of the spectrum: fixed literal keys and completely dynamic ones.',
-      'Ограничение extends сообщает компилятору, что у каждого элемента есть id, поэтому тело findById может его сравнивать, а тип возврата сохраняет конкретный тип T переданного массива. Record и индексная сигнатура покрывают два края спектра: фиксированные литеральные ключи и полностью динамические.'
+      'The extends constraint tells the compiler that every item has an id, so the body of findById may compare it, while the return type keeps the concrete type T of the array that was passed in. The dictionary shows the two ends of the spectrum at once: the literal keys stay required, and the index signature lets the same type carry genuinely dynamic names.',
+      'Ограничение extends сообщает компилятору, что у каждого элемента есть id, поэтому тело findById может его сравнивать, а тип возврата сохраняет конкретный тип T переданного массива. Словарь показывает сразу оба края спектра: литеральные ключи остаются обязательными, а индексная сигнатура позволяет тому же типу нести действительно динамические имена.'
     ),
   },
   {
@@ -139,8 +143,8 @@ console.log(findById(users, 'u2'), levels.debug, scores.alice);`,
       'Напишите хелпер get, который читает свойство объекта по ключу, ограниченному keyof T, соберите тип Getters, превращающий каждое поле User в функцию с именем getX, и выведите тип Public, убирающий поле id. Каждый полученный тип должен оставаться точным по ключам и по типам значений.'
     ),
     hint: L(
-      'keyof describes the keys of a type and T[K] reads the value behind one of them. A mapped type is a loop over the keys, and the as clause renames or filters them.',
-      'keyof описывает ключи типа, а T[K] читает значение за одним из них. Отображаемый тип — это цикл по ключам, а секция as переименовывает или отбирает их.'
+      'keyof describes the keys of a type and T[K] reads the value behind one of them. A mapped type is a loop over the keys, and the as expression renames or filters them.',
+      'keyof описывает ключи типа, а T[K] читает значение за одним из них. Отображаемый тип — это цикл по ключам, а выражение as переименовывает или отбирает их.'
     ),
     solution: `interface User {
   id: string;
@@ -154,7 +158,7 @@ function get<T, K extends keyof T>(object: T, key: K): T[K] {
 
 // Key remapping renames every key and turns it into a getter.
 type Getters = {
-  [K in keyof User as 'get' + Capitalize<K & string>]: () => User[K];
+  [K in keyof User as \`get\${Capitalize<K & string>}\`]: () => User[K];
 };
 
 // Filtering with as removes the id field.
@@ -166,7 +170,7 @@ const visible: Public = { name: 'Ada' };
 console.log(get(user, 'name'), getters.getName(), visible.name);`,
     explanation: L(
       'The mapped type iterates over the keys of User exactly like a for loop over keyof, and the as clause decides what each key is called and whether it survives. The result is a whole new type computed at compile time, and the helper stays exact because K extends keyof T ties the argument to the object.',
-      'Отображаемый тип проходит по ключам User точно так же, как цикл for по keyof, а секция as решает, как называется каждый ключ и остаётся ли он. Результат — новый тип, вычисленный на этапе компиляции, а хелпер остаётся точным, потому что K extends keyof T связывает аргумент с объектом.'
+      'Отображаемый тип проходит по ключам User точно так же, как цикл for по keyof, а выражение as решает, как называется каждый ключ и остаётся ли он. Результат — новый тип, вычисленный на этапе компиляции, а хелпер остаётся точным, потому что K extends keyof T связывает аргумент с объектом.'
     ),
   },
   {
@@ -244,7 +248,7 @@ function isUser(value: unknown): value is { id: string; name: string } {
 }
 
 // satisfies checks the value and keeps the literal types.
-const routes = [{ path: '/orders', method: 'GET' }] satisfies { method: 'GET' | 'POST' }[];
+const routes = [{ path: '/orders', method: 'GET' }] satisfies { path: string; method: 'GET' | 'POST' }[];
 console.log(toUserId('u1'), routes[0].method);`,
     explanation: L(
       'The brand adds a unique symbol to the string type, so UserId and OrderId stay incompatible even though both are strings at run time, and only the validating function can produce one. The boundary function returns a type predicate, which narrows the unknown payload without a single cast, and satisfies validates the route table while keeping the literal method names.',
@@ -260,7 +264,7 @@ console.log(toUserId('u1'), routes[0].method);`,
     title: L('An abstract store with a concrete subclass', 'Абстрактное хранилище и конкретный подкласс'),
     brief: L(
       'Declare an abstract KeyValueStore with the read and write operations plus a shared readOrDefault helper, and implement it in a MemoryStore that keeps its data in a private readonly field. The base class must describe the contract and the subclass must not be able to break it.',
-      'Опишите абстрактный KeyValueStore с операциями read и write и общим хелпером readOrDefault, а также реализуй его в MemoryStore, который хранит данные в приватном readonly-поле. Базовый класс должен описывать контракт, а подкласс не должен быть able его нарушить.'
+      'Опишите абстрактный KeyValueStore с операциями read и write и общим хелпером readOrDefault, а также реализуй его в MemoryStore, который хранит данные в приватном readonly-поле. Базовый класс должен описывать контракт, а подкласс не должен иметь возможности его нарушить.'
     ),
     hint: L(
       'An abstract class shares the implementation between the subclasses and abstract methods describe what every subclass must provide. The private modifier is a compile time rule for other developers, a hash field is a real runtime boundary.',
@@ -313,18 +317,15 @@ export interface User {
   id: string;
   name: string;
 }
-
 // file: feature/userService.ts
 import type { User } from './types';
 export const DEFAULT_USER: User = { id: 'anonymous', name: 'Guest' };
 export function label(user: User): string {
   return user.name;
 }
-
 // file: feature/index.ts
 export { label, DEFAULT_USER } from './userService';
 export type { User } from './types';
-
 // file: types/legacy-sdk.d.ts
 declare module 'legacy-sdk' {
   export function send(payload: string): Promise<void>;
@@ -395,7 +396,6 @@ console.log(first, empty);`,
       'Помечайте readonly каждый проп, который компонент только читает, и поручайте children типу ReactNode. Тип события следует за элементом, которому служит обработчик, а дискриминант объединения состояния сужает его в каждом case.'
     ),
     solution: `import type { ChangeEvent, ReactNode } from 'react';
-
 type CardProps = { readonly title: string; count?: number; children?: ReactNode };
 type RequestState =
   | { status: 'idle' }

@@ -223,7 +223,7 @@ function UsersLayout() {
       seeAlso: [
         L('Section 1-1: nested routes, layout routes and index routes', 'Секция 1-1: вложенные, layout- и index-маршруты'),
         L('Section 3-2: loaders and useLoaderData', 'Секция 3-2: загрузчики и useLoaderData'),
-        L('Chapter 7: useMatches and breadcrumbs', 'Глава 7: useMatches и хлебные крошки'),
+        L('Section 7-3: useMatches and breadcrumbs', 'Секция 7-3: useMatches и хлебные крошки'),
       ],
     },
     {
@@ -279,7 +279,7 @@ function UsersLayout() {
       seeAlso: [
         L('Section 1-5: programmatic navigation', 'Секция 1-5: программная навигация'),
         L('Section 2-5: choosing what lives in the URL', 'Секция 2-5: что живёт в URL'),
-        L('Chapter 5: scroll restoration and focus management', 'Глава 5: восстановление прокрутки и работа с фокусом'),
+        L('Section 5-3: scroll restoration and focus management', 'Секция 5-3: восстановление прокрутки и работа с фокусом'),
       ],
     },
     {

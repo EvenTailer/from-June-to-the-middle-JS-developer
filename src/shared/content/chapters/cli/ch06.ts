@@ -27,19 +27,20 @@ export const cliCh06: Chapter = {
       code: `#!/usr/bin/env bash
 set -euo pipefail
 
-target="\${1:-world}"        # a default when the argument is missing
-readonly STAMP="$(date -u +%Y%m%d)"
-
-if [[ -z "$target" ]]; then
-  echo "no target" >&2
+if [[ $# -eq 0 ]]; then
+  echo "usage: $0 <target>" >&2
   exit 2
 fi
+
+target="$1"                      # the argument, checked above
+greeting="\${GREETING:-world}"   # a default when the value is unset
+readonly STAMP="$(date -u +%Y%m%d)"
 
 for file in "$@"; do
   echo "checking $file"
 done
 
-echo "got $# arguments, stamped $STAMP"`,
+echo "$greeting, checking $target, stamped $STAMP"`,
       table: {
         caption: L('Quoting forms and what they produce', 'Формы кавычек и что они дают'),
         headers: [L('Form', 'Форма'), L('Expands', 'Раскрывает'), L('Splits into words', 'Дробит на слова'), L('Expands patterns', 'Разворачивает шаблоны')],
@@ -83,14 +84,14 @@ echo "got $# arguments, stamped $STAMP"`,
       id: 'cli-ch6-s2',
       title: L('set -euo pipefail and safe scripts', 'set -euo pipefail и безопасные скрипты'),
       body: L(
-        'Three options turn a silent script into a loud one. The option -e stops the script when a command fails, the option -u turns the use of an unset variable into an error, and the option -o pipefail makes a pipeline fail when any of its commands fail instead of only the last one. Together they close the three ways a shell script usually lies: a failed command nobody checked, a typo in a variable name that expands to nothing, and a broken step hidden in the middle of a pipeline.\n\nThe option -e is a promise with sharp edges. It does not fire for a command that is part of a condition, it does not fire for a command on the left of ||, and it does not fire for a command whose status is inverted by !. It also does not fire inside a function that is called from such a context, which means a helper can fail and the script keeps going unless the function checks its own status.\n\nThe options are inherited by every child shell and by every script the script runs, so setting them at the top is cheap insurance for the whole tree. Two more settings belong in the same place: IFS left alone so that splitting is predictable, and the option -x or the command set -o xtrace when you need to see the expanded commands in a failure report. None of this replaces reading the exit status of the commands that matter.',
-        'Три опции превращают молчаливый скрипт в говорящий. Опция -e останавливает скрипт, когда команда падает, опция -u превращает использование неприсвоенной переменной в ошибку, а опция -o pipefail заставляет конвейер падать, если упала любая его часть, а не только последняя. Вместе они закрывают три способа, которыми shell-скрипт обычно врёт: упавшая команда, которую никто не проверил, опечатка в имени переменной, которая раскрывается в пустоту, и сломанный шаг, спрятанный в середине конвейера.\n\nОпция -e — обещание с острыми краями. Она не срабатывает для команды, входящей в условие, не срабатывает для команды слева от || и не срабатывает для команды, статус которой инвертирован знаком !. Она также не срабатывает внутри функции, вызванной из такого контекста, то есть помощник может упасть, а скрипт продолжит работу, если функция не проверит собственный статус.\n\nОпции наследуются каждой дочерней оболочкой и каждым скриптом, который запускает ваш скрипт, поэтому задать их в начале — дешёвая страховка для всего дерева. Туда же стоит положить IFS, оставленный как есть, чтобы разбиение было предсказуемым, и опцию -x или команду set -o xtrace, когда нужно увидеть раскрытые команды в отчёте об ошибке. Ничто из этого не заменяет проверку кодов возврата у команд, которые действительно важны.'
+        'Three options turn a silent script into a loud one. The option -e stops the script when a command fails, the option -u turns the use of an unset variable into an error, and the option -o pipefail makes a pipeline fail when any of its commands fail instead of only the last one. Together they close the three ways a shell script usually lies: a failed command nobody checked, a typo in a variable name that expands to nothing, and a broken step hidden in the middle of a pipeline.\n\nThe option -e is a promise with sharp edges. It does not fire for a command that is part of a condition, it does not fire for a command on the left of ||, and it does not fire for a command whose status is inverted by !. It also does not fire inside a function that is called from such a context, which means a helper can fail and the script keeps going unless the function checks its own status.\n\nThe options apply to the shell that sets them and to nothing else. A script that starts another script gets a fresh shell with the default options, so the strict block has to be repeated there or carried over with the exported variable SHELLOPTS, whose value lists the options that every child bash reads from the environment. Two more settings belong in the same place: IFS left alone so that splitting is predictable, and the option -x or the command set -o xtrace when you need to see the expanded commands in a failure report. None of this replaces reading the exit status of the commands that matter.',
+        'Три опции превращают молчаливый скрипт в говорящий. Опция -e останавливает скрипт, когда команда падает, опция -u превращает использование неприсвоенной переменной в ошибку, а опция -o pipefail заставляет конвейер падать, если упала любая его часть, а не только последняя. Вместе они закрывают три способа, которыми shell-скрипт обычно врёт: упавшая команда, которую никто не проверил, опечатка в имени переменной, которая раскрывается в пустоту, и сломанный шаг, спрятанный в середине конвейера.\n\nОпция -e — обещание с острыми краями. Она не срабатывает для команды, входящей в условие, не срабатывает для команды слева от || и не срабатывает для команды, статус которой инвертирован знаком !. Она также не срабатывает внутри функции, вызванной из такого контекста, то есть помощник может упасть, а скрипт продолжит работу, если функция не проверит собственный статус.\n\nОпции действуют в той оболочке, где их задали, и больше нигде. Скрипт, запускающий другой скрипт, получает свежую оболочку с умолчаниями, поэтому строгий блок приходится повторять там или переносить через экспортированную переменную SHELLOPTS, значение которой перечисляет опции, читаемые любым дочерним bash из окружения. Туда же стоит положить IFS, оставленный как есть, чтобы разбиение было предсказуемым, и опцию -x или команду set -o xtrace, когда нужно увидеть раскрытые команды в отчёте об ошибке. Ничто из этого не заменяет проверку кодов возврата у команд, которые действительно важны.'
       ),
       bullets: [
         L('-e stops on a failing command, -u stops on an unset variable.', '-e останавливает на падающей команде, -u — на неприсвоенной переменной.'),
         L('pipefail makes a pipeline fail when any stage fails.', 'pipefail заставляет конвейер падать, если упала любая его часть.'),
         L('-e does not fire inside conditions, after || or under !.', '-e не срабатывает в условиях, после || и под !.'),
-        L('The options are inherited by every child shell.', 'Опции наследуются всеми дочерними оболочками.'),
+        L('The options belong to the current shell, export SHELLOPTS to carry them into the children.', 'Опции принадлежат текущей оболочке, а export SHELLOPTS переносит их в дочерние.'),
         L('set -x prints the expanded commands and is the first debugging step.', 'set -x печатает раскрытые команды и это первый шаг отладки.'),
       ],
       code: `#!/usr/bin/env bash
@@ -132,8 +133,8 @@ grep -c "warn" app.log || true`,
           tone: 'tip',
           title: L('Start every script with the strict block', 'Начинайте каждый скрипт со строгого блока'),
           text: L(
-            'The block set -euo pipefail costs one line and covers the whole script tree. Add set -o xtrace right after it when the script fails and you need to see which command produced the error.',
-            'Блок set -euo pipefail стоит одной строки и покрывает всё дерево скриптов. Добавьте set -o xtrace сразу после него, когда скрипт падает и нужно увидеть, какая команда вызвала ошибку.'
+            'The block set -euo pipefail costs one line and covers the script it heads. Add export SHELLOPTS right after it when the script starts other bash scripts that have to be strict too, and set -o xtrace when the script fails and you need to see which command produced the error.',
+            'Блок set -euo pipefail стоит одной строки и покрывает скрипт, который он возглавляет. Добавьте export SHELLOPTS сразу после него, когда скрипт запускает другие bash-скрипты, которым тоже нужен строгий режим, и set -o xtrace, когда скрипт падает и нужно увидеть, какая команда вызвала ошибку.'
           ),
         },
       ],
@@ -294,8 +295,8 @@ echo "extracted into $workdir"`,
       id: 'cli-ch6-s5',
       title: L('Arrays, globbing and parameter expansion', 'Массивы, подстановка шаблонов и раскрытие параметров'),
       body: L(
-        'Bash arrays hold lists without splitting on spaces. The declaration declare -a names an array, the assignment names=(one two three) fills it, the reference ${items[@]} expands to every element as a separate word and ${#items[@]} gives the number of elements. Indexing starts at zero, and an index that does not exist expands to nothing under the strict mode, which is the strict mode doing its job.\n\nParameter expansion has a compact syntax for the operations that keep appearing in scripts. The form ${name:-default} yields a fallback when the variable is unset or empty, ${name:=default} stores the fallback in the variable itself, and ${name:?message} aborts with the message when the variable is missing. The operators # and %% remove a prefix and a suffix, and the operator /// replaces every occurrence of one string with another.\n\nGlobbing and parameter expansion are two different mechanisms that people mix up. The shell expands a pattern into names that exist on disk, while parameter expansion rewrites the text of a variable. A pattern that matches nothing stays as the pattern itself unless nullglob is set, and a variable holding a pattern is not globbed at all, because the result of a parameter expansion is not subject to path name expansion.',
-        'Массивы bash хранят списки, не разбивая их по пробелам. Объявление declare -a создаёт массив, присваивание names=(one two three) наполняет его, обращение ${items[@]} раскрывается в отдельное слово на каждый элемент, а ${#items[@]} даёт число элементов. Индексация начинается с нуля, и несуществующий индекс под строгим режимом раскрывается в пустоту, а это как раз работа строгого режима.\n\nУ раскрытия параметров есть компактный синтаксис для операций, которые постоянно встречаются в скриптах. Форма ${name:-default} даёт запасное значение, когда переменная не присвоена или пуста, ${name:=default} записывает запасное значение в саму переменную, а ${name:?message} прерывает скрипт с сообщением, если переменной нет. Операторы # и %% убирают префикс и суффикс, а оператор /// заменяет все вхождения одной строки на другую.\n\nПодстановка шаблонов и раскрытие параметров — два разных механизма, которые часто путают. Оболочка разворачивает шаблон в имена существующих на диске файлов, а раскрытие параметров переписывает текст переменной. Шаблон, которому ничего не соответствует, остаётся шаблоном, если не включён nullglob, а переменная, в которой лежит шаблон, не разворачивается вовсе, потому что результат раскрытия параметра не подлежит разворачиванию в имена файлов.'
+        'Bash arrays hold lists without splitting on spaces. The declaration declare -a names an array, the assignment names=(one two three) fills it, the reference ${items[@]} expands to every element as a separate word and ${#items[@]} gives the number of elements. Indexing starts at zero, and an index that does not exist expands to nothing under the strict mode, which is the strict mode doing its job.\n\nParameter expansion has a compact syntax for the operations that keep appearing in scripts. The form ${name:-default} yields a fallback when the variable is unset or empty, ${name:=default} stores the fallback in the variable itself, and ${name:?message} aborts with the message when the variable is missing. The operators # and %% remove a prefix and a suffix, and the operator /// replaces every occurrence of one string with another.\n\nGlobbing and parameter expansion are two different mechanisms that people mix up. The shell expands a pattern into names that exist on disk, while parameter expansion rewrites the text of a variable. A pattern that matches nothing stays as the pattern itself unless nullglob is set, and the result of an unquoted parameter expansion is globbed again, so a variable that holds a pattern hands the shell a fresh set of names unless you quote it.',
+        'Массивы bash хранят списки, не разбивая их по пробелам. Объявление declare -a создаёт массив, присваивание names=(one two three) наполняет его, обращение ${items[@]} раскрывается в отдельное слово на каждый элемент, а ${#items[@]} даёт число элементов. Индексация начинается с нуля, и несуществующий индекс под строгим режимом раскрывается в пустоту, а это как раз работа строгого режима.\n\nУ раскрытия параметров есть компактный синтаксис для операций, которые постоянно встречаются в скриптах. Форма ${name:-default} даёт запасное значение, когда переменная не присвоена или пуста, ${name:=default} записывает запасное значение в саму переменную, а ${name:?message} прерывает скрипт с сообщением, если переменной нет. Операторы # и %% убирают префикс и суффикс, а оператор /// заменяет все вхождения одной строки на другую.\n\nПодстановка шаблонов и раскрытие параметров — два разных механизма, которые часто путают. Оболочка разворачивает шаблон в имена существующих на диске файлов, а раскрытие параметров переписывает текст переменной. Шаблон, которому ничего не соответствует, остаётся шаблоном, если не включён nullglob, а результат подстановки параметра без кавычек разворачивается шаблонами заново, поэтому переменная с шаблоном отдаёт оболочке свежий набор имён, если её не взять в кавычки.'
       ),
       bullets: [
         L('declare -a creates an array, ${items[@]} expands it into separate words.', 'declare -a создаёт массив, ${items[@]} раскрывает его в отдельные слова.'),
@@ -303,7 +304,7 @@ echo "extracted into $workdir"`,
         L('${var:?message} aborts the script with a message.', '${var:?сообщение} прерывает скрипт с сообщением.'),
         L('${var#prefix} and ${var%%suffix} trim the value.', '${var#префикс} и ${var%%суффикс} обрезают значение.'),
         L('A glob that matches nothing stays literal unless nullglob is on.', 'Шаблон, которому ничего не соответствует, остаётся буквальным, если не включён nullglob.'),
-        L('The result of a parameter expansion is never globbed.', 'Результат раскрытия параметра никогда не разворачивается как шаблон.'),
+        L('The result of an unquoted parameter expansion is globbed again.', 'Результат раскрытия параметра без кавычек разворачивается шаблонами заново.'),
       ],
       code: `#!/usr/bin/env bash
 set -euo pipefail
@@ -315,8 +316,10 @@ echo "count: \${#files[@]}"
 
 # Parameter expansion
 name="\${USER_NAME:-anonymous}"
-path="\${path#/home/}"                 # strip the prefix
-ext="\${file##*.}"                    # strip everything before the last dot
+full="/var/log/app/service.log"
+dir="\${full%/*}"                # strip the last segment
+base="\${full##*/}"              # keep only the last segment
+ext="\${full##*.}"               # keep only the extension
 
 # A glob that matches nothing
 shopt -s nullglob

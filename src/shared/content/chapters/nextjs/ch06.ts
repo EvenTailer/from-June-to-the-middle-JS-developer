@@ -323,9 +323,11 @@ import { Suspense } from 'react';
 export default function CatalogPage() {
   return (
     <>
-      <CatalogList />      // 'use cache' keeps it in the prerendered shell
+      {/* 'use cache' keeps the list in the prerendered shell */}
+      <CatalogList />
       <Suspense fallback={<StockSkeleton />}>
-        <LiveStock />      // resolved per request
+        {/* resolved per request */}
+        <LiveStock />
       </Suspense>
     </>
   );
@@ -333,7 +335,6 @@ export default function CatalogPage() {
 
 // app/catalog/stock.tsx - reads request data, so it stays out of the shell
 import { cookies } from 'next/headers';
-
 export async function LiveStock() {
   const region = (await cookies()).get('region')?.value ?? 'eu';
   return <p>Stock for {region}</p>;

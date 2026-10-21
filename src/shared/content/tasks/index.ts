@@ -1,64 +1,94 @@
 import type { PracticeTask, PracticeTopicId } from '../../../entities/module/model/types';
-import { baseTasksByModule } from './base';
-import { htmlCssTasks } from './htmlCss';
-import { gitTasks } from './git';
-import { cliTasks } from './cli';
-import { oopTasks } from './oop';
-import { httpTasks } from './http';
-import { jsCoreTasks } from './jsCore';
-import { typescriptTasks } from './typescript';
-import { reactTasks } from './react';
-import { reduxTasks } from './redux';
-import { reactRouterTasks } from './reactRouter';
-import { nextjsTasks } from './nextjs';
-import { moduleTopicTaskCounts, topicTaskCounts } from './counts';
-import { htmlCssChapterTasks } from './chapters/htmlCss';
-import { gitChapterTasks } from './chapters/git';
-import { cliChapterTasks } from './chapters/cli';
-import { oopChapterTasks } from './chapters/oop';
-import { httpChapterTasks } from './chapters/http';
-import { jsCoreChapterTasks } from './chapters/jsCore';
-import { typescriptChapterTasks } from './chapters/typescript';
-import { reactChapterTasks } from './chapters/react';
-import { reduxChapterTasks } from './chapters/redux';
-import { reactRouterChapterTasks } from './chapters/reactRouter';
-import { nextjsChapterTasks } from './chapters/nextjs';
-import { architectureChapterTasks } from './chapters/architecture';
+import { moduleTaskCounts, topicTaskCounts } from './counts';
 
 export { loadModuleTopicTasks, loadTopicTasks } from './topics/registry';
-export { moduleTopicTaskCounts, topicTaskCounts } from './counts';
+export { moduleTopicTaskCounts, moduleTaskCounts, topicTaskCounts } from './counts';
 
-const moduleTasks: Record<string, PracticeTask[]> = {
-  'html-css': [...htmlCssTasks, ...htmlCssChapterTasks],
-  git: [...gitTasks, ...gitChapterTasks],
-  cli: [...cliTasks, ...cliChapterTasks],
-  oop: [...oopTasks, ...oopChapterTasks],
-  http: [...httpTasks, ...httpChapterTasks],
-  'js-core': [...jsCoreTasks, ...jsCoreChapterTasks],
-  typescript: [...typescriptTasks, ...typescriptChapterTasks],
-  react: [...reactTasks, ...reactChapterTasks],
-  redux: [...reduxTasks, ...reduxChapterTasks],
-  'react-router': [...reactRouterTasks, ...reactRouterChapterTasks],
-  nextjs: [...nextjsTasks, ...nextjsChapterTasks],
-  architecture: architectureChapterTasks,
+const baseLoader = () => import('./base').then((m) => m.baseTasksByModule);
+
+const moduleLoaders: Record<string, () => Promise<PracticeTask[]>> = {
+  'html-css': () =>
+    Promise.all([
+      import('./htmlCss').then((m) => m.htmlCssTasks),
+      import('./chapters/htmlCss').then((m) => m.htmlCssChapterTasks),
+    ]).then(([moduleTasks, chapterTasks]) => [...moduleTasks, ...chapterTasks]),
+  git: () =>
+    Promise.all([
+      import('./git').then((m) => m.gitTasks),
+      import('./chapters/git').then((m) => m.gitChapterTasks),
+    ]).then(([moduleTasks, chapterTasks]) => [...moduleTasks, ...chapterTasks]),
+  cli: () =>
+    Promise.all([
+      import('./cli').then((m) => m.cliTasks),
+      import('./chapters/cli').then((m) => m.cliChapterTasks),
+    ]).then(([moduleTasks, chapterTasks]) => [...moduleTasks, ...chapterTasks]),
+  oop: () =>
+    Promise.all([
+      import('./oop').then((m) => m.oopTasks),
+      import('./chapters/oop').then((m) => m.oopChapterTasks),
+    ]).then(([moduleTasks, chapterTasks]) => [...moduleTasks, ...chapterTasks]),
+  http: () =>
+    Promise.all([
+      import('./http').then((m) => m.httpTasks),
+      import('./chapters/http').then((m) => m.httpChapterTasks),
+    ]).then(([moduleTasks, chapterTasks]) => [...moduleTasks, ...chapterTasks]),
+  'js-core': () =>
+    Promise.all([
+      import('./jsCore').then((m) => m.jsCoreTasks),
+      import('./chapters/jsCore').then((m) => m.jsCoreChapterTasks),
+    ]).then(([moduleTasks, chapterTasks]) => [...moduleTasks, ...chapterTasks]),
+  typescript: () =>
+    Promise.all([
+      import('./typescript').then((m) => m.typescriptTasks),
+      import('./chapters/typescript').then((m) => m.typescriptChapterTasks),
+    ]).then(([moduleTasks, chapterTasks]) => [...moduleTasks, ...chapterTasks]),
+  react: () =>
+    Promise.all([
+      import('./react').then((m) => m.reactTasks),
+      import('./chapters/react').then((m) => m.reactChapterTasks),
+    ]).then(([moduleTasks, chapterTasks]) => [...moduleTasks, ...chapterTasks]),
+  redux: () =>
+    Promise.all([
+      import('./redux').then((m) => m.reduxTasks),
+      import('./chapters/redux').then((m) => m.reduxChapterTasks),
+    ]).then(([moduleTasks, chapterTasks]) => [...moduleTasks, ...chapterTasks]),
+  'react-router': () =>
+    Promise.all([
+      import('./reactRouter').then((m) => m.reactRouterTasks),
+      import('./chapters/reactRouter').then((m) => m.reactRouterChapterTasks),
+    ]).then(([moduleTasks, chapterTasks]) => [...moduleTasks, ...chapterTasks]),
+  nextjs: () =>
+    Promise.all([
+      import('./nextjs').then((m) => m.nextjsTasks),
+      import('./chapters/nextjs').then((m) => m.nextjsChapterTasks),
+    ]).then(([moduleTasks, chapterTasks]) => [...moduleTasks, ...chapterTasks]),
+  architecture: () =>
+    import('./chapters/architecture').then((m) => m.architectureChapterTasks),
 };
 
-export const tasksByModule: Record<string, PracticeTask[]> = Object.fromEntries(
-  [...Object.keys(baseTasksByModule), 'architecture'].map((moduleId) => [
-    moduleId,
-    [...(baseTasksByModule[moduleId] ?? []), ...(moduleTasks[moduleId] ?? [])],
-  ])
-);
+/**
+ * The tasks of one module: the shared base tasks, the module tasks, the tasks
+ * attached to a chapter and the topic tasks. Every group is a separate chunk.
+ */
+export async function loadModuleTasks(moduleId: string): Promise<PracticeTask[]> {
+  const loader = moduleLoaders[moduleId];
+  const [base, own] = await Promise.all([
+    baseLoader(),
+    loader ? loader() : Promise.resolve([]),
+  ]);
+
+  return [...(base[moduleId] ?? []), ...own];
+}
 
 export function getModuleTaskTotal(moduleId: string): number {
-  return (tasksByModule[moduleId]?.length ?? 0) + (moduleTopicTaskCounts[moduleId] ?? 0);
+  return moduleTaskCounts[moduleId] ?? 0;
 }
 
 export function getTopicTaskTotal(topicId: PracticeTopicId): number {
   return topicTaskCounts[topicId] ?? 0;
 }
 
-export const totalTaskCount = Object.keys(tasksByModule).reduce(
-  (sum, moduleId) => sum + getModuleTaskTotal(moduleId),
+export const totalTaskCount = Object.values(moduleTaskCounts).reduce(
+  (sum, count) => sum + count,
   0
 );

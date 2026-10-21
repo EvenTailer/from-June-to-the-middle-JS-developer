@@ -18,26 +18,28 @@ export const htmlCssChapterTasks: PracticeTask[] = [
       'Landmarks are header, nav, main, aside and footer. Give every nav an aria-label when there is more than one, tie the skip link to the id of main, and nest the heading levels without skipping a step.',
       'Лендмарки — это header, nav, main, aside и footer. Каждому nav нужен aria-label, если их больше одного, skip link привязывается к id элемента main, а уровни заголовков идут без пропусков.'
     ),
-    solution: `<a class="skip-link" href="#main">Skip to content</a>
-<header>
-  <nav aria-label="Primary">
-    <a href="/catalog">Catalog</a>
-    <a href="/pricing">Pricing</a>
-  </nav>
-</header>
-<main id="main">
-  <h1>Acme keyboard</h1>
-  <section>
-    <h2>Overview</h2>
-    <p>Mechanical keyboard with hot-swap switches.</p>
+    solution: `<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header>
+    <nav aria-label="Primary">
+      <a href="/catalog">Catalog</a>
+      <a href="/pricing">Pricing</a>
+    </nav>
+  </header>
+  <main id="main">
+    <h1>Acme keyboard</h1>
     <section>
-      <h3>Box contents</h3>
-      <ul><li>Keyboard</li><li>USB cable</li></ul>
+      <h2>Overview</h2>
+      <p>Mechanical keyboard with hot-swap switches.</p>
+      <section>
+        <h3>Box contents</h3>
+        <ul><li>Keyboard</li><li>USB cable</li></ul>
+      </section>
     </section>
-  </section>
-</main>
-<aside aria-label="Related products"><p>Keycaps set</p></aside>
-<footer><p>2026</p></footer>`,
+  </main>
+  <aside aria-label="Related products"><p>Keycaps set</p></aside>
+  <footer><p>2026</p></footer>
+</body>`,
     explanation: L(
       'The browser builds the accessibility tree from the elements, so the landmarks and the heading levels give a screen reader the structure of the page. The skip link is the first focusable element and points at a real target inside main.',
       'Дерево доступности браузер строит по элементам, поэтому лендмарки и уровни заголовков задают структуру страницы для скринридера. Skip link — первый фокусируемый элемент, и он указывает на реальную цель внутри main.'
@@ -97,7 +99,8 @@ export const htmlCssChapterTasks: PracticeTask[] = [
       'A state attribute only means something on an element that has a role, aria-describedby points at the message, and :focus-visible paints the ring for keyboard users without punishing mouse clicks.',
       'Атрибут состояния осмыслен только на элементе с ролью, aria-describedby указывает на сообщение, а :focus-visible рисует кольцо для клавиатуры, не мешая кликам мышью.'
     ),
-    solution: `<button type="button" aria-expanded="false" aria-controls="filters">
+    solution: `<!-- markup.html -->
+<button type="button" aria-expanded="false" aria-controls="filters">
   Filters
 </button>
 
@@ -110,10 +113,12 @@ export const htmlCssChapterTasks: PracticeTask[] = [
        width="640" height="360">
 </div>
 
+/* styles.css */
 :is(button, input):focus-visible {
   outline: 3px solid #0b57d0;
   outline-offset: 2px;
-}`,
+}
+`,
     explanation: L(
       'aria-expanded and aria-controls let a screen reader announce the state of the disclosure, and aria-describedby attaches the error to the field. The visible focus ring and the explicit alt are what a keyboard user and a screen reader user both need.',
       'aria-expanded и aria-controls позволяют скринридеру озвучить состояние раскрытия, а aria-describedby привязывает ошибку к полю. Видимое кольцо фокуса и явный alt нужны и пользователю клавиатуры, и пользователю скринридера.'
@@ -125,7 +130,7 @@ export const htmlCssChapterTasks: PracticeTask[] = [
     topic: 'markup',
     chapterId: 'htmlcss-ch4',
     level: 'intermediate',
-    title: L('Make the card layout predictable', 'Сделать раскладку карточки предсказуемой'),
+    title: L('Make the card layout predictable', 'Сделать раскладку карточки понятной'),
     brief: L(
       'The card must never grow wider than its column, its title and paragraph must keep a predictable distance, and the badge must sit in the corner of the card instead of the corner of the page. Fix the CSS.',
       'Карточка не должна выходить за пределы колонки, заголовок и абзац должны сохранять предсказуемый отступ, а бейдж должен стоять в углу карточки, а не страницы. Исправьте CSS.'
@@ -145,9 +150,9 @@ export const htmlCssChapterTasks: PracticeTask[] = [
   border: 1px solid #d0d0d0;
 }
 
-.card__title {
-  margin-block: 0 12px;    /* predictable spacing, no collapsing */
-}
+.card__title { margin-block: 0 12px; }   /* predictable spacing */
+
+.card__paragraph { margin-block: 0; }
 
 .card__badge {
   position: absolute;
@@ -262,23 +267,15 @@ export const htmlCssChapterTasks: PracticeTask[] = [
     "footer footer";
   gap: 24px;
 }
-
 .page__header { grid-area: header; }
 .page__sidebar { grid-area: sidebar; }
 .page__main { grid-area: main; }
 .page__footer { grid-area: footer; }
 
-.gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
-}
+.gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
 
 @media (width < 60rem) {
-  .page {
-    grid-template-columns: 1fr;
-    grid-template-areas: "header" "sidebar" "main" "footer";
-  }
+  .page { grid-template-columns: 1fr; grid-template-areas: "header" "sidebar" "main" "footer"; }
 }`,
     explanation: L(
       'The areas describe the layout once, so the media query moves every item by redefining the template and no selector has to change. The auto-fit gallery keeps a readable floor of 240 pixels and collapses the empty columns when only one card is left.',

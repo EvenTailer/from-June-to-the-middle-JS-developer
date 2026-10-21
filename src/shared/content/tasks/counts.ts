@@ -47,3 +47,18 @@ export const moduleTopicTaskCounts: Record<string, number> = {
   'redux': 8,
   'typescript': 16,
 };
+
+export const moduleTaskCounts: Record<string, number> = {
+  'architecture': 15,
+  'cli': 31,
+  'git': 30,
+  'html-css': 31,
+  'http': 40,
+  'js-core': 131,
+  'nextjs': 32,
+  'oop': 31,
+  'react': 60,
+  'react-router': 30,
+  'redux': 30,
+  'typescript': 41,
+};

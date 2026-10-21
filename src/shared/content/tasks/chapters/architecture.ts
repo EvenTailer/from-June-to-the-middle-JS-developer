@@ -26,12 +26,14 @@ export const architectureChapterTasks: PracticeTask[] = [
 };
 const layerOf = (path: string): string | null =>
   Object.keys(ALLOWED).find((layer) => path.includes('/' + layer + '/')) ?? null;
+// The pattern catches "from 'x'", a double quoted import, "import 'x'" and "export ... from 'x'".
+const IMPORT_RE = /\\b(?:from|import)\\s*['"]([^'"]+)['"]/g;
 // The import graph is the architecture, so check the graph.
 export function findViolations(files: Record<string, string>): string[] {
   const violations: string[] = [];
   for (const [file, source] of Object.entries(files)) {
     const from = layerOf(file);
-    for (const match of source.matchAll(/from\\s+'([^']+)'/g)) {
+    for (const match of source.matchAll(IMPORT_RE)) {
       const to = layerOf(match[1]);
       if (from && to && !ALLOWED[from].includes(to)) violations.push(file + ' -> ' + match[1]);
     }
@@ -103,12 +105,23 @@ export async function placeOrder(id: string, orders: OrderRepository): Promise<v
     solution: `// Build the import graph and report every cycle in it.
 export function findCycles(graph: Record<string, string[]>): string[][] {
   const cycles: string[][] = [];
+  const seen = new Set<string>();
   const path: string[] = [];
   const onPath = new Set<string>();
 
   function visit(node: string): void {
     if (onPath.has(node)) {
-      cycles.push([...path.slice(path.indexOf(node)), node]);
+      // The same cycle arrives in different rotations, so it is normalised first.
+      const cycle = path.slice(path.indexOf(node));
+      const sorted = [...cycle].sort();
+      const smallest = sorted[0];
+      const start = smallest === undefined ? 0 : cycle.indexOf(smallest);
+      const canonical = [...cycle.slice(start), ...cycle.slice(0, start)];
+      const key = canonical.join('>');
+      if (!seen.has(key)) {
+        seen.add(key);
+        cycles.push([...canonical, canonical[0]]);
+      }
       return;
     }
     onPath.add(node);
@@ -122,8 +135,8 @@ export function findCycles(graph: Record<string, string[]>): string[][] {
   return cycles;
 }`,
     explanation: L(
-      'A cycle means that two modules can no longer be changed or tested one at a time. The algorithm reports the cycle as a list of nodes, so the pair that has to be broken is visible.',
-      'Цикл означает, что два модуля больше нельзя менять или тестировать по отдельности. Алгоритм возвращает цикл списком узлов, поэтому пара, которую надо разорвать, видна сразу.'
+      'A cycle means that two modules can no longer be changed or tested one at a time. The algorithm reports the cycle as a list of nodes, so the pair that has to be broken is visible, and the normalisation makes sure that the same cycle in a different rotation is reported once.',
+      'Цикл означает, что два модуля больше нельзя менять или тестировать по отдельности. Алгоритм возвращает цикл списком узлов, поэтому пара, которую надо разорвать, видна сразу, а нормализация гарантирует, что один и тот же цикл в другой ротации попадёт в отчёт только один раз.'
     ),
   },
   {
@@ -179,11 +192,19 @@ export function canWrite(service: string, table: string): boolean {
     solution: `type Breaker = { failures: number; open: boolean; openedAt: number };
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
-export async function call<T>(breaker: Breaker, fn: () => Promise<T>, now = Date.now()): Promise<T> {
+// Every remote call gets a deadline, the caller is not held forever.
+function withTimeout<T>(task: Promise<T>, timeoutMs: number): Promise<T> {
+  const timeout = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error('timeout after ' + timeoutMs + 'ms')), timeoutMs);
+  });
+  return Promise.race([task, timeout]);
+}
+
+export async function call<T>(breaker: Breaker, fn: () => Promise<T>, timeoutMs = 2000, now = Date.now()): Promise<T> {
   if (breaker.open && now - breaker.openedAt < 30_000) throw new Error('circuit is open');
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
-      const value = await fn();
+      const value = await withTimeout(fn(), timeoutMs);
       breaker.failures = 0;
       breaker.open = false;
       return value;
@@ -223,9 +244,16 @@ export interface RouteModule {
   owner: string;
   load: () => Promise<unknown>;
 }
+// A bundler can only resolve a static import, so the chunks are listed here.
+const LOADERS: Record<string, () => Promise<unknown>> = {
+  '/orders': () => import('./routes/orders'),
+  '/reports': () => import('./routes/reports'),
+};
 // The adapter is the only place that knows how a route is fetched.
 export function lazyRoute(path: string, owner: string): RouteModule {
-  return { path, owner, load: () => import(path) };
+  const load = LOADERS[path];
+  if (!load) throw new Error('unknown route: ' + path);
+  return { path, owner, load };
 }
 // A remote piece is a remote dependency: it needs a deadline and a fallback.
 export async function loadRoute(route: RouteModule, timeoutMs = 3000): Promise<unknown> {
@@ -240,8 +268,8 @@ export function routesOwnedBy(routes: RouteModule[], owner: string): RouteModule
   return routes.filter((route) => route.owner === owner);
 }`,
     explanation: L(
-      'A route owns a slice of the url space and the chunk behind it, and the owner of every route is visible in the routing table. The timeout and the fallback treat a remote piece as a remote dependency, which is what keeps the shell alive.',
-      'Маршрут владеет куском пространства URL и чанком за ним, а владелец каждого маршрута виден в таблице маршрутов. Дедлайн и запасной вариант относятся к удалённой части как к удалённой зависимости — именно это оставляет оболочку живой.'
+      'A route owns a slice of the url space and the chunk behind it, and the owner of every route is visible in the routing table. The static map of loaders is what a bundler can actually resolve, and the timeout with the fallback treat a remote piece as a remote dependency, which is what keeps the shell alive.',
+      'Маршрут владеет куском пространства URL и чанком за ним, а владелец каждого маршрута виден в таблице маршрутов. Статическая карта загрузчиков — это то, что бандлер действительно может разрешить, а дедлайн с запасным вариантом относятся к удалённой части как к удалённой зависимости — именно это оставляет оболочку живой.'
     ),
   },
   {
@@ -261,6 +289,7 @@ export function routesOwnedBy(routes: RouteModule[], owner: string): RouteModule
     ),
     solution: `type Force = { pressure: string; importance: 'high' | 'medium' | 'low' };
 type Option = { option: string; verdict: 'chosen' | 'rejected'; reason: string };
+type Choice = { choice: string; reversible: boolean; cost: string };
 type DecisionDraft = { title: string; forces: Force[]; options: Option[] };
 
 export function draftRecord(draft: DecisionDraft): string {
@@ -272,6 +301,11 @@ export function draftRecord(draft: DecisionDraft): string {
   lines.push('', '## Rejected');
   for (const option of rejected) lines.push('- ' + option.option + ': ' + option.reason);
   return lines.join('\\n');
+}
+
+// A one-way door is a choice that cannot be undone at a reasonable price.
+export function oneWayDoors(choices: Choice[]): Choice[] {
+  return choices.filter((choice) => !choice.reversible);
 }`,
     explanation: L(
       'The forces are written before the options, so the discussion is about the pressures and not about the favourite answer. The rejected reasons are the part that is lost first, and the one-way doors are the decisions that deserve the slow road.',

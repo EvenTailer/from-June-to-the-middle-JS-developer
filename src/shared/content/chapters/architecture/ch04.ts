@@ -95,7 +95,6 @@ export const architectureCh04: Chapter = {
   ownData: boolean;
   dedicatedTeam: boolean;
 }
-
 // The four criteria of the section, counted.
 export function splitScore(capability: Capability): number {
   const reasons = [
@@ -106,7 +105,6 @@ export function splitScore(capability: Capability): number {
   ];
   return reasons.filter(Boolean).length;
 }
-
 // Three of four is a real reason; two is a preference.
 export function shouldExtract(capability: Capability): boolean {
   return splitScore(capability) >= 3;
@@ -167,18 +165,13 @@ export const ROUTES: Record<string, ServiceTarget> = {
   '/catalog': { host: 'http://catalog:8080', pathPrefix: '/catalog' },
   '/orders': { host: 'http://orders:8080', pathPrefix: '/orders' },
 };
-
 export function resolve(pathname: string): ServiceTarget | null {
   const prefix = Object.keys(ROUTES).sort((a, b) => b.length - a.length).find((key) => pathname.startsWith(key));
   return prefix ? ROUTES[prefix] : null;
 }
 
 // The client that calls a service always has a deadline.
-export async function callService(
-  target: ServiceTarget,
-  path: string,
-  timeoutMs: number
-): Promise<Response> {
+export async function callService(target: ServiceTarget, path: string, timeoutMs: number): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -219,7 +212,7 @@ export async function callService(
       ),
       seeAlso: [
         L('Section 4-5: what distribution costs you', 'Секция 4-5: сколько стоит распределение'),
-        L('Chapter 5: timeouts, retries and circuit breakers', 'Глава 5: таймауты, повторы и предохранители'),
+        L('Section 5-4: timeouts, retries and circuit breakers', 'Секция 5-4: таймауты, повторы и предохранители'),
       ],
     },
     {
@@ -246,16 +239,10 @@ export const DATA_OWNERS: Record<string, string> = {
   'catalog.categories': 'catalog',
   'orders.orders': 'orders',
 };
-
-export function canWrite(service: string, table: string): boolean {
-  return DATA_OWNERS[table] === service;
-}
-
+export function canWrite(service: string, table: string): boolean { return DATA_OWNERS[table] === service; }
 export class CatalogClient implements CatalogApi {
   private readonly baseUrl: string;
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl;
-  }
+  constructor(baseUrl: string) { this.baseUrl = baseUrl; }
   async findProduct(id: string): Promise<Product | null> {
     const response = await fetch(this.baseUrl + '/products/' + id);
     if (response.status === 404) return null;
@@ -306,7 +293,7 @@ export class CatalogClient implements CatalogApi {
       seeAlso: [
         L('Section 4-2: microservices and splitting criteria', 'Секция 4-2: микросервисы и критерии разделения'),
         L('Section 4-6: testing a distributed system', 'Секция 4-6: тестирование распределённой системы'),
-        L('Chapter 5: transactions, outbox and idempotency', 'Глава 5: транзакции, outbox и идемпотентность'),
+        L('Section 5-3: transactions, outbox and idempotency', 'Секция 5-3: транзакции, outbox и идемпотентность'),
       ],
     },
     {
@@ -324,10 +311,7 @@ export class CatalogClient implements CatalogApi {
         L('The bill arrives in latency, operations and debugging.', 'Счёт приходит в задержке, эксплуатации и отладке.'),
       ],
       code: `// Every call carries a deadline, shorter than the budget of its caller.
-export async function withDeadline<T>(
-  ms: number,
-  work: (signal: AbortSignal) => Promise<T>
-): Promise<T> {
+export async function withDeadline<T>(ms: number, work: (signal: AbortSignal) => Promise<T>): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), ms);
   try {
@@ -336,7 +320,6 @@ export async function withDeadline<T>(
     clearTimeout(timer);
   }
 }
-
 // The latency budget of one request path, in milliseconds.
 export const BUDGET = {
   total: 300,
@@ -345,7 +328,6 @@ export const BUDGET = {
   orders: 120,
   client: 100,
 };
-
 export function remaining(spent: Record<string, number>): number {
   const used = Object.values(spent).reduce((sum, value) => sum + value, 0);
   return BUDGET.total - used;
@@ -382,7 +364,7 @@ export function remaining(spent: Record<string, number>): number {
       ),
       seeAlso: [
         L('Section 4-3: communication and the API gateway', 'Секция 4-3: коммуникация и шлюз API'),
-        L('Chapter 5: errors, logging and observability', 'Глава 5: ошибки, логирование и наблюдаемость'),
+        L('Section 5-2: errors, logging and observability', 'Секция 5-2: ошибки, логирование и наблюдаемость'),
       ],
     },
     {
@@ -400,9 +382,7 @@ export function remaining(spent: Record<string, number>): number {
         L('Network failures are injected on purpose: delay, duplication, error.', 'Сетевые отказы внедряют намеренно: задержка, дублирование, ошибка.'),
       ],
       code: `// The consumer declares what it needs from the provider.
-export interface CatalogContract {
-  getProduct(id: string): Promise<{ id: string; priceCents: number } | null>;
-}
+export interface CatalogContract { getProduct(id: string): Promise<{ id: string; priceCents: number } | null> }
 
 // A fake that satisfies the contract, used by the consumer test.
 export class FakeCatalog implements CatalogContract {
@@ -410,9 +390,7 @@ export class FakeCatalog implements CatalogContract {
   async getProduct(id: string): Promise<{ id: string; priceCents: number } | null> {
     return this.rows.get(id) ?? null;
   }
-  seed(id: string, priceCents: number): void {
-    this.rows.set(id, { id, priceCents });
-  }
+  seed(id: string, priceCents: number): void { this.rows.set(id, { id, priceCents }); }
 }
 
 // The provider test: the same expectations, run against the real provider.
@@ -456,7 +434,7 @@ export async function providerSatisfies(contract: CatalogContract): Promise<void
       seeAlso: [
         L('Section 2-4: dependency inversion in practice', 'Секция 2-4: инверсия зависимостей на практике'),
         L('Section 4-4: data ownership', 'Секция 4-4: владение данными'),
-        L('Chapter 5: testing the architecture', 'Глава 5: тестирование архитектуры'),
+        L('Section 5-6: testing the architecture', 'Секция 5-6: тестирование архитектуры'),
       ],
     },
   ],

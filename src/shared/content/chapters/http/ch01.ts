@@ -27,7 +27,7 @@ export const httpCh01: Chapter = {
       code: `$ curl -i https://api.example.com/orders/42
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-Content-Length: 27
+Content-Length: 25
 Cache-Control: max-age=60
 
 {"id":42,"status":"paid"}
@@ -186,8 +186,8 @@ return response.json();`,
         },
       ],
       takeaway: L(
-        'The first digit tells the client whether to fix the request, wait, or give up.',
-        'Первая цифра говорит клиенту: исправлять запрос, подождать или сдаться.'
+        'The code carries the outcome, the reason phrase is only there for a human reader.',
+        'Код несёт исход, а текст причины нужен только человеку.'
       ),
       seeAlso: [
         L('Section 1-1: the parts of a message', 'Секция 1-1: части сообщения'),
@@ -217,7 +217,7 @@ return response.json();`,
 >
 < HTTP/1.1 200 OK
 < Content-Type: application/json
-< Content-Length: 27
+< Content-Length: 25
 <
 {"id":42,"status":"paid"}
 * Connection #0 to host api.example.com left intact
@@ -263,8 +263,8 @@ $ curl -v --http2 https://api.example.com/orders/43
       id: 'http-ch1-s5',
       title: L('The origin and the request pipeline', 'Origin и конвейер запроса'),
       body: L(
-        'Between a click and a response the browser performs a chain of steps that is invisible in application code but dominates the perceived latency. The name is resolved through DNS, a TCP connection is established, TLS negotiates keys and certificates, the request is written, the server answers, and the browser parses the response. Each step has a cost, and each one can be the slowest part of a page.\n\nDNS resolution is the first and often the most forgotten step. The browser cache, the operating system resolver cache and the DNS resolver answer at different levels, so a cold lookup can cost tens of milliseconds while a warm one is free. Connection setup follows, and the TLS handshake adds a round trip on top of it, or two when a certificate has to be validated again. A cold visit pays all of this, a warm one pays almost nothing.\n\nThe origin server is only the last hop. In production the request usually travels through a CDN edge, a load balancer and perhaps a service mesh before it reaches the application, and it travels back the same way. Every hop adds a small delay and a place where a header can be rewritten or a connection dropped. Measuring where the time goes means measuring the path, not just the handler.\n\nThe practical consequence for a backend developer is that handler time is only one term of the budget. A 20 ms handler behind a 120 ms TLS handshake and a 30 ms DNS lookup gives a 170 ms response, and optimising the handler to 10 ms changes almost nothing. Profile the whole chain, and remember that the numbers on a terminal next to the server are not the numbers your users get.',
-        'Между кликом и ответом браузер проходит цепочку шагов, невидимых в прикладном коде, но именно они определяют ощущаемую задержку. Имя разрешается через DNS, устанавливается TCP-соединение, TLS согласует ключи и сертификаты, запрос уходит, сервер отвечает, браузер разбирает ответ. У каждого шага есть цена, и любой из них может оказаться самым медленным звеном страницы.\n\nРазрешение DNS — первый шаг и самый забываемый. Кэш браузера, кэш резолвера операционной системы и сам DNS отвечают на разных уровнях, поэтому холодный поиск стоит десятки миллисекунд, а тёплый ничего не стоит. Дальше идёт установление соединения, а рукопожатие TLS добавляет ещё один круг, и два, если сертификат приходится проверять заново. Холодный визит платит за всё это, тёплый — почти за ничего.\n\nOrigin-сервер — это последний хоп. В продакшене запрос обычно идёт через край CDN, балансировщик и, возможно, service mesh, и обратно тем же путём. Каждый хоп добавляет небольшую задержку и ещё одно место, где можно переписать заголовок или оборвать соединение. Измерить, где теряется время, значит измерить весь путь, а не только обработчик.\n\nПрактическое следствие для бэкенд-разработчика: время обработчика — лишь одно слагаемое бюджета. Обработчик на 20 мс за TLS-рукопожатием в 120 мс и DNS-lookup в 30 мс дают ответ 170 мс, и оптимизация обработчика до 10 мс не меняет почти ничего. Профилируйте всю цепочку и помните, что числа в терминале рядом с сервером — это не те числа, что видит пользователь.'
+        'Between a click and a response the browser performs a chain of steps that is invisible in application code but dominates the perceived latency. The name is resolved through DNS, a TCP connection is established, TLS negotiates the keys and checks the server certificate, the request is written, the server answers, and the browser parses the response. Each step has a cost, and each one can be the slowest part of a page.\n\nDNS resolution is the first and often the most forgotten step. The browser cache, the operating system resolver cache and the DNS resolver answer at different levels, so a cold lookup can cost tens of milliseconds while a warm one is free. Connection setup follows, and the TLS handshake adds a round trip on top of it, or two when a certificate has to be validated again. A cold visit pays all of this, a warm one pays almost nothing.\n\nThe origin server is only the last hop. In production the request usually travels through a CDN edge, a load balancer and perhaps a service mesh before it reaches the application, and it travels back the same way. Every hop adds a small delay and a place where a header can be rewritten or a connection dropped. Measuring where the time goes means measuring the path, not just the handler.\n\nThe practical consequence for a backend developer is that handler time is only one term of the budget. A 20 ms handler behind a 120 ms TLS handshake and a 30 ms DNS lookup gives a 170 ms response, and optimising the handler to 10 ms changes almost nothing. Profile the whole chain, and remember that the numbers on a terminal next to the server are not the numbers your users get.',
+        'Между кликом и ответом браузер проходит цепочку шагов, невидимых в прикладном коде, но именно они определяют ощущаемую задержку. Имя разрешается через DNS, устанавливается TCP-соединение, TLS согласует ключи и проверяет сертификат сервера, запрос уходит, сервер отвечает, браузер разбирает ответ. У каждого шага есть цена, и любой из них может оказаться самым медленным звеном страницы.\n\nРазрешение DNS — первый шаг и самый забываемый. Кэш браузера, кэш резолвера операционной системы и сам DNS отвечают на разных уровнях, поэтому холодный поиск стоит десятки миллисекунд, а тёплый ничего не стоит. Дальше идёт установление соединения, а рукопожатие TLS добавляет ещё один круг, и два, если сертификат приходится проверять заново. Холодный визит платит за всё это, тёплый — почти за ничего.\n\nOrigin-сервер — это последний хоп. В продакшене запрос обычно идёт через край CDN, балансировщик и, возможно, service mesh, и обратно тем же путём. Каждый хоп добавляет небольшую задержку и ещё одно место, где можно переписать заголовок или оборвать соединение. Измерить, где теряется время, значит измерить весь путь, а не только обработчик.\n\nПрактическое следствие для бэкенд-разработчика: время обработчика — лишь одно слагаемое бюджета. Обработчик на 20 мс за TLS-рукопожатием в 120 мс и DNS-lookup в 30 мс дают ответ 170 мс, и оптимизация обработчика до 10 мс не меняет почти ничего. Профилируйте всю цепочку и помните, что числа в терминале рядом с сервером — это не те числа, что видит пользователь.'
       ),
       bullets: [
         L('The order is DNS, TCP, TLS, request, response.', 'Порядок такой: DNS, TCP, TLS, запрос, ответ.'),

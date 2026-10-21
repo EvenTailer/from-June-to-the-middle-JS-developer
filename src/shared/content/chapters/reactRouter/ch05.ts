@@ -82,7 +82,7 @@ export const routerCh05: Chapter = {
       seeAlso: [
         L('Section 5-2: Suspense and route-level fallbacks', 'Секция 5-2: Suspense и fallback на уровне маршрута'),
         L('Section 5-4: preloading on intent', 'Секция 5-4: предзагрузка по намерению'),
-        L('Chapter 7: custom history and file-based routing', 'Глава 7: своя history и маршрутизация по файлам'),
+        L('Section 7-5: custom history and file-based routing', 'Секция 7-5: своя history и маршрутизация по файлам'),
       ],
     },
     {
@@ -173,7 +173,7 @@ function Shell() {
       seeAlso: [
         L('Section 5-1: lazy route segments', 'Секция 5-1: ленивая загрузка маршрутов'),
         L('Section 6-1: the loader cache and revalidation', 'Секция 6-1: кэш загрузчиков и ревалидация'),
-        L('Chapter 3: loaders and useLoaderData', 'Глава 3: загрузчики и useLoaderData'),
+        L('Section 3-2: loaders and useLoaderData', 'Секция 3-2: загрузчики и useLoaderData'),
       ],
     },
     {

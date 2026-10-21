@@ -317,7 +317,7 @@ function Dashboard() {
       seeAlso: [
         L('Section 4-2: authentication versus authorisation', 'Секция 4-2: аутентификация против авторизации'),
         L('Section 4-3: protecting server loaders', 'Секция 4-3: защита загрузчиков на сервере'),
-        L('Chapter 7: useMatches and breadcrumbs', 'Глава 7: useMatches и хлебные крошки'),
+        L('Section 7-3: useMatches and breadcrumbs', 'Секция 7-3: useMatches и хлебные крошки'),
       ],
     },
   ],

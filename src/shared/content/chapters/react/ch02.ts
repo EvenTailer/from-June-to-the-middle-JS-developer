@@ -139,6 +139,7 @@ function List({ items }) {
       ],
       code: `function Panel({ items }) {
   const [a, setA] = useState(0);
+  const [b, setB] = useState(0);
   const [height, setHeight] = useState(0);
   const boxRef = useRef(null);
 
@@ -146,6 +147,7 @@ function List({ items }) {
   function handleClick() {
     setA(1);
     setA((prev) => prev + 1);
+    setB((prev) => prev + 1);
   }
 
   // Measure after the DOM changed but before the browser painted
@@ -158,15 +160,15 @@ function List({ items }) {
     console.log('painted', boxRef.current.offsetHeight);
   }, [items]);
 
-  return <button ref={boxRef} onClick={handleClick}>a={a} h={height}</button>;
+  return <button ref={boxRef} onClick={handleClick}>a={a} b={b} h={height}</button>;
 }`,
       table: {
         caption: L('The three phases of an update', 'Три фазы обновления'),
-        headers: [L('Phase', 'Фаза'), L('When', 'Когда'), L('Touches the DOM', 'Трогает DOM')],
+        headers: [L('Phase', 'Фаза'), L('When', 'Когда'), L('DOM access', 'Доступ к DOM')],
         rows: [
-          [L('Render', 'Рендер'), L('after the update is queued', 'после постановки обновления в очередь'), L('no', 'нет')],
-          [L('Commit', 'Коммит'), L('when the tree is finished', 'когда дерево готово'), L('yes, synchronously', 'да, синхронно')],
-          [L('Effects', 'Эффекты'), L('layout before paint, passive after', 'раскладки до отрисовки, пассивные после'), L('layout only', 'только раскладки')],
+          [L('Render', 'Рендер'), L('after the update is queued', 'после постановки обновления в очередь'), L('none, the phase only computes a tree', 'никакого, фаза только считает дерево')],
+          [L('Commit', 'Коммит'), L('when the tree is finished', 'когда дерево готово'), L('writes the changes, synchronously', 'пишет изменения, синхронно')],
+          [L('Effects', 'Эффекты'), L('layout before paint, passive after', 'раскладки до отрисовки, пассивные после'), L('may read and write it, at any time', 'может читать и писать в него, в любое время')],
         ],
       },
       callouts: [

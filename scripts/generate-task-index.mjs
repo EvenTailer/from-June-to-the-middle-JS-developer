@@ -129,6 +129,14 @@ writeFileSync(
 );
 
 const topicOrder = Object.keys(topicCounts).sort();
+// Every task belongs to exactly one module, so the id map already knows how
+// many tasks each module has. The UI needs that number before the tasks are
+// loaded, which is why it is written out here.
+const moduleTaskCounts = {};
+for (const moduleId of Object.values(moduleById)) {
+  moduleTaskCounts[moduleId] = (moduleTaskCounts[moduleId] ?? 0) + 1;
+}
+
 writeFileSync(
   join(TASKS, 'counts.ts'),
   `${header}import type { PracticeTopicId } from '../../../entities/module/model/types';\n\n` +
@@ -140,6 +148,12 @@ writeFileSync(
       .sort()
       .map((moduleId) => `  '${moduleId}': ${moduleTopicCounts[moduleId]},`)
       .join('\n') +
+    `\n};\n\n` +
+    `export const moduleTaskCounts: Record<string, number> = {\n` +
+    Object.keys(moduleTaskCounts)
+      .sort()
+      .map((moduleId) => `  '${moduleId}': ${moduleTaskCounts[moduleId]},`)
+      .join('\n') +
     `\n};\n`,
   'utf8'
 );
@@ -147,4 +161,10 @@ writeFileSync(
 console.log(
   `taskIndex.ts: ${Object.keys(moduleById).length} ids, ${Object.keys(topicById).length} topics`
 );
-console.log(`counts.ts: ${topicOrder.length} topics, ${Object.keys(moduleTopicCounts).length} modules`);
+console.log(`counts.ts: ${topicOrder.length} topics, ${Object.keys(moduleTaskCounts).length} modules`);
+console.log(
+  `tasks per module: ${Object.keys(moduleTaskCounts)
+    .sort()
+    .map((moduleId) => `${moduleId}=${moduleTaskCounts[moduleId]}`)
+    .join(' ')}`
+);

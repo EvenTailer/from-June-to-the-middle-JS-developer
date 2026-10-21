@@ -12,7 +12,7 @@ export const httpChapterTasks: PracticeTask[] = [
     title: L('Classify a response by its status code', 'Классифицируйте ответ по коду состояния'),
     brief: L(
       'Write a loadOrder function that fetches an order, returns undefined for 404 and 204, throws with the problem title for any other error status, and parses the body only when the response is successful. Send an Accept header and a timeout, and remember that fetch rejects only on network failures.',
-      'Напишите функцию loadOrder, которая получает заказ, возвращает undefined для 404 и 204, выбрасывает исключение с заголовком problem для любого другого ошибочного статуса и разбирает тело только при успешном ответе. Отправьте заголовок Accept и таймаут и помните, что fetch отклоняет промис только при сетевых сбоях.'
+      'Напишите функцию loadOrder, которая получает заказ, возвращает undefined для 404 и 204, выбрасывает исключение с problem.title для любого другого ошибочного статуса и разбирает тело только при успешном ответе. Отправьте заголовок Accept и таймаут и помните, что fetch отклоняет промис только при сетевых сбоях.'
     ),
     hint: L(
       'Check response.status before the generic error branch, and read the body only once. The ok property is false for every status from 400 to 599, and 204 carries no body at all.',
@@ -79,12 +79,9 @@ export async function patchOrder(id: string, token: string): Promise<Response> {
     body: JSON.stringify({ status: 'paid' }),
   });
 }
-
 // The response headers describe the representation and its reuse policy.
 export const describeRepresentation = (response: Response): string =>
-  (response.headers.get('content-type') ?? 'none') +
-  ' | encoding: ' + (response.headers.get('content-encoding') ?? 'identity') +
-  ' | vary: ' + (response.headers.get('vary') ?? 'none');`,
+  [response.headers.get('content-type'), response.headers.get('content-encoding'), response.headers.get('vary')].join(' | ');`,
     explanation: L(
       'Accept asks for a representation, Content-Type announces the one that is being sent, and Vary records the request header the answer depends on, so that a cache never mixes two variants. The preflight is a request about the request: the browser asks the server whether the PATCH with those headers is allowed, and the 204 answer carries the policy.',
       'Accept просит представление, Content-Type объявляет отправляемое, а Vary записывает заголовок запроса, от которого зависит ответ, чтобы кэш не смешивал два варианта. Preflight — это запрос о запросе: браузер спрашивает у сервера, разрешён ли такой PATCH с этими заголовками, и ответ 204 несёт политику.'
@@ -107,7 +104,6 @@ export const describeRepresentation = (response: Response): string =>
     ),
     solution: `// $ curl -i -H 'If-None-Match: "orders-v3"' https://api.example.com/api/orders
 // HTTP/1.1 304 Not Modified
-// $ curl -X PURGE https://api.cdn.example.com/purge -d '{"paths":["/index.html"]}'
 
 // A fingerprinted asset is cached forever, a personal page is not.
 export const cachePolicy = {
@@ -116,7 +112,6 @@ export const cachePolicy = {
 };
 
 const CACHE = new Map<string, { etag: string; body: string }>();
-
 // A conditional request turns a full download into a 304.
 export async function loadOrders(): Promise<string> {
   const cached = CACHE.get('orders');
@@ -127,6 +122,15 @@ export async function loadOrders(): Promise<string> {
   const body = await response.text();
   CACHE.set('orders', { etag: response.headers.get('etag') ?? '', body });
   return body;
+}
+
+// One path is dropped from the edge, the request names the paths to purge.
+export async function purgePath(path: string, token: string): Promise<Response> {
+  return fetch('https://api.cdn.example.com/purge', {
+    method: 'PURGE',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+    body: JSON.stringify({ paths: [path] }),
+  });
 }`,
     explanation: L(
       'The client keeps the ETag it received and sends it back as If-None-Match, so an unchanged answer costs a 304 with no body instead of a full download. The Cache-Control policy is chosen from the sensitivity of the data: a fingerprinted asset is immutable and lives on the edge, while a personalized page must never be stored in a shared cache.',
@@ -229,9 +233,17 @@ export function verifyClaims(token: string, publicKey: string): boolean {
       'Encode every value where it is inserted and add a strict CSP on top, because the two fail in different ways. Keep SameSite at Lax or Strict and treat the CSRF token as the layer that actually decides.',
       'Экранируйте значение там, где оно вставляется, и добавляйте строгую CSP поверх, потому что они ломаются по-разному. Держите SameSite на Lax или Strict, а CSRF-токен считайте тем слоем, который действительно решает.'
     ),
-    solution: `// Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+    solution: `import crypto from 'node:crypto';
+
+// Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
 // Set-Cookie: sid=abc123; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=3600
-// Content-Security-Policy: default-src 'self'; script-src 'self'; frame-ancestors 'none'
+// Content-Security-Policy: default-src 'self'; script-src 'self'; object-src 'none'; frame-ancestors 'none'
+
+// HSTS is only useful when it comes with the first https response.
+export const hsts = 'max-age=63072000; includeSubDomains; preload';
+
+// The session cookie is narrow: only the host, only the path, only the owner.
+export const sessionCookie = 'sid=abc123; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=3600';
 
 const ESCAPES: Record<string, string> = {
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -249,8 +261,20 @@ export const csp = [
 ].join('; ');
 
 // The token lives in a cookie and travels in a header.
-export const issueCsrfToken = (token: string): string =>
-  'csrf=' + token + '; Path=/; Secure; SameSite=Strict';`,
+// The value in the cookie is signed by the server, so a page on a
+// subdomain cannot plant its own token and switch the defence off.
+export const issueCsrfToken = (token: string, secret: string): string => {
+  const signature = crypto.createHmac('sha256', secret).update(token).digest('hex');
+  return 'csrf=' + token + '.' + signature + '; Path=/; Secure; SameSite=Strict';
+};
+
+// The client sends the token back in a header, which forces a preflight.
+export const sendWithCsrfToken = (url: string, token: string): Promise<Response> =>
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': token },
+    body: JSON.stringify({ amount: 100 }),
+  });`,
     explanation: L(
       'HSTS tells the browser to refuse plain HTTP from now on, and it only works if it is sent from the very first HTTPS response. Output encoding and CSP are two different layers: encoding removes the markup from the value, while the policy removes the ability to execute it, so a mistake in one is not fatal when the other is in place.',
       'HSTS говорит браузеру больше не принимать обычный HTTP, и работает только тогда, когда отправлен с первого же HTTPS-ответа. Экранирование вывода и CSP — два разных слоя: экранирование убирает разметку из значения, а политика убирает саму возможность выполнить её, поэтому ошибка в одном не смертельна, когда на месте другой.'
@@ -272,16 +296,13 @@ export const issueCsrfToken = (token: string): string =>
       'Моделируйте существительные, держите глагол в методе и выбирайте плоские ресурсы со ссылками вместо глубоких иерархий. Offset используйте только для стабильных коллекций, а ключ идемпотентности забирайте до записи.'
     ),
     solution: `// $ curl -i -X POST https://api.example.com/orders
-// HTTP/1.1 201 Created
-// Location: /orders/ord_1042
-
+// HTTP/1.1 201 Created, Location: /orders/ord_1042
 // A flat resource with the verb in the method and the id in the path.
 const ROUTES = [
   { method: 'GET', path: '/orders' },
   { method: 'POST', path: '/orders' },
   { method: 'PATCH', path: '/orders/:orderId' },
 ];
-
 // The client owns the key and reuses it across every retry.
 export async function createOrder(sku: string, key: string): Promise<Response> {
   return fetch('https://api.example.com/orders', {
@@ -290,7 +311,6 @@ export async function createOrder(sku: string, key: string): Promise<Response> {
     body: JSON.stringify({ sku, quantity: 1 }),
   });
 }
-
 // A cursor carries the last seen key, so new rows cannot shift the page.
 export function nextPage(cursor: string | null): string {
   const params = new URLSearchParams({ limit: '20' });
@@ -320,34 +340,30 @@ export function nextPage(cursor: string | null): string {
     solution: `// $ curl -i -X POST https://api.example.com/orders -d '{"sku":"A-1","quantity":0}'
 // HTTP/1.1 422 Unprocessable Content
 // Content-Type: application/problem+json
-
 // One envelope for every answer, success or failure.
 export const envelope = (data: unknown, requestId: string): unknown => ({
-  data,
-  meta: { requestId, timestamp: '2024-05-01T10:00:00Z' },
+  data, meta: { requestId, timestamp: '2024-05-01T10:00:00Z' },
 });
-
 // The failure carries a stable machine readable code and the request id.
 export const problem = (requestId: string, field: string, code: string): unknown => ({
   type: 'https://api.example.com/problems/validation-error',
   title: 'Request validation failed',
-  status: 422,
-  detail: field + ' must be a positive integer',
-  errors: [{ field, code }],
-  traceId: requestId,
+  status: 422, detail: field + ' must be a positive integer',
+  errors: [{ field, code }], traceId: requestId,
 });
-
 // The sort field comes from an allowlist and the limit is clamped.
 const ALLOWED_SORTS = new Set(['created_at', 'total', 'status']);
 export function readQuery(search: string): { sort: string; limit: number } {
   const query = new URLSearchParams(search);
   const sort = query.get('sort') ?? '';
-  return { sort: ALLOWED_SORTS.has(sort) ? sort : 'created_at',
-           limit: Math.min(Number(query.get('limit') ?? 20), 100) };
+  const rawLimit = Number(query.get('limit') ?? 20);
+  // a missing, broken or negative limit falls back to the default
+  const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(Math.trunc(rawLimit), 100) : 20;
+  return { sort: ALLOWED_SORTS.has(sort) ? sort : 'created_at', limit };
 }`,
     explanation: L(
-      'One envelope and one problem format mean a client parses two shapes instead of as many as there are endpoints, and the machine readable code is the part a program can act on. The sort field is checked against an allowlist before it is used, so a query string can never choose an arbitrary column, and the limit is clamped so one request cannot ask for the whole table.',
-      'Одна обёртка и один формат ошибки означают, что клиент разбирает две формы вместо стольких, сколько есть эндпоинтов, а машиночитаемый код — это то, на что программа может среагировать. Поле sort проверяется по allowlist до использования, поэтому query-строка не может выбрать произвольную колонку, а limit ограничивается, чтобы один запрос не забрал всю таблицу.'
+      'One envelope and one problem format mean a client parses two shapes instead of as many as there are endpoints, and the machine readable code is the part a program can act on. The sort field is checked against an allowlist before it is used, so a query string can never choose an arbitrary column, and the limit is clamped, with a value that is not a positive integer falling back to the default, so one request cannot ask for the whole table.',
+      'Одна обёртка и один формат ошибки означают, что клиент разбирает две формы вместо стольких, сколько есть эндпоинтов, а машиночитаемый код — это то, на что программа может среагировать. Поле sort проверяется по allowlist до использования, поэтому query-строка не может выбрать произвольную колонку, а limit ограничивается, и значение, которое не является положительным целым числом, заменяется значением по умолчанию, чтобы один запрос не забрал всю таблицу.'
     ),
   },
   {
@@ -370,12 +386,9 @@ export async function measure(url: string): Promise<string> {
   const startedAt = performance.now();
   const response = await fetch(url);
   const headersAt = performance.now();
-  const text = await response.text();
-  const bodyAt = performance.now();
-  return 'TTFB ' + Math.round(headersAt - startedAt) +
-    'ms, download ' + Math.round(bodyAt - headersAt) + 'ms';
+  await response.text();
+  return 'TTFB ' + Math.round(headersAt - startedAt) + 'ms, download ' + Math.round(performance.now() - headersAt) + 'ms';
 }
-
 // A token bucket refills at a constant rate and caps at the burst size.
 function createBucket(capacity: number, refillPerSecond: number): () => boolean {
   let tokens = capacity;
@@ -389,8 +402,16 @@ function createBucket(capacity: number, refillPerSecond: number): () => boolean 
     return true;
   };
 }
-
+// The excess work is refused with 429 and a Retry-After header.
+export function refuseExcess(bucket: () => boolean, retryAfterSeconds = 1): Response | null {
+  if (bucket()) return null;
+  return new Response('too many requests', {
+    status: 429,
+    headers: { 'Retry-After': String(retryAfterSeconds) },
+  });
+}
 // Liveness touches no dependency, readiness pings all of them.
+export const live = (): boolean => true;
 export const ready = async (pings: (() => Promise<boolean>)[]): Promise<boolean> =>
   (await Promise.all(pings.map((ping) => ping()))).every(Boolean);`,
     explanation: L(

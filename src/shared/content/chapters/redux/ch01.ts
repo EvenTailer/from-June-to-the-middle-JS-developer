@@ -263,7 +263,8 @@ unsubscribe();`,
 // Impure: mutates the input and reads the clock.
 function badReducer(state: State, action: { type: 'inc' }): State {
   state.count += 1;
-  return { ...state, at: Date.now() };
+  state.at = Date.now();
+  return state;
 }
 
 // Pure: the same state and action give the same result, every time.
@@ -345,7 +346,6 @@ console.log(after === before); // true - no new object was created`,
 interface CartState { items: string[]; total: number }
 
 const initialState: CartState = { items: [], total: 0 };
-
 const cartSlice = createSlice({
   name: 'cart',
   initialState,
@@ -361,7 +361,6 @@ const cartSlice = createSlice({
     },
   },
 });
-
 export const { itemAdded, cartCleared } = cartSlice.actions;
 export default cartSlice.reducer;`,
       table: {

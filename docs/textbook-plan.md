@@ -20,18 +20,21 @@ helps a comparison table, a callout and cross references.
 
 | Module | Practice topics | Quiz blocks | Chapters before | Chapters after | Sections after |
 | --- | --- | --- | --- | --- | --- |
-| html-css | markup | 5 | 4 | 8 | 36 |
-| git | git | 5 | 4 | 7 | 30 |
-| cli | cli, tooling | 5 | 4 | 8 | 35 |
-| oop | oop | 5 | 4 | 8 | 36 |
-| http | http, security | 5 | 4 | 9 | 40 |
-| js-core | types, loops, functions, arrays, objects, strings, numbers, async, dom, errors, algorithms | 5 | 4 | 14 | 75 |
-| typescript | typescript, ts-advanced | 6 | 4 | 10 | 48 |
-| react | react, hooks, forms, react-perf | 6 | 4 | 11 | 55 |
-| redux | redux | 5 | 4 | 7 | 31 |
-| react-router | router | 5 | 4 | 7 | 30 |
-| nextjs | next | 6 | 4 | 9 | 40 |
-| architecture | architecture | 5 | 5 | 7 | 32 |
+| html-css | markup | 8 | 4 | 8 | 36 |
+| git | git | 7 | 4 | 7 | 30 |
+| cli | cli, tooling | 8 | 4 | 8 | 35 |
+| oop | oop | 8 | 4 | 8 | 36 |
+| http | http, security | 9 | 4 | 9 | 40 |
+| js-core | types, loops, functions, arrays, objects, strings, numbers, async, dom, errors, algorithms | 14 | 4 | 14 | 75 |
+| typescript | typescript, ts-advanced | 10 | 4 | 10 | 48 |
+| react | react, hooks, forms, react-perf | 11 | 4 | 11 | 55 |
+| redux | redux | 7 | 4 | 7 | 31 |
+| react-router | router | 7 | 4 | 7 | 30 |
+| nextjs | next | 9 | 4 | 9 | 40 |
+| architecture | architecture | 7 | 5 | 7 | 32 |
+
+One quiz block per chapter: the blocks of a module follow the chapters of the
+textbook one to one and carry the title of their chapter.
 
 ## Section format
 
