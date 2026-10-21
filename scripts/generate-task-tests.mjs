@@ -16,9 +16,16 @@ import { languageOf } from './lib/sample-language.mjs';
 
 const args = process.argv.slice(2);
 const checkOnly = args.includes('--check');
+const verifyOnly = args.includes('--verify');
+const onlyTopics = args
+  .find((arg) => arg.startsWith('--topics='))
+  ?.slice('--topics='.length)
+  .split(',')
+  .map((name) => name.trim())
+  .filter(Boolean);
 const ROOT = args.find((arg) => !arg.startsWith('--')) ?? process.cwd();
 const TASKS = join(ROOT, 'src/shared/content/tasks');
-const CASES = join(TASKS, 'cases.ts');
+const CASES_DIR = join(TASKS, 'cases');
 const OUT = join(TASKS, 'generated/tests.ts');
 
 /** The languages the runner can execute. */
@@ -102,8 +109,28 @@ async function collectTasks() {
 const taskList = await collectTasks();
 const byId = new Map(taskList.map((task) => [task.id, task]));
 
-const caseModule = await import(pathToFileURL(CASES).href);
-const taskCases = caseModule.taskCases ?? {};
+/**
+ * The cases of the tasks. Every file of the folder holds the cases of one
+ * topic, so several authors can work at the same time.
+ */
+const taskCases = {};
+const topicsOf = {};
+for (const file of readdirSync(CASES_DIR)) {
+  if (!file.endsWith('.ts') || file === 'types.ts') continue;
+  const topic = file.replace(/\.ts$/, '');
+  if (onlyTopics && !onlyTopics.includes(topic)) continue;
+  const mod = await import(pathToFileURL(join(CASES_DIR, file)).href);
+  for (const value of Object.values(mod)) {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      for (const [taskId, cases] of Object.entries(value)) {
+        if (Array.isArray(cases)) {
+          taskCases[taskId] = cases;
+          topicsOf[taskId] = topic;
+        }
+      }
+    }
+  }
+}
 
 const generated = {};
 const problems = [];
@@ -202,6 +229,36 @@ if (checkOnly) {
   process.exit(0);
 }
 
+// With the flag --verify the script only checks the cases of the topics it
+// was given and writes nothing, so several authors can work at the same time.
+if (verifyOnly) {
+  console.log(
+    `checked ${Object.keys(generated).length} tasks and ${count} cases of ${onlyTopics ? onlyTopics.join(', ') : 'every topic'}`,
+  );
+  if (problems.length > 0) {
+    console.log('');
+    console.log(`${problems.length} problems:`);
+    for (const problem of problems) console.log(`  ${problem}`);
+    process.exit(1);
+  }
+  process.exit(0);
+}
+
+// With the flag --verify the script only checks the cases of the topics it
+// was given and writes nothing, so several authors can work at the same time.
+if (verifyOnly) {
+  console.log(
+    `checked ${Object.keys(generated).length} tasks and ${count} cases of ${onlyTopics ? onlyTopics.join(', ') : 'every topic'}`,
+  );
+  if (problems.length > 0) {
+    console.log('');
+    console.log(`${problems.length} problems:`);
+    for (const problem of problems) console.log(`  ${problem}`);
+    process.exit(1);
+  }
+  process.exit(0);
+}
+
 writeFileSync(OUT, content, 'utf8');
 
 console.log(`wrote ${Object.keys(generated).length} tasks and ${count} cases`);
@@ -211,4 +268,10 @@ if (problems.length > 0) {
   console.log('');
   console.log(`${problems.length} problems:`);
   for (const problem of problems) console.log(`  ${problem}`);
+}
+
+// With the flag --verify the script only checks the cases of the topics it
+// was given and writes nothing, so several authors can work at the same time.
+if (verifyOnly) {
+  process.exit(problems.length > 0 ? 1 : 0);
 }
