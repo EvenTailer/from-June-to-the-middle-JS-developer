@@ -5,6 +5,7 @@ const L = (en: string, ru: string) => ({ en, ru });
 export const cliTasks: PracticeTask[] = [
   {
     id: 'topic-cli-1',
+    lang: 'shell',
     moduleId: 'cli',
     topic: 'cli',
     level: 'basic',
@@ -81,6 +82,7 @@ done`,
   },
   {
     id: 'topic-cli-4',
+    lang: 'shell',
     moduleId: 'cli',
     topic: 'cli',
     level: 'intermediate',
@@ -237,6 +239,7 @@ echo "created $archive"`,
   },
   {
     id: 'topic-cli-8',
+    lang: 'shell',
     moduleId: 'cli',
     topic: 'cli',
     level: 'advanced',

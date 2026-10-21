@@ -5,6 +5,7 @@ const L = (en: string, ru: string) => ({ en, ru });
 export const httpTasks: PracticeTask[] = [
   {
     id: 'http-task-4',
+    lang: 'http',
     topic: 'http',
     level: 'basic',
     title: L('Pick the right status code', 'Выбрать правильный статус-код'),
@@ -407,6 +408,7 @@ curl -sS -i -L -o /dev/null \\
   },
   {
     id: 'http-task-15',
+    lang: 'json',
     topic: 'http',
     level: 'advanced',
     title: L('One error envelope for the whole API', 'Единый формат ошибок для всего API'),

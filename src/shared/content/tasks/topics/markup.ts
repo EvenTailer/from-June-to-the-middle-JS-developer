@@ -55,6 +55,7 @@ export const markupTasks: PracticeTask[] = [
   },
   {
     id: 'topic-markup-2',
+    lang: 'css',
     moduleId: 'html-css',
     topic: 'markup',
     level: 'basic',
@@ -261,6 +262,7 @@ section + section {
   },
   {
     id: 'topic-markup-6',
+    lang: 'css',
     moduleId: 'html-css',
     topic: 'markup',
     level: 'advanced',

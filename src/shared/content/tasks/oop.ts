@@ -437,7 +437,13 @@ console.log(config.values.apiUrl);`,
       'Wrap descriptor.value in a new function, call the original with apply, and return the descriptor. Type the decorator as MethodDecorator.',
       'Оберните descriptor.value новой функцией, вызовите оригинал через apply и верните descriptor. Типизируйте декоратор как MethodDecorator.'
     ),
-    solution: `const Logged: MethodDecorator = (target, key, descriptor) => {
+    solution: `type LogMethod = (
+  target: object,
+  key: string | symbol,
+  descriptor: TypedPropertyDescriptor<any>
+) => TypedPropertyDescriptor<any> | void;
+
+const Logged: LogMethod = (target, key, descriptor) => {
   const original = descriptor.value as (...args: unknown[]) => unknown;
 
   descriptor.value = function (this: unknown, ...args: unknown[]) {
@@ -446,6 +452,8 @@ console.log(config.values.apiUrl);`,
     console.log('result', String(key), result);
     return result;
   };
+
+  return descriptor;
 };
 
 class PaymentService {

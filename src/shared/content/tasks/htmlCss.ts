@@ -81,6 +81,7 @@ html {
   },
   {
     id: 'htmlcss-task-6',
+    lang: 'css',
     topic: 'markup',
     level: 'basic',
     title: L('Theme tokens with CSS variables', 'Тема на CSS-переменных'),
@@ -389,6 +390,7 @@ body {
   },
   {
     id: 'htmlcss-task-12',
+    lang: 'html',
     topic: 'markup',
     level: 'advanced',
     title: L('Animated accessible accordion', 'Доступный аккордеон с анимацией'),

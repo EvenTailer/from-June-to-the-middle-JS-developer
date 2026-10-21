@@ -180,6 +180,7 @@ done`,
     },
     {
       id: 'cli-task-3',
+    lang: 'shell',
       topic: 'cli',
       title: L('Find the ten largest items', 'Найти десять самых больших объектов'),
       brief: L(
@@ -371,6 +372,7 @@ smsService.placeOrder({ id: 43 });`,
     },
     {
       id: 'http-task-3',
+    lang: 'http',
       topic: 'http',
       title: L('Design REST endpoints for tasks', 'Спроектировать REST-эндпоинты для задач'),
       brief: L(

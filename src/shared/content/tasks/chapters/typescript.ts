@@ -341,6 +341,7 @@ console.log(label(DEFAULT_USER));`,
   },
   {
     id: 'ch-ts-ch9-1',
+    lang: 'json',
     moduleId: 'typescript',
     topic: 'typescript',
     chapterId: 'ts-ch9',

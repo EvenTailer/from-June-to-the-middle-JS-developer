@@ -166,6 +166,7 @@ export const htmlCssChapterTasks: PracticeTask[] = [
   },
   {
     id: 'ch-htmlcss-ch5-1',
+    lang: 'css',
     moduleId: 'html-css',
     topic: 'markup',
     chapterId: 'htmlcss-ch5',
@@ -284,6 +285,7 @@ export const htmlCssChapterTasks: PracticeTask[] = [
   },
   {
     id: 'ch-htmlcss-ch8-1',
+    lang: 'css',
     moduleId: 'html-css',
     topic: 'markup',
     chapterId: 'htmlcss-ch8',

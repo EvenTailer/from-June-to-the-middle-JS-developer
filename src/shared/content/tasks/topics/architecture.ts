@@ -283,6 +283,7 @@ const result = await checkout({ id: 'ord_1', amountCents: 1000, cardToken: 'tok_
   },
   {
     id: 'topic-architecture-4',
+    lang: 'text',
     moduleId: 'architecture',
     topic: 'architecture',
     level: 'intermediate',
@@ -778,6 +779,7 @@ export async function consumeOrderPaid(
   },
   {
     id: 'topic-architecture-8',
+    lang: 'markdown',
     moduleId: 'architecture',
     topic: 'architecture',
     level: 'advanced',

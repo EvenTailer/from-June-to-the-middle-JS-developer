@@ -61,6 +61,25 @@ export type PracticeTopicId =
   | 'tooling'
   | 'architecture';
 
+/**
+ * The language the exemplar of a task is written in. The field is optional:
+ * the checker and the test generator detect the language on their own, and
+ * the field corrects a sample they read wrong.
+ */
+export type TaskLanguage =
+  | 'js'
+  | 'jsx'
+  | 'ts'
+  | 'tsx'
+  | 'html'
+  | 'css'
+  | 'shell'
+  | 'http'
+  | 'json'
+  | 'sql'
+  | 'markdown'
+  | 'text';
+
 /** One runnable case of a practice task. */
 export interface PracticeTest {
   /** JavaScript expression the runner passes to the learner function, as in "[1, 2, 3]". */
@@ -76,6 +95,13 @@ export interface PracticeTask {
   /** Textbook chapter this task drills, as in "js-core-ch3". */
   chapterId?: string;
   level?: TaskLevel;
+  /** The language the exemplar is written in. */
+  lang?: TaskLanguage;
+  /**
+   * The name of the function the runner calls, as in "sumDigits". The runner
+   * looks for this name in the code of a learner.
+   */
+  fn?: string;
   title: LocalizedText;
   brief: LocalizedText;
   hint?: LocalizedText;
