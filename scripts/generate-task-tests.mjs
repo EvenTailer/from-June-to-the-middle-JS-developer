@@ -34,17 +34,26 @@ const RUNNABLE = new Set(['js']);
 /**
  * Runs the worker of the runner frame in Node and returns what it posts back.
  */
-function runHarness(code, cases, fn) {
+async function runHarness(code, cases, fn) {
   const posted = [];
   const scope = {
     onmessage: null,
     postMessage: (data) => posted.push(data),
   };
 
-  // eslint-disable-next-line no-new-func
-  const build = new Function('self', RUNNER_WORKER_SRC);
-  build(scope);
-  scope.onmessage({ data: { code, cases, fn } });
+  // The exemplar of a task may print to the console. The output of the
+  // worker belongs to the worker, not to the terminal of the script.
+  const consoleLog = console.log;
+  console.log = () => {};
+
+  try {
+    // eslint-disable-next-line no-new-func
+    const build = new Function('self', RUNNER_WORKER_SRC);
+    build(scope);
+    await scope.onmessage({ data: { code, cases, fn } });
+  } finally {
+    console.log = consoleLog;
+  }
 
   return posted[0] ?? { results: [], error: 'the worker posted nothing' };
 }
@@ -116,7 +125,7 @@ const byId = new Map(taskList.map((task) => [task.id, task]));
 const taskCases = {};
 const topicsOf = {};
 for (const file of readdirSync(CASES_DIR)) {
-  if (!file.endsWith('.ts') || file === 'types.ts') continue;
+  if (!file.endsWith('.ts') || file === 'caseInput.ts') continue;
   const topic = file.replace(/\.ts$/, '');
   if (onlyTopics && !onlyTopics.includes(topic)) continue;
   const mod = await import(pathToFileURL(join(CASES_DIR, file)).href);
@@ -142,7 +151,7 @@ for (const [taskId, cases] of Object.entries(taskCases)) {
     problems.push(`${taskId}: there is no task with this id`);
     continue;
   }
-  const lang = languageOf(task);
+  const lang = languageOf(task, task.code);
   if (!RUNNABLE.has(lang) && lang !== 'ts') {
     problems.push(`${taskId}: the exemplar is written in ${lang}, the runner cannot run it`);
     continue;
@@ -159,7 +168,7 @@ for (const [taskId, cases] of Object.entries(taskCases)) {
   const list = [];
   for (const testCase of cases) {
     const fn = testCase.fn ?? task.fn ?? 'solution';
-    const outcome = runHarness(
+    const outcome = await runHarness(
       code,
       [{ input: testCase.input, expect: testCase.expect }],
       fn
@@ -226,21 +235,6 @@ if (checkOnly) {
     process.exit(1);
   }
   console.log(`${relative(ROOT, OUT)} is up to date`);
-  process.exit(0);
-}
-
-// With the flag --verify the script only checks the cases of the topics it
-// was given and writes nothing, so several authors can work at the same time.
-if (verifyOnly) {
-  console.log(
-    `checked ${Object.keys(generated).length} tasks and ${count} cases of ${onlyTopics ? onlyTopics.join(', ') : 'every topic'}`,
-  );
-  if (problems.length > 0) {
-    console.log('');
-    console.log(`${problems.length} problems:`);
-    for (const problem of problems) console.log(`  ${problem}`);
-    process.exit(1);
-  }
   process.exit(0);
 }
 

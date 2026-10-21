@@ -1,28 +1,16 @@
 import { Link, NavLink } from 'react-router-dom';
-import { modules } from '../../shared/content';
 import { useAppDispatch } from '../../shared/hooks/useAppDispatch';
 import { useAppSelector } from '../../shared/hooks/useAppSelector';
+import { useCourseProgress } from '../../shared/hooks/useCourseProgress';
 import { setLanguage, toggleTheme } from '../../shared/store/uiSlice';
-import { overallProgress, totalChapterCount } from '../../shared/lib/progress';
 import { t } from '../../shared/lib/i18n';
 import { Icon } from '../../shared/ui/Icon';
-
-const totalLessons = modules.reduce((sum, module) => sum + module.lessonCount, 0);
-const totalTasks = modules.reduce((sum, module) => sum + module.taskCount, 0);
-const totalChapters = totalChapterCount(modules);
 
 export function Header() {
   const dispatch = useAppDispatch();
   const language = useAppSelector((s) => s.ui.language);
   const theme = useAppSelector((s) => s.ui.theme);
-  const completedLessons = useAppSelector((s) => s.progress.completedLessons.length);
-  const completedTasks = useAppSelector((s) => s.progress.completedTasks.length);
-  const readChapters = useAppSelector((s) => s.progress.readChapters.length);
-  const overall = overallProgress({
-    questions: { done: completedLessons, total: totalLessons },
-    chapters: { done: readChapters, total: totalChapters },
-    tasks: { done: completedTasks, total: totalTasks },
-  });
+  const { overall } = useCourseProgress();
 
   return (
     <header className="site-header">

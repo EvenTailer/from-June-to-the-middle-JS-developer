@@ -68,7 +68,12 @@ for (const file of files) {
   Object.values(mod).forEach(walk);
 
   for (const task of found) {
-    samples.push({ file, id: task.id, code: task.solution, lang: languageOf(task) });
+    samples.push({
+      file,
+      id: task.id,
+      code: task.solution,
+      lang: languageOf(task, task.solution),
+    });
   }
 }
 

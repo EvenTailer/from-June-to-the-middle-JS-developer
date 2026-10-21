@@ -209,10 +209,11 @@ export function detectSampleLanguage(code) {
  * The language a task declares. The field of the task wins over the guess of
  * the detector, so a sample that the detector reads wrong can be corrected.
  */
-export function languageOf(sample) {
+export function languageOf(sample, code) {
   const declared = typeof sample?.lang === 'string' ? sample.lang.trim().toLowerCase() : '';
   if (declared !== '' && Object.values(SAMPLE_LANGUAGE).includes(declared)) {
     return declared;
   }
-  return detectSampleLanguage(sample?.solution ?? '');
+  const source = code ?? sample?.solution ?? '';
+  return detectSampleLanguage(source);
 }

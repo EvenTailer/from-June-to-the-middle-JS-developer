@@ -224,9 +224,14 @@ function ModuleView({ entry }: { entry: NonNullable<ReturnType<typeof getModuleE
   const chapterTotal = entry.chapterCount;
   const chaptersRead = readChapters.filter((key) => key.startsWith(`${entry.id}::`)).length;
   const moduleProgress = overallProgress({
-    questions: { done: doneCount, total: entry.lessonCount },
-    chapters: { done: chaptersRead, total: chapterTotal },
-    tasks: { done: doneTasks, total: taskTotal },
+    theory: { done: doneCount + chaptersRead, total: entry.lessonCount + chapterTotal },
+    questions: {
+      done: quizBlocks.filter(
+        (block) => (quizScores[block.id] ?? 0) >= Math.ceil(block.questions.length * 0.6),
+      ).length,
+      total: quizBlockCount,
+    },
+    practice: { done: doneTasks, total: taskTotal },
   });
 
   const visibleLessons = lessons

@@ -11,10 +11,10 @@ import { useLocale } from '../../shared/hooks/useLocale';
 import { usePageTitle } from '../../shared/hooks/usePageTitle';
 import { useAppDispatch } from '../../shared/hooks/useAppDispatch';
 import { useAppSelector } from '../../shared/hooks/useAppSelector';
+import { useCourseProgress } from '../../shared/hooks/useCourseProgress';
 import { resetProgress } from '../../shared/store/progressSlice';
 import { t, plural } from '../../shared/lib/i18n';
 import { metaFor } from '../../shared/lib/moduleMeta';
-import { overallProgress, totalChapterCount } from '../../shared/lib/progress';
 import type { ModuleMeta } from '../../shared/lib/moduleMeta';
 import { Icon } from '../../shared/ui/Icon';
 import { ProgressBar } from '../../shared/ui/ProgressBar';
@@ -35,16 +35,6 @@ export function HomePage() {
   const quizScores = useAppSelector((s) => s.progress.quizScores);
   const [query, setQuery] = useState('');
 
-  const totalLessons = useMemo(
-    () => modules.reduce((sum, module) => sum + module.lessonCount, 0),
-    []
-  );
-
-  const doneLessons = useMemo(
-    () => completedLessons.filter((id) => lessonModuleById[id] !== undefined).length,
-    [completedLessons]
-  );
-
   const doneLessonsOf = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const id of completedLessons) {
@@ -61,18 +51,7 @@ export function HomePage() {
     [completedTasks]
   );
 
-  const allQuizBlocks = useMemo(
-    () => modules.flatMap((module) => quizBlockMeta(module.id, module.quizCount)),
-    []
-  );
-
-  const passedQuizzes = useMemo(
-    () =>
-      allQuizBlocks.filter(
-        (block) => (quizScores[block.id] ?? 0) >= Math.ceil(block.length * 0.6)
-      ).length,
-    [allQuizBlocks, quizScores]
-  );
+  const { layers, overall: progress } = useCourseProgress();
 
   const startedModule = modules.find((module) => {
     const done = doneLessonsOf[module.id] ?? 0;
@@ -89,25 +68,16 @@ export function HomePage() {
     modules.find((module) => (doneLessonsOf[module.id] ?? 0) < module.lessonCount) ??
     modules[0];
 
-  const theoryRatio = totalLessons > 0 ? doneLessons / totalLessons : 0;
-  const practiceRatio = totalTasks > 0 ? doneTasks / totalTasks : 0;
-
-  const totalChapters = useMemo(() => totalChapterCount(modules), []);
-
-  const doneChapters = useMemo(
-    () => readChapters.filter((key) => key.includes('::')).length,
-    [readChapters]
+  const theoryPercent = Math.round(
+    layers.theory.total > 0 ? (layers.theory.done / layers.theory.total) * 100 : 0,
   );
-
-  const textbookRatio = totalChapters > 0 ? doneChapters / totalChapters : 0;
-  const theoryPercent = Math.round(theoryRatio * 100);
-  const textbookPercent = Math.round(textbookRatio * 100);
-  const practicePercent = Math.round(practiceRatio * 100);
-  const overall = overallProgress({
-    questions: { done: doneLessons, total: totalLessons },
-    chapters: { done: doneChapters, total: totalChapters },
-    tasks: { done: doneTasks, total: totalTasks },
-  });
+  const practicePercent = Math.round(
+    layers.practice.total > 0 ? (layers.practice.done / layers.practice.total) * 100 : 0,
+  );
+  const questionsPercent = Math.round(
+    layers.questions.total > 0 ? (layers.questions.done / layers.questions.total) * 100 : 0,
+  );
+  const overall = progress;
 
   const filteredModules = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -167,24 +137,12 @@ export function HomePage() {
               <dd>{theoryPercent}%</dd>
             </div>
             <div>
-              <dt>{t(locale, 'home.stats.textbook')}</dt>
-              <dd>{textbookPercent}%</dd>
+              <dt>{t(locale, 'home.stats.quizzes')}</dt>
+              <dd>{questionsPercent}%</dd>
             </div>
             <div>
               <dt>{t(locale, 'home.stats.practice')}</dt>
               <dd>{practicePercent}%</dd>
-            </div>
-            <div>
-              <dt>{t(locale, 'home.stats.quizzes')}</dt>
-              <dd>
-                {passedQuizzes}/{allQuizBlocks.length}
-              </dd>
-            </div>
-            <div>
-              <dt>{t(locale, 'home.stats.tasks')}</dt>
-              <dd>
-                {doneTasks}/{totalTasks}
-              </dd>
             </div>
           </dl>
         </div>
@@ -192,6 +150,7 @@ export function HomePage() {
         <aside className="hero__panel" aria-label={t(locale, 'home.progress')}>
           <div
             className="ring"
+            title={t(locale, 'home.progressWeights')}
             style={{
               background: `conic-gradient(var(--accent) ${overall}%, var(--ring-track) 0)`,
             }}

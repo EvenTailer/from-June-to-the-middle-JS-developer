@@ -63,7 +63,7 @@ export interface RunnerResponse {
  * frame. The generator of the tests runs the very same source in Node, so the
  * expected values of the cases cannot drift from the runner of the app.
  */
-export const RUNNER_WORKER_SRC = String.raw`self.onmessage = function (event) {
+export const RUNNER_WORKER_SRC = String.raw`self.onmessage = async function (event) {
   var request = event.data;
   var results = [];
   var error = null;
@@ -170,18 +170,33 @@ export const RUNNER_WORKER_SRC = String.raw`self.onmessage = function (event) {
           break;
         }
         var factory = new Function(
-          request.code +
-            '\n;return typeof ' + entry + ' === "function" ? ' + entry +
-            ' : (typeof solution === "function" ? solution : null);'
+          'return (async () => {\n' + request.code +
+          '\n;return typeof ' + entry + ' === "function" ? ' + entry +
+          ' : (typeof solution === "function" ? solution : null);\n})();'
         );
-        var solution = factory();
+        var solution = await factory();
         if (typeof solution !== 'function') {
           error = 'no-solution';
           missing = entry;
           break;
         }
         var args = splitArguments(testCase.input).map(evaluate);
-        var value = solution.apply(null, args);
+        // A task may ask for a class. A class cannot be called without new,
+        // so the runner builds the object when the entry is a class.
+        var isClass = false;
+        try {
+          isClass = /^class\s/.test(String(solution));
+        } catch (classError) {
+          isClass = false;
+        }
+        var value = isClass
+          ? Reflect.construct(solution, args)
+          : solution.apply(null, args);
+        // A task may return a promise. The runner waits for it, so the result
+        // of an async task is compared and not the promise itself.
+        if (value && typeof value.then === 'function') {
+          value = await value;
+        }
         // A case can read the result of the call, for a task that returns
         // an object instead of the answer itself.
         if (testCase.expect) {

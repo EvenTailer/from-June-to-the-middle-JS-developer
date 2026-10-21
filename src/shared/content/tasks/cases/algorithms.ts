@@ -1,4 +1,4 @@
-import type { TaskCaseInput } from './types';
+﻿import type { TaskCaseInput } from './caseInput';
 
 /** The cases of the tasks of the algorithms topic. */
 export const algorithmsCases: Record<string, TaskCaseInput[]> = {
