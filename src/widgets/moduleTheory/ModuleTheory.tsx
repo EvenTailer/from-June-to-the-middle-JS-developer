@@ -124,6 +124,17 @@ export function ModuleTheory({ moduleId }: ModuleTheoryProps) {
     }, 140);
   };
 
+  /**
+   * Closes a chapter and brings the reader back to its head, so a long
+   * chapter can be closed from the bottom without scrolling up.
+   */
+  const collapseChapter = (id: string) => {
+    setOpenIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : prev));
+    window.setTimeout(() => {
+      document.getElementById(`chapter-${id}`)?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }, 140);
+  };
+
   return (
     <div className="theory">
       <div className="toolbar">
@@ -323,6 +334,29 @@ export function ModuleTheory({ moduleId }: ModuleTheoryProps) {
                     <span />
                   )}
                 </nav>
+
+                <div className="theory-chapter__foot">
+                  <button
+                    type="button"
+                    className={`theory-read${isRead ? ' is-on' : ''}`}
+                    onClick={() =>
+                      dispatch(toggleChapterRead(chapterProgressKey(moduleId, chapter.id)))
+                    }
+                    aria-pressed={isRead}
+                  >
+                    <Icon name="check" size={15} />
+                    {isRead ? t(locale, 'theory.read') : t(locale, 'theory.markRead')}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn--ghost btn--sm"
+                    onClick={() => collapseChapter(chapter.id)}
+                  >
+                    <Icon name="chevron" size={15} className="theory-chapter__foot-chevron" />
+                    {t(locale, 'theory.collapse')}
+                  </button>
+                </div>
               </div>
             )}
           </section>

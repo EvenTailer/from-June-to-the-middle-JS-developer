@@ -3043,6 +3043,22 @@ span.task-card__done {
   transform: rotate(180deg);
 }
 
+/* The bar at the end of a chapter: a long chapter can be closed and marked
+   as read from the bottom, without scrolling back up. */
+.theory-chapter__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 18px;
+  margin-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.theory-chapter__foot-chevron {
+  transform: rotate(180deg);
+}
+
 /* ---------- Practice blocks ---------- */
 
 .topic-head {

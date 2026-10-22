@@ -231,6 +231,7 @@ export const uiText: Record<string, { en: string; ru: string }> = {
   'theory.readProgress': { en: 'Read', ru: 'Прочитано' },
   'theory.expandAll': { en: 'Expand all', ru: 'Развернуть все' },
   'theory.collapseAll': { en: 'Collapse all', ru: 'Свернуть все' },
+  'theory.collapse': { en: 'Collapse the chapter', ru: 'Свернуть главу' },
   'quiz.submit': { en: 'Submit', ru: 'Проверить' },
   'quiz.score': { en: 'Your score', ru: 'Ваш результат' },
   'quiz.retry': { en: 'Retry', ru: 'Повторить' },
